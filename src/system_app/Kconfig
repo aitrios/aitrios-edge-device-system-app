@@ -1,0 +1,79 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXTERNAL_SYSTEMAPP
+	tristate "\"Hello, World!\" example for SYSTEMAPP"
+	default n
+	---help---
+		Enable the \"Hello, World!\" example for SYSTEMAPP
+
+config FIRMWARE_VERSION
+	string "Firmware version"
+	default "00.00.00"
+	---help---
+		This is the version of the AP firmware version.
+
+if EXTERNAL_SYSTEMAPP
+
+config EXTERNAL_SYSTEMAPP_PROGNAME
+	string "Program name"
+	default "SystemApp"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config EXTERNAL_SYSTEMAPP_PRIORITY
+	int "SystemApp task priority"
+	default 100
+
+config EXTERNAL_SYSTEMAPP_STACKSIZE
+	int "SystemApp stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+choice
+	prompt "Use large heap or memory map"
+	default EXTERNAL_LARGE_HEAP_FILEIO
+
+config EXTERNAL_LARGE_HEAP_FILEIO
+	bool "Use large heap"
+	---help---
+		Use large heap.
+
+config EXTERNAL_LARGE_HEAP_MEMORY_MAP
+	bool "Use memory map"
+	---help---
+		Use memory map.
+
+endchoice
+
+choice
+	prompt "Type of sensor_ai_lib"
+	default APP_EXTERNAL_SENSOR_AI_LIB_IMX500
+
+config APP_EXTERNAL_SENSOR_AI_LIB_IMX500
+	bool "Use IMX500"
+	---help---
+		Use IMX500.
+
+config APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
+	bool "Use AIISP"
+	---help---
+		Use AIISP.
+
+endchoice
+
+config EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+	bool "Enable system functions"
+	default n
+	---help---
+		Enable system functions like OTA/Network/Setting.
+
+config EXTERNAL_SYSTEMAPP_SCHEMA
+	string "schema string"
+	default "dtmi:com:sony_semicon:aitrios:sss:edge:system:t3p;2"
+	---help---
+		Schema string sending as PRIVATE_reserved state.
+
+endif

@@ -1,0 +1,6 @@
+*.o
+*.su
+*.built
+*.depend
+Make.dep
+test/build/

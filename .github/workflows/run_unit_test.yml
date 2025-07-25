@@ -1,0 +1,193 @@
+name: RunUnitTest
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Specify the ref for Unittests. You can specify a commit ID, branch name, or tag name.'
+        type: string
+        required: false
+        default: 'main'
+    outputs:
+      result:
+        description: "The result from a unit test"
+        value: ${{jobs.run_unit_test.outputs.test_script_result}}
+
+jobs:
+  check_unit_test_necessity:
+    runs-on: ubuntu-latest
+    outputs:
+      execute_unit_test: ${{ steps['check-unit-test-necessity'].outputs.execute_unit_test }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check unit test necessity
+        id: check-unit-test-necessity
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (context.eventName != 'pull_request') {
+              core.setOutput('execute_unit_test', true);
+              return;
+            }
+            
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              }
+            );
+
+            const containTargetFile = changedFiles.some(file => {
+              const filename = file.filename;
+              return !filename.startsWith('docs/') && !filename.startsWith('patch/') && filename.includes('/');
+            });
+
+            if (containTargetFile) {
+              core.setOutput('execute_unit_test', true);
+            } else {
+              core.setOutput('execute_unit_test', false);
+            }
+
+  run_unit_test:
+    needs: check_unit_test_necessity
+    if: needs.check_unit_test_necessity.outputs.execute_unit_test == 'true'
+    runs-on: ubuntu-24.04
+    outputs:
+      test_script_result: ${{ steps.unit_test_run.outputs.test_script_result }}
+    steps:
+      - name: Select checkout ref
+        id: select_ref
+        shell: bash
+        run: |
+          if [ ${{ github.event_name }} == 'pull_request' ]; then
+            checkout_ref=${{ github.event.pull_request.head.ref }}
+          else
+            checkout_ref=${{ inputs.ref }}
+          fi
+          echo "::set-output name=checkout_ref::$checkout_ref"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with: 
+          ref: ${{ steps.select_ref.outputs.checkout_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: create output file
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          echo "# UT result (commit id : ${{ github.sha }})" >> "test/output.txt"
+          
+      - name: Run setup script
+        shell: bash
+        run: |
+          set -e
+          {
+            cd test/script
+            sudo bash env_setup.sh
+          } || {
+            echo "env_setup.sh failed" >> "../output.txt"
+          }
+
+      - name: Run unit tests
+        id: unit_test_run
+        shell: bash
+        run: |
+          set -e
+          {
+            cd test/script
+            ./run_unit_test.sh
+          } || {
+            if [[ $? -eq 1 ]]; then
+              echo "run_unit_test.sh (build) failed" >> "../output.txt"
+              echo "test_script_result=build_error" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            echo "run_unit_test.sh (unit test) failed" >> "../output.txt"
+            echo "test_script_result=test_error" >> $GITHUB_OUTPUT
+            exit 2
+          }
+          echo "test_script_result=success" >> $GITHUB_OUTPUT
+
+      - name: Generate HTML format coverage files and LCOV .info file
+        if: ${{ always() && steps.unit_test_run.outputs.test_script_result != 'build_error' }}
+        run: |
+          mkdir -p html_ut_coverage
+          COV_HTML_STYLE='--html-theme blue'
+          gcovr -r src --add-tracefile "./test/coverage/*.json" --merge-mode-functions=separate \
+            --lcov html_ut_coverage/ut_coverage.info --html-nested html_ut_coverage/index.html ${COV_HTML_STYLE}
+
+      - name: write output
+        if: always() && github.event_name == 'pull_request'
+        id: output
+        shell: bash
+        run: |
+          for ((i=0; i<=2; i++))
+          do
+            if [[ -f "test/ut_coverage_c$i.txt" ]]; then
+              echo "## C$i" >> "test/output.txt"
+              while IFS= read -r line
+              do
+                if [[ $line == Directory* || $line == File* || $line == TOTAL* ]]; then
+                  if [[ $line =~ ^Directory:\ (.*)$ ]]; then
+                    dir_name=${BASH_REMATCH[1]}
+                    echo "Directory: \`$dir_name\`" >> "test/output.txt"
+                  fi
+                  if [[ $line == File* ]]; then
+                    line=${line//Missing/}
+                    line=${line//File/-}
+                  fi
+                  if [[ $line == -* || $line == TOTAL* ]]; then
+                    modified_line=$(echo "$line" | sed 's/[[:space:]]\+/|/g')
+                    echo "$modified_line" >> "test/output.txt"
+                  fi
+                  if [[ $line == -* ]]; then
+                    echo "|-|-|-|-|" >> "test/output.txt"
+                  fi
+                  if [[ $line == TOTAL* ]]; then
+                    echo "" >> "test/output.txt"
+                  fi
+                fi
+              done < "test/ut_coverage_c$i.txt"
+            fi
+          done
+          echo "[View details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "test/output.txt"
+          OUTPUT_CONTENT=$(cat test/output.txt | sed ':a;N;$!ba;s/\n/\\n/g')
+          OUTPUT_CONTENT=$(echo "$OUTPUT_CONTENT" | sed 's/`/\\`/g')
+          echo "::set-output name=content::$OUTPUT_CONTENT"
+
+      - name: Comment on the PR
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            -d "{\"body\":\"${{ steps.output.outputs.content }}\"}"
+          
+      - name: Create artifacts
+        if: ${{ always() && steps.unit_test_run.outputs.test_script_result != 'build_error' }}
+        run: |
+          mkdir -p test/artifacts
+          cp test/ut_result_*.txt test/artifacts/
+          cp test/ut_coverage_c0.txt test/artifacts/
+          cp test/ut_coverage_c1.txt test/artifacts/
+      - name: Upload artifact
+        if: ${{ always() && steps.unit_test_run.outputs.test_script_result != 'build_error' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ut_result
+          path: test/artifacts/
+
+      - name: Upload HTML format coverage report
+        if: ${{ always() && steps.unit_test_run.outputs.test_script_result != 'build_error' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: html_ut_coverage
+          path: html_ut_coverage/*

@@ -1,0 +1,105 @@
+name: PullRequestWorkflow
+
+on:
+  pull_request:
+    
+jobs:
+  format_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check code formatting
+        run: |
+          # Get list of changed C/C++ files in PR
+          git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(c|h|cpp)$' > changed_files.txt || true
+          
+          if [ ! -s changed_files.txt ]; then
+            echo "No C/C++ files changed, skipping format check"
+            exit 0
+          fi
+          
+          # Check formatting for each changed file
+          format_errors=0
+          echo "Checking formatting for changed files:"
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              echo "Checking format for $file"
+              
+              # Create a temporary file with formatted content using .clang-format
+              clang-format "$file" > "${file}.formatted"
+              
+              # Compare original and formatted content
+              if ! diff -q "$file" "${file}.formatted" > /dev/null 2>&1; then
+                echo "failed $file is not properly formatted"
+                echo "To fix: clang-format -i $file"
+                echo "Differences found:"
+                diff -u "$file" "${file}.formatted" || true
+                format_errors=1
+              else
+                echo "success $file is formatted"
+              fi
+              
+              # Clean up temporary file
+              rm -f "${file}.formatted"
+            fi
+          done < changed_files.txt
+          
+          if [ $format_errors -eq 1 ]; then
+            echo ""
+            echo "Format check failed. Please run 'clang-format -i <file>' to fix formatting issues"
+            exit 1
+          fi
+          
+          echo "All files are formatted"
+
+  run_unit_test:
+    needs: format_check
+    uses: ./.github/workflows/run_unit_test.yml
+    secrets: inherit
+
+  report_unit_test_status:
+    needs: run_unit_test
+    if: always() # have to run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report Unit Test Status
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const octokit = github;
+            const unitTestResult = '${{ needs.run_unit_test.outputs.result }}';
+
+            let state;
+            let description;
+
+            if (unitTestResult === '') {
+              state = 'success';
+              description = 'Unit tests were skipped';
+            } else {
+              const unitTestStatus = '${{ needs.run_unit_test.outputs.result }}';
+              state = unitTestStatus === 'success' ? 'success' : 'failure';
+              description = unitTestStatus === 'success' 
+                ? 'Unit tests completed successfully' 
+                : 'Unit tests failed';
+            }
+
+            await octokit.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: state,
+              context: 'run_unit_test',
+              description: description,
+              target_url: 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions'
+            });
+
