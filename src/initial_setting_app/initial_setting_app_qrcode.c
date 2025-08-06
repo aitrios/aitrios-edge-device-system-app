@@ -751,7 +751,6 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
     static bool contain_evphub_port;
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
     static bool contain_wifi_ssid;
-    static bool contain_wifi_password;
 #endif
     static bool contain_project_id;
     static bool contain_register_token;
@@ -777,7 +776,6 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             contain_evphub_port = false;
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
             contain_wifi_ssid = false;
-            contain_wifi_password = false;
 #endif
             contain_project_id = false;
             contain_register_token = false;
@@ -890,9 +888,23 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case WiFiPassword:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_wifi_pass,
                                           sizeof(sp_payload_info->m_wifi_pass));
-#if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
-                contain_wifi_password = true;
-#endif
+
+                // Validate WiFi password length (reject 1-7 character passwords, except single space)
+                if (*sp_payload_info->m_wifi_pass != '\0') {
+                    int password_len = strnlen(sp_payload_info->m_wifi_pass,
+                                               sizeof(sp_payload_info->m_wifi_pass));
+                    // Allow single space as valid password, reject other 1-7 character passwords
+                    if (password_len >= 1 && password_len < 8 &&
+                        !(password_len == 1 && sp_payload_info->m_wifi_pass[0] == ' ')) {
+                        ISA_ERR(
+                            "Invalid QR Code: WiFi password length must be 0 (open), single space, "
+                            "or 8+ "
+                            "characters (encrypted), got %d",
+                            password_len);
+                        memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
+                        return ret;
+                    }
+                }
                 break;
 
             case ProxyURL:
@@ -1073,8 +1085,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
         /* Check if mandatory parameters are missing. */
 
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
-        if (!contain_evphub_url || !contain_evphub_port || !contain_wifi_ssid ||
-            !contain_wifi_password) {
+        if (!contain_evphub_url || !contain_evphub_port || !contain_wifi_ssid) {
             ISA_ERR("Mandatory parameters are missing.");
             memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
             return ret;

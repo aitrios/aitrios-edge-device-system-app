@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ github.event_name }} == 'pull_request' ]; then
-            checkout_ref=${{ github.event.pull_request.head.ref }}
+            checkout_ref=${{ github.event.pull_request.head.sha }}
           else
             checkout_ref=${{ inputs.ref }}
           fi
