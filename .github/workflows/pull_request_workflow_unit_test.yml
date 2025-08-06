@@ -68,7 +68,7 @@ jobs:
 
   report_unit_test_status:
     needs: run_unit_test
-    if: always() # have to run
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository # only run for same-repo PRs
     runs-on: ubuntu-latest
     steps:
       - name: Report Unit Test Status
