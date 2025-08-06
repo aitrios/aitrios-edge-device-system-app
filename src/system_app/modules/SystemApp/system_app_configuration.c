@@ -2480,7 +2480,16 @@ RetCode SysAppCfgStaModeSetting(const char* param)
     if (extret >= 0) {
         if ((extret >= 1) && (strnlen(password, (CFGST_WIRELESS_STA_PASSWORD_LEN + 1)) <=
                               CFGST_WIRELESS_STA_PASSWORD_LEN)) {
-            if (CheckUpdateString(topic, StaPassword, password)) {
+            int password_len = strnlen(password, (CFGST_WIRELESS_STA_PASSWORD_LEN + 1));
+
+            // Reject passwords with length 1-7 characters
+            if (password_len >= 1 && password_len < 8) {
+                SYSAPP_WARN(
+                    "Invalid password length: password must be 0 characters (open) or 8+ "
+                    "characters (encrypted)");
+                SysAppStateSetInvalidArgError(topic, StaPassword);
+            }
+            else if (CheckUpdateString(topic, StaPassword, password)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
                 esfnm_mask.normal_mode.wifi_sta.password = 1;
                 snprintf(esfnm_param.normal_mode.wifi_sta.password,

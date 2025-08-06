@@ -1008,11 +1008,7 @@ static void test_IsaQrcodeDecodePayload_UserData_EVPHubURLPortWifiSSID(void **st
         "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;U1FS"; // EVPHubURLPortWiFiSSID
     size_t payload_size = strlen(payload);
 
-#if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
-    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
-#else
     VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
-#endif
     return;
 }
 
@@ -1110,16 +1106,11 @@ static void test_IsaQrcodeDecodePayload_UserData_RequiredFields_noS(void **state
 /*----------------------------------------------------------------------------*/
 static void test_IsaQrcodeDecodePayload_UserData_RequiredFields_noP(void **state)
 {
-    const char *payload =
-        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;U1FS"; // Required(T3Ws)-WiFiPassword
+    const char *payload = "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;U1FS";
 
     size_t payload_size = strlen(payload);
 
-#if defined(CONFIG_BOARD_WIFI_SMALL_ES) /* T3Ws */
-    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
-#else
     VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
-#endif
     return;
 }
 
@@ -1311,6 +1302,66 @@ static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_Oversize(void **st
     const char *payload =
         "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
         "P=WiFiPassword8k8Nq63iN0KtSIpA59R6i;U1FS"; // WiFiPassword(33charas)
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_1char_Invalid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
+        "P=1;U1FS"; // WiFiPassword(1char - invalid)
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_7char_Invalid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
+        "P=1234567;U1FS"; // WiFiPassword(7chars - invalid)
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_8char_Valid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
+        "P=12345678;U1FS"; // WiFiPassword(8chars - valid)
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_Empty_Valid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
+        "P=;U1FS"; // WiFiPassword(empty - valid for open networks)
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_WiFiPassword_SingleSpace_Valid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;"
+        "P= ;U1FS"; // WiFiPassword(single space - valid)
     size_t payload_size = strlen(payload);
 
     VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
@@ -6311,6 +6362,16 @@ int main(void)
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_WiFiPassword_Oversize,
                                         setup, teardown),
+        cmocka_unit_test_setup_teardown(
+            test_IsaQrcodeDecodePayload_UserData_WiFiPassword_1char_Invalid, setup, teardown),
+        cmocka_unit_test_setup_teardown(
+            test_IsaQrcodeDecodePayload_UserData_WiFiPassword_7char_Invalid, setup, teardown),
+        cmocka_unit_test_setup_teardown(
+            test_IsaQrcodeDecodePayload_UserData_WiFiPassword_8char_Valid, setup, teardown),
+        cmocka_unit_test_setup_teardown(
+            test_IsaQrcodeDecodePayload_UserData_WiFiPassword_Empty_Valid, setup, teardown),
+        cmocka_unit_test_setup_teardown(
+            test_IsaQrcodeDecodePayload_UserData_WiFiPassword_SingleSpace_Valid, setup, teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_ProxyURL_only, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_ProxyURL, setup,

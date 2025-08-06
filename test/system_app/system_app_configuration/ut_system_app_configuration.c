@@ -13263,6 +13263,168 @@ static void test_SysAppCfgStaModeSetting_ErrorCmnExtractStrPasswordTooLong(void 
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaModeSetting_ErrorPasswordLength1Char(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    uint32_t topic = ST_TOPIC_WIRELESS_SETTING;
+    const char *ssid = "WIRELESS SETTING SSID";
+    const char *password = "1"; // 1 character password (invalid)
+    EsfNetworkManagerParameterMask ssid_mask = {0};
+    EsfNetworkManagerParameter ssid_param = {0};
+    EsfNetworkManagerParameterMask encryption_mask = {0};
+    EsfNetworkManagerParameter encryption_param = {0};
+
+    CheckJsonOpen(esfj_handle, val, sta_mode_setting);
+
+    CheckWirelessSettingStaModeSettingSsid(esfj_handle, val, &ssid_mask, &ssid_param, ssid);
+
+    // CASE: SysAppCmnExtractStringValue retrieves 1 character (invalid length).
+    // For SysAppCmnExtractStringValue() about password
+    ForSysAppCmnExtractStringValue(esfj_handle, val, "password", password, 1);
+
+    // For SysAppStateSetInvalidArgError() about password
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, StaPassword);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    CheckWirelessSettingStaModeSettingEncryption(esfj_handle, val, &encryption_mask,
+                                                 &encryption_param);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaModeSetting(sta_mode_setting);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaModeSetting_ErrorPasswordLength7Chars(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    uint32_t topic = ST_TOPIC_WIRELESS_SETTING;
+    const char *ssid = "WIRELESS SETTING SSID";
+    const char *password = "1234567"; // 7 character password (invalid)
+    EsfNetworkManagerParameterMask ssid_mask = {0};
+    EsfNetworkManagerParameter ssid_param = {0};
+    EsfNetworkManagerParameterMask encryption_mask = {0};
+    EsfNetworkManagerParameter encryption_param = {0};
+
+    CheckJsonOpen(esfj_handle, val, sta_mode_setting);
+
+    CheckWirelessSettingStaModeSettingSsid(esfj_handle, val, &ssid_mask, &ssid_param, ssid);
+
+    // CASE: SysAppCmnExtractStringValue retrieves 7 characters (invalid length).
+    // For SysAppCmnExtractStringValue() about password
+    ForSysAppCmnExtractStringValue(esfj_handle, val, "password", password, 1);
+
+    // For SysAppStateSetInvalidArgError() about password
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, StaPassword);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    CheckWirelessSettingStaModeSettingEncryption(esfj_handle, val, &encryption_mask,
+                                                 &encryption_param);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaModeSetting(sta_mode_setting);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaModeSetting_SuccessPassword8Chars(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    const char *ssid = "WIRELESS SETTING SSID";
+    const char *password = "12345678"; // 8 character password (valid)
+    EsfNetworkManagerParameterMask ssid_mask = {0};
+    EsfNetworkManagerParameter ssid_param = {0};
+    EsfNetworkManagerParameterMask password_mask = {0};
+    EsfNetworkManagerParameter password_param = {0};
+    EsfNetworkManagerParameterMask encryption_mask = {0};
+    EsfNetworkManagerParameter encryption_param = {0};
+
+    CheckJsonOpen(esfj_handle, val, sta_mode_setting);
+
+    CheckWirelessSettingStaModeSettingSsid(esfj_handle, val, &ssid_mask, &ssid_param, ssid);
+
+    CheckWirelessSettingStaModeSettingPassword(esfj_handle, val, &password_mask, &password_param,
+                                               password);
+
+    CheckWirelessSettingStaModeSettingEncryption(esfj_handle, val, &encryption_mask,
+                                                 &encryption_param);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaModeSetting(sta_mode_setting);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaModeSetting_SuccessEmptyPassword(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    const char *ssid = "WIRELESS SETTING SSID";
+    const char *password = ""; // Empty password (valid for open networks)
+    EsfNetworkManagerParameterMask ssid_mask = {0};
+    EsfNetworkManagerParameter ssid_param = {0};
+    EsfNetworkManagerParameterMask password_mask = {0};
+    EsfNetworkManagerParameter password_param = {0};
+    EsfNetworkManagerParameterMask encryption_mask = {0};
+    EsfNetworkManagerParameter encryption_param = {0};
+
+    CheckJsonOpen(esfj_handle, val, sta_mode_setting);
+
+    CheckWirelessSettingStaModeSettingSsid(esfj_handle, val, &ssid_mask, &ssid_param, ssid);
+
+    CheckWirelessSettingStaModeSettingPassword(esfj_handle, val, &password_mask, &password_param,
+                                               password);
+
+    CheckWirelessSettingStaModeSettingEncryption(esfj_handle, val, &encryption_mask,
+                                                 &encryption_param);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaModeSetting(sta_mode_setting);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 static void test_SysAppCfgStaModeSetting_ErrorCheckUpdateStringPassword(void **state)
 {
     RetCode ret;
@@ -16502,6 +16664,10 @@ int main(void)
         cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorCmnExtractStrPassword),
         cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorCmnExtractStrInvalidPassword),
         cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorCmnExtractStrPasswordTooLong),
+        cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorPasswordLength1Char),
+        cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorPasswordLength7Chars),
+        cmocka_unit_test(test_SysAppCfgStaModeSetting_SuccessPassword8Chars),
+        cmocka_unit_test(test_SysAppCfgStaModeSetting_SuccessEmptyPassword),
         cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorCheckUpdateStringPassword),
         cmocka_unit_test(test_SysAppCfgStaModeSetting_CheckUpdateStringPasswordNotUpdated),
         cmocka_unit_test(test_SysAppCfgStaModeSetting_ErrorEsfNMSaveParameterPassword),
