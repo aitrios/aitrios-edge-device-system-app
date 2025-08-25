@@ -74,3 +74,24 @@ EsfPwrMgrError __wrap_EsfPwrMgrGetSupplyType(EsfPwrMgrSupplyType *supply_type)
 void __wrap_EsfPwrMgrWdtTerminate(void)
 {
 }
+
+/*----------------------------------------------------------------------------*/
+EsfPwrMgrError __wrap_EsfPwrMgrSwWdtStart(uint8_t id)
+{
+    check_expected(id);
+    return mock_type(EsfPwrMgrError);
+}
+
+/*----------------------------------------------------------------------------*/
+EsfPwrMgrError __wrap_EsfPwrMgrSwWdtStop(uint8_t id)
+{
+    check_expected(id);
+    return mock_type(EsfPwrMgrError);
+}
+
+/*----------------------------------------------------------------------------*/
+EsfPwrMgrError __wrap_EsfPwrMgrSwWdtKeepalive(uint8_t id)
+{
+    check_expected(id);
+    return mock_type(EsfPwrMgrError);
+}

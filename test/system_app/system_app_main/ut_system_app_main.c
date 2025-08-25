@@ -22,6 +22,7 @@
 #include "clock_manager.h"
 #include "clock_manager_setting.h"
 #include "sensor_main.h"
+#include "power_manager.h"
 
 #include "system_app_common.h"
 #include "system_app_main_private.h"
@@ -51,6 +52,7 @@ extern TerminationReason SysAppMain(void);
 int ut_test_connect_wait_retry = 0;
 
 #define NETWORK_CONNECT_RETRY_NUM (15)
+#define SYSTEM_APP_SW_WDT_ID CONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2
 
 /*----------------------------------------------------------------------------*/
 //
@@ -2623,6 +2625,16 @@ static void test_SysAppMain_SysProcessEventError(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -2630,6 +2642,10 @@ static void test_SysAppMain_SysProcessEventError(void** state)
     will_return(__wrap_SYS_process_event, SYS_RESULT_SHOULD_EXIT);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -2744,6 +2760,16 @@ static void test_SysAppMain_SelfTerminateRequested(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -2756,6 +2782,10 @@ static void test_SysAppMain_SelfTerminateRequested(void** state)
     will_return(__wrap_SysAppDcmdCheckSelfTerminate, true);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -2870,6 +2900,16 @@ static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -2882,6 +2922,10 @@ static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
     will_return(__wrap_SysAppDcmdCheckSelfTerminate, true);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3000,6 +3044,16 @@ static void test_SysAppMain_RebootRequested(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3016,6 +3070,10 @@ static void test_SysAppMain_RebootRequested(void** state)
     will_return(__wrap_SysAppBtnCheckRebootRequest, true);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3130,6 +3188,16 @@ static void test_SysAppMain_FactoryResetRequested(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3150,6 +3218,10 @@ static void test_SysAppMain_FactoryResetRequested(void** state)
     will_return(__wrap_SysAppBtnCheckFactoryResetRequest, true);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3268,10 +3340,20 @@ static void test_SysAppMain_DeployResetRequested(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
     // Loop until retry max.
 
     {
         for (int cnt = 0; cnt < 32; cnt++) {
+            // Check EsfPwrMgrSwWdtKeepAlive.
+
+            expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+            will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
             // Check SYS_process_event.
 
             expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3303,6 +3385,10 @@ static void test_SysAppMain_DeployResetRequested(void** state)
     }
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3416,10 +3502,20 @@ static void test_SysAppMain_DeployFactoryResetRequested(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
     // Loop until retry max.
 
     {
         for (int cnt = 0; cnt < 32; cnt++) {
+            // Check EsfPwrMgrSwWdtKeepAlive.
+
+            expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+            will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
             // Check SYS_process_event.
 
             expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3451,6 +3547,10 @@ static void test_SysAppMain_DeployFactoryResetRequested(void** state)
     }
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3571,9 +3671,19 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
     // 1st loop.
 
     {
+        // Check EsfPwrMgrSwWdtKeepAlive.
+
+        expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+        will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
         // Check SYS_process_event.
 
         expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3607,6 +3717,11 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
 
     {
         for (int cnt = 0; cnt < 32; cnt++) {
+            // Check EsfPwrMgrSwWdtKeepAlive.
+
+            expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+            will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
             // Check SYS_process_event.
 
             expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3634,6 +3749,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
     }
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3749,9 +3868,19 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
     // 1st loop.
 
     {
+        // Check EsfPwrMgrSwWdtKeepAlive.
+
+        expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+        will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
         // Check SYS_process_event.
 
         expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3785,6 +3914,11 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
 
     {
         for (int cnt = 0; cnt < 32; cnt++) {
+            // Check EsfPwrMgrSwWdtKeepAlive.
+
+            expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+            will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
             // Check SYS_process_event.
 
             expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -3812,6 +3946,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
     }
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -3996,6 +4134,16 @@ static void test_SysAppMain_ConnectNetworkRetry(void** state)
 
     will_return(__wrap_SysAppDeployInitialize, kRetOk);
 
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepAlive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
     // Check SYS_process_event.
 
     expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
@@ -4003,6 +4151,10 @@ static void test_SysAppMain_ConnectNetworkRetry(void** state)
     will_return(__wrap_SYS_process_event, SYS_RESULT_SHOULD_EXIT);
 
     // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
 
     // Check SysAppDeployFinalize.
 
@@ -4792,6 +4944,403 @@ static void test_SysAppMain_SysAppDeployInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void** state)
+{
+    TerminationReason reason = UnDefined;
+    struct SYS_client sys_client;
+
+    // Check SsfSensorInit.
+
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
+
+    // ConnectNetwork, fully success.
+
+    ConnectNetwork_FullySuccess_WiFiConnected(kEsfNetworkManagerResultSuccess);
+
+    // Check SysAppBtnCheckRebootRequest.
+
+    will_return(__wrap_SysAppBtnCheckRebootRequest, false);
+
+    // Check SysAppBtnCheckFactoryResetRequest.
+
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, false);
+
+    // StartSyncNtp, fully success.
+
+    StartSyncNtp_FullySuccess();
+
+    // Check task_create.
+    task_create_Success();
+
+    // Check EVP_Agent_register_sys_client.
+
+    will_return(__wrap_EVP_Agent_register_sys_client, &sys_client);
+
+    // Check SysAppTimerInitialize.
+
+    will_return(__wrap_SysAppTimerInitialize, kRetOk);
+
+    // Check SysAppDcmdInitialize.
+
+    will_return(__wrap_SysAppDcmdInitialize, kRetOk);
+
+    // Check SysAppCfgInitialize.
+
+    will_return(__wrap_SysAppCfgInitialize, kRetOk);
+
+    // Check SysAppStaInitialize.
+
+    will_return(__wrap_SysAppStaInitialize, kRetOk);
+
+    // Check SysAppUdInitialize.
+
+    will_return(__wrap_SysAppUdInitialize, kRetOk);
+
+    // Check SysAppDeployInitialize.
+
+    will_return(__wrap_SysAppDeployInitialize, kRetOk);
+
+    // Check EsfPwrMgrSwWdtStart - This will fail and cause goto sw_wdt_start_failed.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrErrorInternal); // Return error
+
+    // Check SysAppDeployFinalize.
+
+    will_return(__wrap_SysAppDeployFinalize, kRetOk);
+
+    // Check SysAppUdFinalize.
+
+    will_return(__wrap_SysAppUdFinalize, kRetOk);
+
+    // Check SysAppStaFinalize.
+
+    will_return(__wrap_SysAppStaFinalize, kRetOk);
+
+    // Check SysAppCfgFinalize.
+
+    will_return(__wrap_SysAppCfgFinalize, kRetOk);
+
+    // Check SysAppDcmdFinalize.
+
+    will_return(__wrap_SysAppDcmdFinalize, kRetOk);
+
+    // Check SysAppTimerFinalize.
+
+    will_return(__wrap_SysAppTimerFinalize, kRetOk);
+
+    // Check EVP_Agent_unregister_sys_client.
+
+    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check task_delete.
+#if defined(__NuttX__)
+    will_return(__wrap_task_delete, 0);
+#endif
+
+    StopSyncNtp_FullySuccess();
+
+    DisconnectNetwork_FullySuccess();
+
+    // Check SsfSensorExit.
+
+    will_return(__wrap_EsfSensorExit, kEsfSensorOk);
+
+    // Check pthread_exit.
+
+    // will_return(__wrap_pthread_exit, 0);
+
+    // Execute test target.
+
+#if defined(__NuttX__)
+    SysAppMain(&reason);
+#endif
+#if defined(__linux__)
+    reason = SysAppMain();
+#endif
+
+    // Check value.
+
+    assert_int_equal(reason, UnDefined);
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void** state)
+{
+    TerminationReason reason = UnDefined;
+    struct SYS_client sys_client;
+
+    // Check SsfSensorInit.
+
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
+
+    // ConnectNetwork, fully success.
+
+    ConnectNetwork_FullySuccess_WiFiConnected(kEsfNetworkManagerResultSuccess);
+
+    // Check SysAppBtnCheckRebootRequest.
+
+    will_return(__wrap_SysAppBtnCheckRebootRequest, false);
+
+    // Check SysAppBtnCheckFactoryResetRequest.
+
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, false);
+
+    // StartSyncNtp, fully success.
+
+    StartSyncNtp_FullySuccess();
+
+    // Check task_create.
+    task_create_Success();
+
+    // Check EVP_Agent_register_sys_client.
+
+    will_return(__wrap_EVP_Agent_register_sys_client, &sys_client);
+
+    // Check SysAppTimerInitialize.
+
+    will_return(__wrap_SysAppTimerInitialize, kRetOk);
+
+    // Check SysAppDcmdInitialize.
+
+    will_return(__wrap_SysAppDcmdInitialize, kRetOk);
+
+    // Check SysAppCfgInitialize.
+
+    will_return(__wrap_SysAppCfgInitialize, kRetOk);
+
+    // Check SysAppStaInitialize.
+
+    will_return(__wrap_SysAppStaInitialize, kRetOk);
+
+    // Check SysAppUdInitialize.
+
+    will_return(__wrap_SysAppUdInitialize, kRetOk);
+
+    // Check SysAppDeployInitialize.
+
+    will_return(__wrap_SysAppDeployInitialize, kRetOk);
+
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepalive - This will fail but execution continues.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrErrorInternal); // Return error
+
+    // Check SYS_process_event.
+
+    expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
+    expect_value(__wrap_SYS_process_event, ms, 1000);
+    will_return(__wrap_SYS_process_event, SYS_RESULT_SHOULD_EXIT);
+
+    // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrOk);
+
+    // Check SysAppDeployFinalize.
+
+    will_return(__wrap_SysAppDeployFinalize, kRetOk);
+
+    // Check SysAppUdFinalize.
+
+    will_return(__wrap_SysAppUdFinalize, kRetOk);
+
+    // Check SysAppStaFinalize.
+
+    will_return(__wrap_SysAppStaFinalize, kRetOk);
+
+    // Check SysAppCfgFinalize.
+
+    will_return(__wrap_SysAppCfgFinalize, kRetOk);
+
+    // Check SysAppDcmdFinalize.
+
+    will_return(__wrap_SysAppDcmdFinalize, kRetOk);
+
+    // Check SysAppTimerFinalize.
+
+    will_return(__wrap_SysAppTimerFinalize, kRetOk);
+
+    // Check EVP_Agent_unregister_sys_client.
+
+    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check task_delete.
+#if defined(__NuttX__)
+    will_return(__wrap_task_delete, 0);
+#endif
+
+    StopSyncNtp_FullySuccess();
+
+    DisconnectNetwork_FullySuccess();
+
+    // Check SsfSensorExit.
+
+    will_return(__wrap_EsfSensorExit, kEsfSensorOk);
+
+    // Check pthread_exit.
+
+    // will_return(__wrap_pthread_exit, 0);
+
+    // Execute test target.
+
+#if defined(__NuttX__)
+    SysAppMain(&reason);
+#endif
+#if defined(__linux__)
+    reason = SysAppMain();
+#endif
+
+    // Check value.
+
+    assert_int_equal(reason, UnDefined);
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void** state)
+{
+    TerminationReason reason = UnDefined;
+    struct SYS_client sys_client;
+
+    // Check SsfSensorInit.
+
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
+
+    // ConnectNetwork, fully success.
+
+    ConnectNetwork_FullySuccess_WiFiConnected(kEsfNetworkManagerResultSuccess);
+
+    // Check SysAppBtnCheckRebootRequest.
+
+    will_return(__wrap_SysAppBtnCheckRebootRequest, false);
+
+    // Check SysAppBtnCheckFactoryResetRequest.
+
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, false);
+
+    // StartSyncNtp, fully success.
+
+    StartSyncNtp_FullySuccess();
+
+    // Check task_create.
+    task_create_Success();
+
+    // Check EVP_Agent_register_sys_client.
+
+    will_return(__wrap_EVP_Agent_register_sys_client, &sys_client);
+
+    // Check SysAppTimerInitialize.
+
+    will_return(__wrap_SysAppTimerInitialize, kRetOk);
+
+    // Check SysAppDcmdInitialize.
+
+    will_return(__wrap_SysAppDcmdInitialize, kRetOk);
+
+    // Check SysAppCfgInitialize.
+
+    will_return(__wrap_SysAppCfgInitialize, kRetOk);
+
+    // Check SysAppStaInitialize.
+
+    will_return(__wrap_SysAppStaInitialize, kRetOk);
+
+    // Check SysAppUdInitialize.
+
+    will_return(__wrap_SysAppUdInitialize, kRetOk);
+
+    // Check SysAppDeployInitialize.
+
+    will_return(__wrap_SysAppDeployInitialize, kRetOk);
+
+    // Check EsfPwrMgrSwWdtStart.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtStart, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStart, kEsfPwrMgrOk);
+
+    // Check EsfPwrMgrSwWdtKeepalive.
+
+    expect_value(__wrap_EsfPwrMgrSwWdtKeepalive, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtKeepalive, kEsfPwrMgrOk);
+
+    // Check SYS_process_event.
+
+    expect_memory(__wrap_SYS_process_event, c, &sys_client, sizeof(sys_client));
+    expect_value(__wrap_SYS_process_event, ms, 1000);
+    will_return(__wrap_SYS_process_event, SYS_RESULT_SHOULD_EXIT);
+
+    // Check EsfPwrMgrWdtTerminate.
+
+    // Check EsfPwrMgrSwWdtStop - This will fail but execution continues.
+    expect_value(__wrap_EsfPwrMgrSwWdtStop, id, SYSTEM_APP_SW_WDT_ID);
+    will_return(__wrap_EsfPwrMgrSwWdtStop, kEsfPwrMgrErrorInternal); // Return error
+
+    // Check SysAppDeployFinalize.
+
+    will_return(__wrap_SysAppDeployFinalize, kRetOk);
+
+    // Check SysAppUdFinalize.
+
+    will_return(__wrap_SysAppUdFinalize, kRetOk);
+
+    // Check SysAppStaFinalize.
+
+    will_return(__wrap_SysAppStaFinalize, kRetOk);
+
+    // Check SysAppCfgFinalize.
+
+    will_return(__wrap_SysAppCfgFinalize, kRetOk);
+
+    // Check SysAppDcmdFinalize.
+
+    will_return(__wrap_SysAppDcmdFinalize, kRetOk);
+
+    // Check SysAppTimerFinalize.
+
+    will_return(__wrap_SysAppTimerFinalize, kRetOk);
+
+    // Check EVP_Agent_unregister_sys_client.
+
+    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check task_delete.
+#if defined(__NuttX__)
+    will_return(__wrap_task_delete, 0);
+#endif
+
+    StopSyncNtp_FullySuccess();
+
+    DisconnectNetwork_FullySuccess();
+
+    // Check SsfSensorExit.
+
+    will_return(__wrap_EsfSensorExit, kEsfSensorOk);
+
+    // Check pthread_exit.
+
+    // will_return(__wrap_pthread_exit, 0);
+
+    // Execute test target.
+
+#if defined(__NuttX__)
+    SysAppMain(&reason);
+#endif
+#if defined(__linux__)
+    reason = SysAppMain();
+#endif
+
+    // Check value.
+
+    assert_int_equal(reason, UnDefined);
+}
+
+/*----------------------------------------------------------------------------*/
 
 //
 // system_app_main_for_test
@@ -5448,6 +5997,9 @@ int main(void)
         cmocka_unit_test(test_SysAppMain_SysAppStaInitializeError),
         cmocka_unit_test(test_SysAppMain_SysAppUdInitializeError),
         cmocka_unit_test(test_SysAppMain_SysAppDeployInitializeError),
+        cmocka_unit_test(test_SysAppMain_EsfPwrMgrSwWdtStartError),
+        cmocka_unit_test(test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError),
+        cmocka_unit_test(test_SysAppMain_EsfPwrMgrSwWdtStopError),
 
     // system_app_main_for_test
 #if defined(__NuttX__)

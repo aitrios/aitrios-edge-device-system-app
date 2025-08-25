@@ -29,6 +29,9 @@ add_definitions(-DINITIAL_SETTING_APP_UT)
 # for log output
 # add_definitions(-DUT_LOG_OUTPUT_ENABLE)
 
+# for sw wdt
+add_definitions(-DCONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2=2)
+
 if(NOT DEFINED DEVICE_TYPE)
   set(DEVICE_TYPE Undefine)
 endif()
@@ -261,6 +264,9 @@ set(WRAP_ESF_SYMBOLES
     EsfPwrMgrHoursMeterGetValue
     EsfPwrMgrGetSupplyType
     EsfPwrMgrWdtTerminate
+    EsfPwrMgrSwWdtStart
+    EsfPwrMgrSwWdtStop
+    EsfPwrMgrSwWdtKeepalive
 
     ## clock_manager
     EsfClockManagerSetParamsForcibly
