@@ -9959,6 +9959,175 @@ static void test_SendDirectCommandResponse_ErrorSendDirectCommandResponseCore(vo
     assert_int_equal(ret, kRetMemoryError);
 }
 
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+/*----------------------------------------------------------------------------*/
+static void test_DirectCommandUnimplementedCallback_FullySuccess(void **state)
+{
+    SYS_response_id cmd_id = 777;
+    const char *req_id = "No.4680";
+    const char *param = "test_param_string";
+    bool expect_btn_fc_request = false;
+
+    s_sys_client = (struct SYS_client *)0x98765432;
+    s_terminate_request =
+        UnDefined; // Set to normal state so CheckDirectCommandExecutable returns true
+
+    // set SysAppBtnCheckFactoryResetRequest() return value
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, expect_btn_fc_request);
+
+    // Check SendDirectCommandResponseAsync function
+    SendDirectCommandResponseAsync_FullSuccess(s_sys_client, cmd_id, req_id, DcUnimplemented, NULL,
+                                               NULL);
+
+    // Exec test target
+    DirectCommandUnimplementedCallback(s_sys_client, cmd_id, param, NULL);
+
+    // Exec SYS_process_event() to free allocate memory for dcres_ctx and dcres_ctx->response
+    ExecSysProcessEventForMemoryFree();
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_DirectCommandUnimplementedCallback_paramsNull(void **state)
+{
+    SYS_response_id cmd_id = 777;
+    const char *req_id = "No.4680";
+    const char *param = NULL;
+    bool expect_btn_fc_request = false;
+
+    s_sys_client = (struct SYS_client *)0x98765432;
+    s_terminate_request =
+        UnDefined; // Set to normal state so CheckDirectCommandExecutable returns true
+
+    // set SysAppBtnCheckFactoryResetRequest() return value
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, expect_btn_fc_request);
+
+    // Check SendDirectCommandResponseAsync
+    SendDirectCommandResponseAsync_FullSuccess(s_sys_client, cmd_id, req_id, DcUnimplemented, NULL,
+                                               NULL);
+
+    // Exec test target
+    DirectCommandUnimplementedCallback(s_sys_client, cmd_id, param, NULL);
+
+    // Exec SYS_process_event() to free allocate memory for dcres_ctx and dcres_ctx->response
+    ExecSysProcessEventForMemoryFree();
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_DirectCommandUnimplementedCallback_DirectCommandCallbackCommonFailure(void **state)
+{
+    SYS_response_id cmd_id = 777;
+    const char *req_id = "No.4680";
+    const char *param = "test_param_string";
+    bool expect_btn_fc_request = true; // Set to make CheckDirectCommandExecutable return false
+
+    s_sys_client = (struct SYS_client *)0x98765432;
+    s_terminate_request =
+        FactoryResetRequested; // Set to error state so CheckDirectCommandExecutable returns false
+
+    // Check SendDirectCommandResponseAsync
+    SendDirectCommandResponseAsync_FullSuccess(
+        s_sys_client, cmd_id, req_id,
+        DcUnavailable, // DirectCommandCallbackCommon sends DcUnavailable when busy
+        NULL, NULL);
+
+    // Exec test target
+    DirectCommandUnimplementedCallback(s_sys_client, cmd_id, param, NULL);
+
+    // Exec SYS_process_event() to free allocate memory for dcres_ctx and dcres_ctx->response
+    ExecSysProcessEventForMemoryFree();
+
+    // Reset s_terminate_request after test
+    s_terminate_request = UnDefined;
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_DirectCommandUnimplementedCallback_SendDirectCommandResponseAsyncError(
+    void **state)
+{
+    SYS_response_id cmd_id = 777;
+    const char *param = "test_param_string";
+    bool expect_btn_fc_request = false;
+    EsfJsonHandle json_handle = (EsfJsonHandle)0x12345678;
+    EsfJsonValue json_val = 1357;
+    size_t json_buf_size = 2468;
+    size_t json_serialize_size = 3579;
+    const char *string_expect = "string_serialize_value";
+
+    s_sys_client = (struct SYS_client *)0x98765432;
+    s_terminate_request =
+        UnDefined; // Set to normal state so CheckDirectCommandExecutable returns true
+
+    // set SysAppBtnCheckFactoryResetRequest() return value
+    will_return(__wrap_SysAppBtnCheckFactoryResetRequest, expect_btn_fc_request);
+
+    // Mock operations to reach SYS_set_response_cb and make it fail
+    will_return(__wrap_EsfJsonOpen, json_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonObjectInit, handle, json_handle);
+    will_return(__wrap_EsfJsonObjectInit, json_val);
+    will_return(__wrap_EsfJsonObjectInit, kEsfJsonSuccess);
+
+    expect_value(__wrap_SysAppCmnSetObjectValue, handle, json_handle);
+    expect_value(__wrap_SysAppCmnSetObjectValue, parent, json_val);
+    expect_string(__wrap_SysAppCmnSetObjectValue, key, "res_info");
+    expect_value(__wrap_SysAppCmnSetObjectValue, make_json, MakeJsonResInfo);
+    expect_not_value(__wrap_SysAppCmnSetObjectValue, ctx, NULL);
+    will_return(__wrap_SysAppCmnSetObjectValue, true);
+    will_return(__wrap_SysAppCmnSetObjectValue, kRetOk);
+
+    expect_value(__wrap_SysAppCmnMakeJsonResInfo, handle, json_handle);
+    expect_value(__wrap_SysAppCmnMakeJsonResInfo, root, json_val);
+    expect_value(__wrap_SysAppCmnMakeJsonResInfo, res_id, NULL);
+    expect_value(__wrap_SysAppCmnMakeJsonResInfo, code, 12);
+    expect_string(__wrap_SysAppCmnMakeJsonResInfo, detail_msg, "unimplemented");
+    will_return(__wrap_SysAppCmnMakeJsonResInfo, kRetOk);
+
+    expect_value(__wrap_EsfJsonSerialize, handle, json_handle);
+    expect_value(__wrap_EsfJsonSerialize, value, json_val);
+    will_return(__wrap_EsfJsonSerialize, string_expect);
+    will_return(__wrap_EsfJsonSerialize, kEsfJsonSuccess);
+
+    // Setup strdup to succeed without parameter check
+    will_return(mock_strdup, false); // Disable parameter check
+    will_return(mock_strdup, true);  // Return string for strdup
+
+    // Setup malloc to succeed
+    will_return(mock_malloc, true); // Enable parameter check
+    will_return(mock_malloc, true); // Return success for malloc
+    expect_value(mock_malloc, __size, sizeof(DcResponseContext));
+
+    // Make SYS_set_response_cb fail to trigger the error handling
+    expect_value(__wrap_SYS_set_response_cb, c, s_sys_client);
+    expect_value(__wrap_SYS_set_response_cb, id, cmd_id);
+    expect_string(__wrap_SYS_set_response_cb, response, string_expect);
+    expect_value(__wrap_SYS_set_response_cb, status, SYS_RESPONSE_STATUS_OK);
+    expect_value(__wrap_SYS_set_response_cb, cb, ResponseSendCompleteCallback);
+    expect_not_value(__wrap_SYS_set_response_cb, user, NULL);
+    will_return(__wrap_SYS_set_response_cb, SYS_RESULT_ERRNO); // Make it fail
+
+    // For free() of response after error
+    will_return(mock_free, false);
+
+    // For free() of dcres_ctx after error
+    will_return(mock_free, false);
+
+    expect_value(__wrap_EsfJsonClose, handle, json_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    DirectCommandUnimplementedCallback(s_sys_client, cmd_id, param, NULL);
+
+    return;
+}
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+
 /*----------------------------------------------------------------------------*/
 
 //
@@ -10296,6 +10465,16 @@ int main(void)
         cmocka_unit_test(test_SendDirectCommandResponse_ErrorEsfJsonSerializeHandle),
         cmocka_unit_test(test_SendDirectCommandResponse_InvalidHandleEsfMemoryManagerAllocate),
         cmocka_unit_test(test_SendDirectCommandResponse_ErrorSendDirectCommandResponseCore),
+
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+        // DirectCommandUnimplementedCallback
+        cmocka_unit_test(test_DirectCommandUnimplementedCallback_FullySuccess),
+        cmocka_unit_test(test_DirectCommandUnimplementedCallback_paramsNull),
+        cmocka_unit_test(
+            test_DirectCommandUnimplementedCallback_DirectCommandCallbackCommonFailure),
+        cmocka_unit_test(
+            test_DirectCommandUnimplementedCallback_SendDirectCommandResponseAsyncError),
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
     };
 
     return (((cmocka_run_group_tests(tests, NULL, NULL)) == 0) ? 0 : 1);
