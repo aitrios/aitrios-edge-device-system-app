@@ -282,7 +282,7 @@ STATIC RetCode ConnectNetwork(void)
     // If both of WiFi and Ether failed, return fail.
 
     if ((wifi_connected == false) && (ether_connected == false)) {
-        ISA_ERR("WiFi and Ether connect failed.");
+        ISA_CRIT("WiFi and Ether connect failed.");
         ret = kRetFailed;
         goto connect_network_error;
     }
@@ -343,7 +343,7 @@ STATIC RetCode StartSyncNtp(void)
     EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParams(&cm_param, &cm_mask);
 
     if (esfcm_ret != kClockManagerSuccess) {
-        ISA_ERR("EsfClockManagerSetParams() ret %d", esfcm_ret);
+        ISA_CRIT("EsfClockManagerSetParams() ret %d", esfcm_ret);
         ret = kRetFailed;
         goto esfcm_set_error;
     }
@@ -351,7 +351,7 @@ STATIC RetCode StartSyncNtp(void)
     esfcm_ret = EsfClockManagerRegisterCbOnNtpSyncComplete(NtpSyncCallback);
 
     if (esfcm_ret != kClockManagerSuccess) {
-        ISA_ERR("EsfClockManagerRegisterCbOnNtpSyncComplete() ret %d", esfcm_ret);
+        ISA_CRIT("EsfClockManagerRegisterCbOnNtpSyncComplete() ret %d", esfcm_ret);
         ret = kRetFailed;
         goto esfcm_regcb_error;
     }
@@ -360,7 +360,7 @@ STATIC RetCode StartSyncNtp(void)
         esfcm_ret = EsfClockManagerStart();
 
         if (esfcm_ret != kClockManagerSuccess) {
-            ISA_ERR("EsfClockManagerStart() ret %d", esfcm_ret);
+            ISA_CRIT("EsfClockManagerStart() ret %d", esfcm_ret);
             ret = kRetFailed;
             goto esfcm_start_error;
         }

@@ -261,7 +261,7 @@ STATIC RetCode ExecInitialSettingApp(void)
     pid = task_create("initial_setting_app", CONFIG_EXTERNAL_ISAPP_PRIORITY,
                       CONFIG_EXTERNAL_ISAPP_STACKSIZE, initial_setting_app_main, NULL);
     if (pid < 0) {
-        SYSAPP_ERR("Failed to create task");
+        SYSAPP_CRIT("Failed to create task");
         return 1;
     }
 
@@ -550,7 +550,7 @@ STATIC RetCode ConnectNetwork(TerminationReason *abort_reason)
     // If both of WiFi and Ether failed, return fail.
 
     if ((wifi_connected == false) && (ether_connected == false)) {
-        SYSAPP_ERR("WiFi and Ether connect failed.");
+        SYSAPP_CRIT("WiFi and Ether connect failed.");
         ret = kRetFailed;
         goto connect_network_error;
     }
@@ -646,7 +646,7 @@ STATIC RetCode StartSyncNtp(TerminationReason *abort_reason)
     EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParams(&cm_param, &cm_mask);
 
     if (esfcm_ret != kClockManagerSuccess) {
-        SYSAPP_ERR("EsfClockManagerSetParams() ret %d", esfcm_ret);
+        SYSAPP_CRIT("EsfClockManagerSetParams() ret %d", esfcm_ret);
         ret = kRetFailed;
         goto esfcm_set_error;
     }
@@ -654,7 +654,7 @@ STATIC RetCode StartSyncNtp(TerminationReason *abort_reason)
     esfcm_ret = EsfClockManagerRegisterCbOnNtpSyncComplete(NtpSyncCallback);
 
     if (esfcm_ret != kClockManagerSuccess) {
-        SYSAPP_ERR("EsfClockManagerRegisterCbOnNtpSyncComplete() ret %d", esfcm_ret);
+        SYSAPP_CRIT("EsfClockManagerRegisterCbOnNtpSyncComplete() ret %d", esfcm_ret);
         ret = kRetFailed;
         goto esfcm_regcb_error;
     }
@@ -663,7 +663,7 @@ STATIC RetCode StartSyncNtp(TerminationReason *abort_reason)
         esfcm_ret = EsfClockManagerStart();
 
         if (esfcm_ret != kClockManagerSuccess) {
-            SYSAPP_ERR("EsfClockManagerStart() ret %d", esfcm_ret);
+            SYSAPP_CRIT("EsfClockManagerStart() ret %d", esfcm_ret);
             ret = kRetFailed;
             goto esfcm_start_error;
         }
@@ -761,8 +761,7 @@ STATIC bool SetupDirMount(void)
         ret = mount(sc_dev_name, sc_mnt_name, sc_fformat, 0, "autoformat");
 
         if (ret != 0) {
-            printf("%s %d [INF] mount(evp_data, autoformat) failed %d\n", __FILE_NAME__, __LINE__,
-                   errno);
+            SYSAPP_CRIT("mount(evp_data, autoformat) failed %d\n", errno);
             return false;
         }
     }
@@ -809,7 +808,7 @@ STATIC TerminationReason SysAppMain(void)
     SsfSensorErrCode ssfss_ret = SsfSensorInit();
 
     if (ssfss_ret != kSsfSensorOk) {
-        SYSAPP_ERR("SsfSensorInit() ret %d", ssfss_ret);
+        SYSAPP_CRIT("SsfSensorInit() ret %d", ssfss_ret);
         goto ssfss_init_error;
     }
 
@@ -866,7 +865,7 @@ STATIC TerminationReason SysAppMain(void)
 #endif // __NuttX__
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("StartSyncNtp() ret %d", ret);
+        SYSAPP_CRIT("StartSyncNtp() ret %d", ret);
         goto ntp_sync_error;
     }
 
@@ -876,14 +875,14 @@ STATIC TerminationReason SysAppMain(void)
     pid = task_create("EVP Agent", 101, CONFIG_DEFAULT_TASK_STACKSIZE, evp_agent_main, NULL);
 
     if (pid == (pid_t)-1) {
-        SYSAPP_ERR("task_create() pid %d", pid);
+        SYSAPP_CRIT("Failed to create EVP Agent task. errno=%d", errno);
         goto evp_agent_create_error;
     }
 #else  /* __NuttX__ */
     extern int evp_agent_startup();
     ret = evp_agent_startup();
     if (ret) {
-        SYSAPP_ERR("Failed to create EVP Agent\n");
+        SYSAPP_CRIT("Failed to create EVP Agent. ret=%d", ret);
         goto evp_agent_create_error;
     }
 #endif /* __NuttX__ */
@@ -902,7 +901,7 @@ STATIC TerminationReason SysAppMain(void)
     ret = SysAppTimerInitialize();
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppTimerInitialize() ret %d", ret);
+        SYSAPP_CRIT("SysAppTimerInitialize() ret %d", ret);
         goto timer_initialize_failed;
     }
 
@@ -911,7 +910,7 @@ STATIC TerminationReason SysAppMain(void)
     ret = SysAppDcmdInitialize(sys_client);
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppDcmdInitialize(%p) ret %d", sys_client, ret);
+        SYSAPP_CRIT("SysAppDcmdInitialize(%p) ret %d", sys_client, ret);
         goto direct_command_initialize_failed;
     }
 
@@ -920,14 +919,14 @@ STATIC TerminationReason SysAppMain(void)
     ret = SysAppCfgInitialize(sys_client);
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppCfgInitialize(%p) ret %d", sys_client, ret);
+        SYSAPP_CRIT("SysAppCfgInitialize(%p) ret %d", sys_client, ret);
         goto configuration_initialize_failed;
     }
 
     // Initialize State block.
     ret = SysAppStaInitialize(sys_client);
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppStaInitialize(%p) ret %d", sys_client, ret);
+        SYSAPP_CRIT("SysAppStaInitialize(%p) ret %d", sys_client, ret);
         goto state_initialize_failed;
     }
 
@@ -935,7 +934,7 @@ STATIC TerminationReason SysAppMain(void)
     ret = SysAppUdInitialize(sys_client);
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppUdInitialize(%p) ret %d", sys_client, ret);
+        SYSAPP_CRIT("SysAppUdInitialize(%p) ret %d", sys_client, ret);
         goto ud_initialize_failed;
     }
 
@@ -944,13 +943,13 @@ STATIC TerminationReason SysAppMain(void)
     ret = SysAppDeployInitialize();
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppDeployInitialize(%p) ret %d", sys_client, ret);
+        SYSAPP_CRIT("SysAppDeployInitialize(%p) ret %d", sys_client, ret);
         goto deploy_initialize_failed;
     }
 
     EsfPwrMgrError pm_ret = EsfPwrMgrSwWdtStart(SYSTEM_APP_SW_WDT_ID);
     if (pm_ret != kEsfPwrMgrOk) {
-        SYSAPP_ERR("EsfPwrMgrSwWdtStart() failed.");
+        SYSAPP_CRIT("EsfPwrMgrSwWdtStart() failed. pm_ret=%d", pm_ret);
         goto sw_wdt_start_failed;
     }
 
@@ -958,7 +957,7 @@ STATIC TerminationReason SysAppMain(void)
     while (true) {
         pm_ret = EsfPwrMgrSwWdtKeepalive(SYSTEM_APP_SW_WDT_ID);
         if (pm_ret != kEsfPwrMgrOk) {
-            SYSAPP_ERR("EsfPwrMgrSwWdtKeepalive() failed.");
+            SYSAPP_CRIT("EsfPwrMgrSwWdtKeepalive() failed. pm_ret=%d", pm_ret);
         }
 
         // Check EVP Connection and control LED.
@@ -975,7 +974,7 @@ STATIC TerminationReason SysAppMain(void)
         sys_ret = SYS_process_event(sys_client, 1000);
 
         if (sys_ret == SYS_RESULT_SHOULD_EXIT) {
-            SYSAPP_ERR("SYS_process_event() ret %d", ret);
+            SYSAPP_CRIT("SYS_process_event() ret %d", sys_ret);
             break;
         }
 
@@ -1219,7 +1218,7 @@ int main(int argc, FAR char *argv[])
     ret = SysAppBtnInitialize();
 
     if (ret != kRetOk) {
-        SYSAPP_ERR("SysAppBtnInitialize() ret %d", ret);
+        SYSAPP_CRIT("SysAppBtnInitialize() ret %d", ret);
         reason = RebootRequested;
         goto errout;
     }
@@ -1228,7 +1227,7 @@ int main(int argc, FAR char *argv[])
     // the device will wait for a reboot request via the button.
 
     if (isa_ret != kRetOk) {
-        SYSAPP_ERR("ExecInitialSettingApp() ret %d", isa_ret);
+        SYSAPP_CRIT("ExecInitialSettingApp() ret %d", isa_ret);
         goto errout;
     }
 
@@ -1238,21 +1237,21 @@ int main(int argc, FAR char *argv[])
     ret = pthread_attr_init(&sysapp_main_attr);
 
     if (ret != 0) {
-        SYSAPP_ERR("pthread_attr_init() ret %d\n", ret);
+        SYSAPP_CRIT("pthread_attr_init() ret %d", ret);
         goto errout;
     }
 
     ret = pthread_attr_setstacksize(&sysapp_main_attr, MAINTHREAD_STACKSIZE);
 
     if (ret != 0) {
-        SYSAPP_ERR("pthread_attr_setstacksize() ret %d\n", ret);
+        SYSAPP_CRIT("pthread_attr_setstacksize() ret %d", ret);
         goto errout;
     }
 
     ret = pthread_create(&sysapp_main, &sysapp_main_attr, SysAppMain, &reason);
 
     if (ret != 0) {
-        SYSAPP_ERR("pthread_create() ret %d\n", ret);
+        SYSAPP_CRIT("pthread_create() ret %d", ret);
         goto errout;
     }
 
@@ -1292,6 +1291,10 @@ errout:
 #if defined(__NuttX__)
         // If SystemApp terminates due to an error, etc.,
         // it will wait for a factory reboot request via the button.
+        SYSAPP_CRIT(
+            "Unknown reason for SystemApp main thread exit. Waiting for factory reset request. "
+            "reason=%d",
+            reason);
 
         for (;;) {
             SYSAPP_INFO("Check factory reset request.\n");
@@ -1312,9 +1315,9 @@ errout:
 #else
         /*
      * We have no button manager currently on Linux and so can't wait for a hw
-     * reset signal - warn and return.
+     * reset signal - crit and return.
      */
-        SYSAPP_WARN("Unknown reason for SystemApp main thread exit. Returning\n");
+        SYSAPP_CRIT("Unknown reason for SystemApp main thread exit. Returning. reason=%d", reason);
 #endif
     }
 
@@ -1334,7 +1337,7 @@ int startup_system_app()
 
     ret = pthread_create(&g_systemapp_main, NULL, system_app_main, NULL);
     if (ret) {
-        SYSAPP_ERR("Failed to create SystemApp thread\n");
+        SYSAPP_CRIT("Failed to create SystemApp thread. ret=%d", ret);
         return ret;
     }
 

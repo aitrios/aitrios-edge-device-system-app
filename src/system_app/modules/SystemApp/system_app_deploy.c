@@ -2564,7 +2564,7 @@ RetCode SysAppDeployInitializeWithHandle(SysAppDeployHandle *handle)
     DeployInitParams_t *initp = (DeployInitParams_t *)malloc(sizeof(DeployInitParams_t));
 
     if (initp == NULL) {
-        SYSAPP_ERR("Memory allocation!");
+        SYSAPP_CRIT("DeployInitParams malloc failed. size=%zu", sizeof(DeployInitParams_t));
         ret = kRetMemoryError;
         goto errout;
     }
@@ -2575,14 +2575,16 @@ RetCode SysAppDeployInitializeWithHandle(SysAppDeployHandle *handle)
 
     if (kUtilityMsgOk !=
         UtilityMsgOpen(&initp->msg_handle_dp, MSG_QUEUE_SIZE_FOR_DEPLOY, initp->max_msg_size_dp)) {
-        SYSAPP_ERR("UtilityMsgOpen");
+        SYSAPP_CRIT("UtilityMsgOpen failed. handle=%" PRId32
+                    ", queue_size=%d, max_msg_size=%" PRIu32,
+                    initp->msg_handle_dp, MSG_QUEUE_SIZE_FOR_DEPLOY, initp->max_msg_size_dp);
         goto errout;
     }
 
     /* Initialize mutex */
 
     if (pthread_mutex_init(&initp->state_mutex, NULL) != 0) {
-        SYSAPP_ERR("pthread_mutex_init");
+        SYSAPP_CRIT("pthread_mutex_init");
         goto errout;
     }
 
@@ -2604,11 +2606,11 @@ RetCode SysAppDeployInitializeWithHandle(SysAppDeployHandle *handle)
                 ret = kRetOk;
             }
             else {
-                SYSAPP_ERR("pthread_create(%d)!", ercd);
+                SYSAPP_CRIT("pthread_create(%d)!", ercd);
             }
         }
         else {
-            SYSAPP_ERR("pthread_attr_setstacksize(%d)!", ercd);
+            SYSAPP_CRIT("pthread_attr_setstacksize(%d)!", ercd);
         }
 
         /* Destroy pthread_attr_t */
@@ -2616,7 +2618,7 @@ RetCode SysAppDeployInitializeWithHandle(SysAppDeployHandle *handle)
         pthread_attr_destroy(&ota_attr);
     }
     else {
-        SYSAPP_ERR("pthread_attr_init(%d)!", ercd);
+        SYSAPP_CRIT("pthread_attr_init(%d)!", ercd);
     }
 
     if (ret == kRetOk) {
@@ -2854,7 +2856,7 @@ RetCode SysAppDeployInitialize(void)
     /* Initialize */
 
     if (s_handle != NULL) {
-        SYSAPP_ERR("DeployInitialize invalid state");
+        SYSAPP_CRIT("DeployInitialize invalid state");
         return kRetStateViolate;
     }
 

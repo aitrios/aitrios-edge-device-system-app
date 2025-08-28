@@ -95,7 +95,7 @@ int main(int argc, FAR char *argv[])
     RetCode ret = IsaBtnInitialize();
 
     if (ret != kRetOk) {
-        ISA_ERR("IsaBtnInitialize() ret %d", ret);
+        ISA_CRIT("IsaBtnInitialize() ret %d", ret);
 
         /* If button initialization fail,
      * button will not be used for hooks and will need to be restarted. */
@@ -112,7 +112,7 @@ int main(int argc, FAR char *argv[])
     ret = IsaTimerInitialize();
 
     if (ret != kRetOk) {
-        ISA_ERR("IsaTimerInitialize() ret %d", ret);
+        ISA_CRIT("IsaTimerInitialize() ret %d", ret);
         goto timer_aborted;
     }
 
@@ -152,7 +152,7 @@ int main(int argc, FAR char *argv[])
             // If an error occurs in IsaRunProvisioningService,
             // the system will wait until the factory reset button is pressed.
 
-            ISA_ERR("IsaRunProvisioningService:%d", ercd);
+            ISA_CRIT("IsaRunProvisioningService:%d", ercd);
             goto ps_aborted;
         }
     }
@@ -169,7 +169,7 @@ int main(int argc, FAR char *argv[])
     init_success = InitializeApp(&img_prop);
 
     if (!init_success) {
-        ISA_ERR("InitializeApp");
+        ISA_CRIT("InitializeApp");
         goto sensor_init_aborted;
     }
 
@@ -239,7 +239,7 @@ int main(int argc, FAR char *argv[])
     gray_buff = IsaLargeHeapAlloc(0, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
 
     if (gray_buff == NULL) {
-        ISA_ERR("IsaLargeHeapAlloc() error size %d", QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
+        ISA_CRIT("IsaLargeHeapAlloc() error size %d", QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
         goto malloc_failed;
     }
 
@@ -258,7 +258,7 @@ int main(int argc, FAR char *argv[])
         ret_senscord = senscord_stream_get_frame(s_stream, &frame, -1);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_get_frame : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_stream_get_frame : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -270,7 +270,7 @@ int main(int argc, FAR char *argv[])
                                                                   &channel);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_frame_get_channel_from_channel_id : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_frame_get_channel_from_channel_id : ret=%d", ret_senscord);
             PrintSensCordError();
             senscord_stream_release_frame(s_stream, frame);
             break;
@@ -281,7 +281,7 @@ int main(int argc, FAR char *argv[])
         ret_senscord = senscord_channel_get_raw_data(channel, &raw_data);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_channel_get_raw_data : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_channel_get_raw_data : ret=%d", ret_senscord);
             PrintSensCordError();
             senscord_stream_release_frame(s_stream, frame);
             break;
@@ -329,7 +329,7 @@ int main(int argc, FAR char *argv[])
         map_address = IsaLargeHeapAlloc(1, (EsfMemoryManagerHandle)(uintptr_t)raw_data.size);
 
         if (map_address == NULL) {
-            ISA_ERR("IsaLargeHeapAlloc(1, %u) failed", raw_data.size);
+            ISA_CRIT("IsaLargeHeapAlloc(1, %u) failed", raw_data.size);
             senscord_stream_release_frame(s_stream, frame);
             break;
         }
@@ -337,7 +337,7 @@ int main(int argc, FAR char *argv[])
         esfmm_ret = EsfMemoryManagerFopen((EsfMemoryManagerHandle)(uintptr_t)raw_data.address);
 
         if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_ERR("EsfMemoryManagerFopen() ret %d", esfmm_ret);
+            ISA_CRIT("EsfMemoryManagerFopen() ret %d", esfmm_ret);
             senscord_stream_release_frame(s_stream, frame);
             IsaLargeHeapFree(map_address);
             break;
@@ -348,7 +348,7 @@ int main(int argc, FAR char *argv[])
                                           map_address, raw_data.size, &rsize);
 
         if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_ERR("EsfMemoryManagerFread() ret %d", esfmm_ret);
+            ISA_CRIT("EsfMemoryManagerFread() ret %d", esfmm_ret);
             senscord_stream_release_frame(s_stream, frame);
             IsaLargeHeapFree(map_address);
             EsfMemoryManagerFclose((EsfMemoryManagerHandle)(uintptr_t)raw_data.address);
@@ -365,7 +365,7 @@ int main(int argc, FAR char *argv[])
                                         raw_data.size, (void *)&map_address);
 
         if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_ERR("EsfMemoryManagerMap : ret=%d", esfmm_ret);
+            ISA_CRIT("EsfMemoryManagerMap : ret=%d", esfmm_ret);
             senscord_stream_release_frame(s_stream, frame);
             break;
         }
@@ -415,7 +415,7 @@ int main(int argc, FAR char *argv[])
         else {
             // Other
 
-            ISA_ERR("pixel_format : ret=%s", img_prop.pixel_format);
+            ISA_CRIT("pixel format does not exist, format=%s", img_prop.pixel_format);
             PrintSensCordError();
             senscord_stream_release_frame(s_stream, frame);
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_FILEIO
@@ -455,7 +455,7 @@ int main(int argc, FAR char *argv[])
                                           NULL);
 
         if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_ERR("EsfMemoryManagerUnmap : ret=%d", esfmm_ret);
+            ISA_CRIT("EsfMemoryManagerUnmap : ret=%d", esfmm_ret);
             senscord_stream_release_frame(s_stream, frame);
             break;
         }
@@ -467,7 +467,7 @@ int main(int argc, FAR char *argv[])
         ret_senscord = senscord_stream_release_frame(s_stream, frame);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_release_frame : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_stream_release_frame : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -593,6 +593,10 @@ ps_aborted:
     else {
         // If this application terminates due to an error, etc.,
         // it will wait for a factory reboot request via the button.
+        ISA_CRIT(
+            "Unknown reason for InitialSettingApp termination. Waiting for factory "
+            "reset request. ret_main=%d",
+            ret_main);
 
         for (;;) {
             ISA_INFO("Check factory reset request.");
@@ -636,7 +640,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         sp_qrcode_payload_buff = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
 
         if (sp_qrcode_payload_buff == NULL) {
-            ISA_ERR("malloc() failed\n");
+            ISA_CRIT("malloc() failed\n");
             break;
         }
 
@@ -647,7 +651,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         ret_qrcode = IsaQrcodeInit();
 
         if (ret_qrcode != kIsaQrcode_Success) {
-            ISA_ERR("IsaQrcodeInit() failed : ret=%d\n", ret_qrcode);
+            ISA_CRIT("IsaQrcodeInit() failed : ret=%d\n", ret_qrcode);
             break;
         }
 
@@ -658,7 +662,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         ret_sensor = SsfSensorInit();
 
         if (ret_sensor != kSsfSensorOk) {
-            ISA_ERR("SsfSensorInit() failed : ret=%d", ret_sensor);
+            ISA_CRIT("SsfSensorInit() failed : ret=%d", ret_sensor);
             break;
         }
 
@@ -669,7 +673,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         ret_senscord = senscord_core_init(&s_core);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_core_init failed : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_core_init failed : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -682,7 +686,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         ret_senscord = senscord_core_open_stream(s_core, ISA_STREAM_KEY, &s_stream);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_core_open_stream failed : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_core_open_stream failed : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -702,7 +706,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
             sizeof(ai_model_bundle_id));
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_set_property(AIMODEL) failed : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_stream_set_property(AIMODEL) failed : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -717,7 +721,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
                                                     (const void *)&input_data, sizeof(input_data));
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_set_property(INPUT_DATA_TYPE) failed : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_stream_set_property(INPUT_DATA_TYPE) failed : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -731,7 +735,7 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
         ret_senscord = senscord_stream_start(s_stream);
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_start failed : ret=%d", ret_senscord);
+            ISA_CRIT("senscord_stream_start failed : ret=%d", ret_senscord);
             PrintSensCordError();
             break;
         }
@@ -746,8 +750,8 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
                                                     sizeof(struct senscord_image_property_t));
 
         if (ret_senscord < 0) {
-            ISA_ERR("senscord_stream_get_property(SENSCORD_IMAGE_PROPERTY_KEY) failed : ret=%d",
-                    ret_senscord);
+            ISA_CRIT("senscord_stream_get_property(SENSCORD_IMAGE_PROPERTY_KEY) failed : ret=%d",
+                     ret_senscord);
             PrintSensCordError();
             break;
         }

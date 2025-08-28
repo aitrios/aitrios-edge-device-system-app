@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <assert.h>
+#include <errno.h>
 
 #if defined(__linux__)
 #include <unistd.h>
@@ -1076,7 +1077,10 @@ STATIC RetCode SetDefaultEndpoint(PsInfo *ps_info)
     char *mqtt_port = (char *)malloc(mqtt_port_size);
 
     if (mqtt_host == NULL || mqtt_port == NULL) {
-        ISA_ERR("malloc");
+        ISA_CRIT(
+            "mqtt_host or mqtt_port malloc failed. "
+            "mqtt_host=%p, mqtt_port=%p, mqtt_host_size=%zu, mqtt_port_size=%zu",
+            mqtt_host, mqtt_port, mqtt_host_size, mqtt_port_size);
         ret = kRetMemoryError;
         goto exit;
     }
@@ -1178,7 +1182,7 @@ STATIC RetCode SetupEvpAgent(PsInfo *ps_info)
     ps_info->pid = task_create("EVP Agent", 101, CONFIG_DEFAULT_TASK_STACKSIZE, evp_agent_main,
                                NULL);
     if (ps_info->pid == (pid_t)-1) {
-        ISA_ERR("task_create()");
+        ISA_CRIT("Failed to create EVP Agent task. errno=%d", errno);
         return kRetFailed;
     }
 #else
@@ -1186,7 +1190,7 @@ STATIC RetCode SetupEvpAgent(PsInfo *ps_info)
 
     int ret = evp_agent_startup();
     if (ret) {
-        ISA_ERR("Failed to create EVP Agent\n");
+        ISA_CRIT("Failed to create EVP Agent\n");
         return kRetFailed;
     }
 #endif
@@ -1205,14 +1209,14 @@ STATIC RetCode SetupEvpAgent(PsInfo *ps_info)
     enum SYS_result sys_ret = SYS_set_configuration_cb(
         ps_info->client, "system_settings", ConfigurationCallback, SYS_CONFIG_ANY, ps_info);
     if (sys_ret != SYS_RESULT_OK) {
-        ISA_ERR("SYS_set_configuration_cb() for system_settings ret %d", sys_ret);
+        ISA_CRIT("SYS_set_configuration_cb() for system_settings ret %d", sys_ret);
         goto errout;
     }
 
     sys_ret = SYS_set_configuration_cb(ps_info->client, "PRIVATE_endpoint_settings",
                                        ConfigurationCallback, SYS_CONFIG_ANY, ps_info);
     if (sys_ret != SYS_RESULT_OK) {
-        ISA_ERR("SYS_set_configuration_cb() for PRIVATE_endpoint_settings ret %d", sys_ret);
+        ISA_CRIT("SYS_set_configuration_cb() for PRIVATE_endpoint_settings ret %d", sys_ret);
         goto errout;
     }
 
@@ -1222,7 +1226,7 @@ STATIC RetCode SetupEvpAgent(PsInfo *ps_info)
                                       ps_info);
 
     if (sys_ret != SYS_RESULT_OK) {
-        ISA_ERR("SYS_register_command_cb(reboot) ret %d", sys_ret);
+        ISA_CRIT("SYS_register_command_cb(reboot) ret %d", sys_ret);
         goto errout;
     }
 
@@ -1302,7 +1306,7 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
     ps_info = (PsInfo *)malloc(sizeof(PsInfo));
 
     if (ps_info == NULL) {
-        ISA_ERR("malloc");
+        ISA_CRIT("PsInfo malloc failed. size=%zu", sizeof(PsInfo));
         return kIsaPsDoesntRun;
     }
 
@@ -1405,7 +1409,7 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
         }
 
         if (SYS_process_event(ps_info->client, 0) == SYS_RESULT_SHOULD_EXIT) {
-            ISA_ERR("SYS_process_event() == SYS_RESULT_SHOULD_EXIT");
+            ISA_CRIT("SYS_process_event() == SYS_RESULT_SHOULD_EXIT");
             break;
         }
 

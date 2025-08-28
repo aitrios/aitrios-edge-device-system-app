@@ -15,17 +15,11 @@
 #include "initial_setting_app_timer.h"
 #include "initial_setting_app_timer_private.h"
 #include "initial_setting_app_util.h"
+#include "initial_setting_app_log.h"
 
 //
 // Macros.
 //
-
-// Define debug log
-
-#define ISA_ERROR(fmt, ...) printf("PS[E]%4d: " fmt "\n", __LINE__, ##__VA_ARGS__)
-#define ISA_WARN(fmt, ...) printf("PS[W]%4d: " fmt "\n", __LINE__, ##__VA_ARGS__)
-#define ISA_INFO(fmt, ...) printf("PS[I]%4d: " fmt "\n", __LINE__, ##__VA_ARGS__)
-#define ISA_DEBUG(fmt, ...) printf("PS[D]%4d: " fmt "\n", __LINE__, ##__VA_ARGS__)
 
 #define ISA_TIMER_THREAD_STACK_SIZE (6 * 1024)
 
@@ -83,7 +77,7 @@ RetCode IsaTimerInitialize(void)
                                     ISA_TIMER_THREAD_STACK_SIZE, &s_qr_mode_timer_ctx.handle);
 
     if (utim_ret != kUtilityTimerOk) {
-        ISA_ERROR("UtilityTimerCreateEx(QR) ret %u", utim_ret);
+        ISA_CRIT("UtilityTimerCreateEx(QR) ret %u", utim_ret);
         ret = kRetFailed;
         goto qr_mode_timer_create_failed;
     }
@@ -134,7 +128,7 @@ RetCode IsaTimerStart(uint32_t time, IsaTimerCallback notify_cb)
         utim_ret = UtilityTimerStop(timer_ctx->handle);
 
         if (utim_ret != kUtilityTimerOk) {
-            ISA_ERROR("UtilityTimerStop() ret %u", utim_ret);
+            ISA_ERR("UtilityTimerStop() ret %u", utim_ret);
             return kRetFailed;
         }
     }
@@ -146,7 +140,7 @@ RetCode IsaTimerStart(uint32_t time, IsaTimerCallback notify_cb)
     utim_ret = UtilityTimerStart(timer_ctx->handle, &interval, kUtilityTimerRepeat);
 
     if (utim_ret != kUtilityTimerOk) {
-        ISA_ERROR("UtilityTimerStart() ret %u", utim_ret);
+        ISA_ERR("UtilityTimerStart() ret %u", utim_ret);
         ret = kRetFailed;
     }
     else {
@@ -181,7 +175,7 @@ RetCode IsaTimerStop(void)
     utim_ret = UtilityTimerStop(timer_ctx->handle);
 
     if (utim_ret != kUtilityTimerOk) {
-        ISA_ERROR("UtilityTimerStop() ret %u", utim_ret);
+        ISA_ERR("UtilityTimerStop() ret %u", utim_ret);
         ret = kRetFailed;
     }
     else {

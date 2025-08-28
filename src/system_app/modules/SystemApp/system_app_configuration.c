@@ -761,56 +761,56 @@ static RetCode RegisterConfigurationCallback(void)
     sys_ret = SYS_set_configuration_cb(s_sys_client, "system_settings", ConfigurationCallback,
                                        SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "system_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "system_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register network_settings
     sys_ret = SYS_set_configuration_cb(s_sys_client, "network_settings", ConfigurationCallback,
                                        SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "network_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "network_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register periodic_setting
     sys_ret = SYS_set_configuration_cb(s_sys_client, "periodic_setting", ConfigurationCallback,
                                        SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "periodic_setting", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "periodic_setting", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register wireless_setting
     sys_ret = SYS_set_configuration_cb(s_sys_client, "wireless_setting", ConfigurationCallback,
                                        SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "wireless_setting", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "wireless_setting", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register PRIVATE_endpoint_settings
     sys_ret = SYS_set_configuration_cb(s_sys_client, "PRIVATE_endpoint_settings",
                                        ConfigurationCallback, SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "PRIVATE_endpoint_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "PRIVATE_endpoint_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register PRIVATE_deploy_firmware
     sys_ret = SYS_set_configuration_cb(s_sys_client, "PRIVATE_deploy_firmware",
                                        ConfigurationCallback, SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "PRIVATE_deploy_firmware", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "PRIVATE_deploy_firmware", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // Register PRIVATE_deploy_ai_model
     sys_ret = SYS_set_configuration_cb(s_sys_client, "PRIVATE_deploy_ai_model",
                                        ConfigurationCallback, SYS_CONFIG_ANY, NULL);
     if (sys_ret != SYS_RESULT_OK) {
-        SYSAPP_ERR("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
-                   "PRIVATE_deploy_ai_model", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "PRIVATE_deploy_ai_model", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
     // All configuration callback register is ok

@@ -1769,8 +1769,8 @@ static RetCode RegisterDirectCommandCallback(void)
 
         sys_ret = SYS_register_command_cb(s_sys_client, table[i].method, cb, user_context);
         if (sys_ret != SYS_RESULT_OK) {
-            SYSAPP_ERR("SYS_register_command_cb(%p, %s, %p, %p) ret %d", s_sys_client,
-                       table[i].method, cb, user_context, sys_ret);
+            SYSAPP_CRIT("SYS_register_command_cb(%p, %s, %p, %p) ret %d", s_sys_client,
+                        table[i].method, cb, user_context, sys_ret);
 
             ret = kRetFailed;
             break;
@@ -1793,7 +1793,7 @@ RetCode SysAppDcmdInitialize(struct SYS_client* sys_client)
     // Check and save sys_client.
 
     if (sys_client == NULL) {
-        SYSAPP_ERR("Invalid sys_client");
+        SYSAPP_CRIT("sys_client is NULL.");
         return kRetFailed;
     }
 
