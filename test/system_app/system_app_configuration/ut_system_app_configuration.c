@@ -2044,6 +2044,33 @@ static void CheckSysAppCfgEndpointSettingsRevert(const char *url, const char *po
     will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 }
 
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+/*----------------------------------------------------------------------------*/
+static void CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(const char *param)
+{
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    CheckJsonOpen(esfj_handle, json_value, param);
+
+    // SysAppCmnGetReqId
+    expect_value(__wrap_SysAppCmnGetReqId, handle, esfj_handle);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, json_value);
+    will_return(__wrap_SysAppCmnGetReqId, param);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppStateSendUnimplementedState
+    will_return(__wrap_SysAppStateSendUnimplementedState, kRetOk);
+
+    // EsfJsonClose
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+}
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+
 /*----------------------------------------------------------------------------*/
 
 //
@@ -2324,10 +2351,11 @@ static void test_ConfigurationCallback_SystemSettings(void **state)
     const char *config = "system_settings configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     // For SysAppCfgSystemSettings()
     CheckSysAppCfgSystemSettingsSuccess(config);
+#endif
 
     // Exec test target
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
@@ -2346,8 +2374,8 @@ static void test_ConfigurationCallback_NetworkSettings(void **state)
     const char *config = "network_settings configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     // For SysAppCfgNetworkSettings()
 
     CheckJsonOpen(esfj_handle, json_value, config);
@@ -2374,7 +2402,7 @@ static void test_ConfigurationCallback_NetworkSettings(void **state)
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
-
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
     return;
@@ -2390,9 +2418,8 @@ static void test_ConfigurationCallback_PeriodicSetting(void **state)
     const char *config = "periodic_setting configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
-
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     CheckJsonOpen(esfj_handle, json_value, config);
 
     CheckSysAppCfgPeriodicSettingReqId(esfj_handle, json_value);
@@ -2411,7 +2438,7 @@ static void test_ConfigurationCallback_PeriodicSetting(void **state)
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
-
+#endif
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
     return;
 }
@@ -2433,9 +2460,8 @@ static void test_ConfigurationCallback_WirelessSetting(void **state)
     const char *config = "wireless_setting configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
-
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     CheckJsonOpen(esfj_handle, val, config);
 
     CheckSysAppCfgWirelessSettingReqId(esfj_handle, val);
@@ -2447,7 +2473,7 @@ static void test_ConfigurationCallback_WirelessSetting(void **state)
                                                          &encryption_mask, &encryption_param);
 
     CheckJsonClose(esfj_handle, req);
-
+#endif
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
     return;
@@ -2466,9 +2492,8 @@ static void test_ConfigurationCallback_PrivateEndpointSettings(void **state)
     const char *config = "PRIVATE_endpoint_settings configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
-
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     CheckJsonOpen(esfj_handle, json_value, config);
 
     CheckSysAppCfgEndpointSettingsReqId(esfj_handle, json_value);
@@ -2489,7 +2514,7 @@ static void test_ConfigurationCallback_PrivateEndpointSettings(void **state)
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
-
+#endif
     // Exec test target
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
@@ -2504,15 +2529,14 @@ static void test_ConfigurationCallback_PrivateDeployFirmware(void **state)
     const char *config = "PRIVATE_deploy_firmware configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
-
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
     // For SysAppDeploy()
     expect_string(__wrap_SysAppDeploy, topic, topic);
     expect_string(__wrap_SysAppDeploy, config, config);
     expect_value(__wrap_SysAppDeploy, len, strlen(config));
     will_return(__wrap_SysAppDeploy, kRetOk);
-
+#endif
     // Exec test target
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
@@ -2527,15 +2551,15 @@ static void test_ConfigurationCallback_PrivateDeployAiModel(void **state)
     const char *config = "PRIVATE_deploy_ai_model configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
 
     // For SysAppDeploy()
     expect_string(__wrap_SysAppDeploy, topic, topic);
     expect_string(__wrap_SysAppDeploy, config, config);
     expect_value(__wrap_SysAppDeploy, len, strlen(config));
     will_return(__wrap_SysAppDeploy, kRetOk);
-
+#endif
     // Exec test target
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
@@ -2550,15 +2574,15 @@ static void test_ConfigurationCallback_PrivateDeploySensorCalibrationParam(void 
     const char *config = "PRIVATE_deploy_sensor_calibration_param configuration";
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-    will_return(__wrap_SysAppStateIsUnimplementedTopic, false);
-#endif
+    CheckSysAppCfgEProcessUnimplementedConfigurationSuccess(config);
+#else
 
     // For SysAppDeploy()
     expect_string(__wrap_SysAppDeploy, topic, topic);
     expect_string(__wrap_SysAppDeploy, config, config);
     expect_value(__wrap_SysAppDeploy, len, strlen(config));
     will_return(__wrap_SysAppDeploy, kRetOk);
-
+#endif
     // Exec test target
     ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
 
@@ -16335,6 +16359,175 @@ static void test_SysAppCfgEndpointSettings_ErrorEsfJsonClose(void **state)
     return;
 }
 
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+/*----------------------------------------------------------------------------*/
+static void test_ProcessUnimplementedConfiguration_EsfJsonOpenError(void **state)
+{
+    struct SYS_client *evp_client = (struct SYS_client *)0x98765432;
+    const char *topic = "system_settings";
+    const char *config = "system_settings configuration";
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    will_return(__wrap_EsfJsonOpen, esfj_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonInternalError);
+    // Exec test target
+    ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_ProcessUnimplementedConfiguration_EsfJsonDeserializeError(void **state)
+{
+    struct SYS_client *evp_client = (struct SYS_client *)0x98765432;
+    const char *topic = "system_settings";
+    const char *config = "system_settings configuration";
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    will_return(__wrap_EsfJsonOpen, esfj_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    // EsfJsonDeserialize()
+    expect_value(__wrap_EsfJsonDeserialize, handle, esfj_handle);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, json_value);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonInternalError);
+
+    // EsfJsonClose
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+    // Exec test target
+    ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_ProcessUnimplementedConfiguration_SysAppCmnGetReqIdError(void **state)
+{
+    struct SYS_client *evp_client = (struct SYS_client *)0x98765432;
+    const char *topic = "system_settings";
+    const char *config = "system_settings configuration";
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    will_return(__wrap_EsfJsonOpen, esfj_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    // EsfJsonDeserialize()
+    expect_value(__wrap_EsfJsonDeserialize, handle, esfj_handle);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, json_value);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // SysAppCmnGetReqId()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, esfj_handle);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, json_value);
+    will_return(__wrap_SysAppCmnGetReqId, config);
+    will_return(__wrap_SysAppCmnGetReqId, kRetFailed);
+
+    // SysAppStateSendUnimplementedState
+    will_return(__wrap_SysAppStateSendUnimplementedState, kRetOk);
+
+    // EsfJsonClose
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+    // Exec test target
+    ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_ProcessUnimplementedConfiguration_EsfJsonCloseError(void **state)
+{
+    struct SYS_client *evp_client = (struct SYS_client *)0x98765432;
+    const char *topic = "system_settings";
+    const char *config = "system_settings configuration";
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    will_return(__wrap_EsfJsonOpen, esfj_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    // EsfJsonDeserialize
+    expect_value(__wrap_EsfJsonDeserialize, handle, esfj_handle);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, json_value);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // SysAppCmnGetReqId
+    expect_value(__wrap_SysAppCmnGetReqId, handle, esfj_handle);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, json_value);
+    will_return(__wrap_SysAppCmnGetReqId, config);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppStateSendUnimplementedState
+    will_return(__wrap_SysAppStateSendUnimplementedState, kRetOk);
+
+    // EsfJsonClose
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonInternalError);
+    // Exec test target
+    ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_ProcessUnimplementedConfiguration_SysAppStateSendUnimplementedStateError(
+    void **state)
+{
+    struct SYS_client *evp_client = (struct SYS_client *)0x98765432;
+    const char *topic = "system_settings";
+    const char *config = "system_settings configuration";
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+
+    // SysAppStateIsUnimplementedTopic
+    will_return(__wrap_SysAppStateIsUnimplementedTopic, true);
+
+    will_return(__wrap_EsfJsonOpen, esfj_handle);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    // EsfJsonDeserialize()
+    expect_value(__wrap_EsfJsonDeserialize, handle, esfj_handle);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, json_value);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // SysAppCmnGetReqId()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, esfj_handle);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, json_value);
+    will_return(__wrap_SysAppCmnGetReqId, config);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppStateSendUnimplementedState
+    will_return(__wrap_SysAppStateSendUnimplementedState, kRetFailed);
+
+    // EsfJsonClose
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+    // Exec test target
+    ConfigurationCallback(evp_client, topic, config, SYS_CONFIG_ANY, SYS_REASON_FINISHED, NULL);
+
+    return;
+}
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+
 /*----------------------------------------------------------------------------*/
 
 //
@@ -16738,6 +16931,16 @@ int main(void)
         cmocka_unit_test(test_SysAppCfgEndpointSettings_ProtocolVersionNotUpdated),
         cmocka_unit_test(test_SysAppCfgEndpointSettings_ErrorSysAppStateSendState),
         cmocka_unit_test(test_SysAppCfgEndpointSettings_ErrorEsfJsonClose),
+
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+        // ProcessUnimplementedConfiguration()
+        cmocka_unit_test(test_ProcessUnimplementedConfiguration_EsfJsonOpenError),
+        cmocka_unit_test(test_ProcessUnimplementedConfiguration_EsfJsonDeserializeError),
+        cmocka_unit_test(test_ProcessUnimplementedConfiguration_SysAppCmnGetReqIdError),
+        cmocka_unit_test(test_ProcessUnimplementedConfiguration_EsfJsonCloseError),
+        cmocka_unit_test(
+            test_ProcessUnimplementedConfiguration_SysAppStateSendUnimplementedStateError),
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
     };
 
     return (((cmocka_run_group_tests(tests, NULL, NULL)) == 0) ? 0 : 1);

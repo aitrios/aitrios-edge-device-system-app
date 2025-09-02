@@ -60,6 +60,13 @@
 #define MAINTHREAD_STACKSIZE (12288)
 #define NETWORK_CONNECT_RETRY_NUM (15)
 
+// Fallback definition if CONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2 is not defined
+#ifndef CONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2
+#define CONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2 (2)
+#endif
+
+#define SYSTEM_APP_SW_WDT_ID CONFIG_EXTERNAL_POWER_MANAGER_SW_WDT_ID_2
+
 // Timeout count to wait for state queue to be empty for deploy reboot.
 
 #define REBOOT_RETRY_NUM_FOR_DEPLOY (30)
@@ -784,7 +791,7 @@ STATIC void *SysAppMain(void *ptr)
 #else
 STATIC TerminationReason SysAppMain(void)
 {
-    TerminationReason reason;
+    TerminationReason reason = UnDefined;
 #endif // __NuttX__
     RetCode ret = kRetOk;
 #if defined(__NuttX__)
@@ -941,8 +948,19 @@ STATIC TerminationReason SysAppMain(void)
         goto deploy_initialize_failed;
     }
 
+    EsfPwrMgrError pm_ret = EsfPwrMgrSwWdtStart(SYSTEM_APP_SW_WDT_ID);
+    if (pm_ret != kEsfPwrMgrOk) {
+        SYSAPP_ERR("EsfPwrMgrSwWdtStart() failed.");
+        goto sw_wdt_start_failed;
+    }
+
     // Process loop.
     while (true) {
+        pm_ret = EsfPwrMgrSwWdtKeepalive(SYSTEM_APP_SW_WDT_ID);
+        if (pm_ret != kEsfPwrMgrOk) {
+            SYSAPP_ERR("EsfPwrMgrSwWdtKeepalive() failed.");
+        }
+
         // Check EVP Connection and control LED.
 
         if (!s_is_evp_connect_checked) {
@@ -1066,6 +1084,13 @@ STATIC TerminationReason SysAppMain(void)
         SYSAPP_INFO("Stop Keep Alive of WDT");
         EsfPwrMgrWdtTerminate();
     }
+
+    pm_ret = EsfPwrMgrSwWdtStop(SYSTEM_APP_SW_WDT_ID);
+    if (pm_ret != kEsfPwrMgrOk) {
+        SYSAPP_ERR("EsfPwrMgrSwWdtStop() failed.");
+    }
+
+sw_wdt_start_failed:
 
     SysAppDeployFinalize();
 

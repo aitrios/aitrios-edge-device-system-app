@@ -146,7 +146,7 @@ extern RetCode MakeJsonPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root);
 #endif
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-extern void MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char *id);
+extern RetCode MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx);
 extern RetCode MakeJsonResInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx);
 extern RetCode SendUnimplementedState(const char *topic, char *id);
 #endif // CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
@@ -227,6 +227,7 @@ static void common_set_SendUnimplementedState(EsfJsonHandle handle_val, EsfJsonV
     expect_value(__wrap_EsfJsonClose, handle, handle_val);
     will_return(__wrap_EsfJsonClose, ret_val);
 }
+
 /*----------------------------------------------------------------------------*/
 static void common_set_MakeJsonResInfoUnimplemented(EsfJsonHandle handle_val,
                                                     EsfJsonValue parent_val,
@@ -7913,6 +7914,95 @@ static void test_ConvB64EncErrToString(void **)
     }
 }
 
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+/*----------------------------------------------------------------------------*/
+static void test_SysAppStateIsUnimplementedTopic_Found(void **state)
+{
+    (void)state;
+
+    // Test with a topic that exists in s_unimplemented_list
+    bool ret = SysAppStateIsUnimplementedTopic("system_settings");
+
+    assert_true(ret);
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppStateIsUnimplementedTopic_NotFound(void **state)
+{
+    (void)state;
+
+    // Test with a topic that does not exist in s_unimplemented_list
+    bool ret = SysAppStateIsUnimplementedTopic("non_existent_topic");
+
+    assert_false(ret);
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppStateSendUnimplementedState_Found(void **state)
+{
+    (void)state;
+
+    // Set up mock for one call
+    common_set_SendUnimplementedState((EsfJsonHandle)0x12345678, 1357, "string_serialize_value",
+                                      kEsfJsonSuccess, "");
+
+    // Test with a topic that exists in s_unimplemented_list
+    RetCode ret = SysAppStateSendUnimplementedState("system_settings", "");
+
+    assert_int_equal(ret, kRetOk);
+}
+
+/*----------------------------------------------------------------------------*/
+
+static void test_SysAppStateSendUnimplementedState_NotFound(void **state)
+{
+    (void)state;
+
+    // Test with a topic that does not exist in s_unimplemented_list
+    RetCode ret = SysAppStateSendUnimplementedState("non_existent_topic", "test_id");
+
+    assert_int_equal(ret, kRetOk);
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_MakeJsonReqInfoUnimplemented(void **state)
+{
+    (void)state;
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x01;
+    EsfJsonValue parent_val = 1357;
+    const char *test_req_id = "test_req_id_123";
+
+    // MakeJsonReqInfoCore
+    common_set_MakeJsonReqInfoCore(handle_val, parent_val, "req_id", test_req_id, kRetOk);
+
+    RetCode ret = MakeJsonReqInfoUnimplemented(handle_val, parent_val, (void *)test_req_id);
+
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_MakeJsonResInfoUnimplemented(void **state)
+{
+    (void)state;
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x01;
+    EsfJsonValue parent_val = 1357;
+    const char *test_req_id = "test_req_id_123";
+
+    // MakeJsonReqInfoCore
+    common_set_MakeJsonResInfoSystemSettings(handle_val, parent_val, 12, "unimplemented", kRetOk);
+
+    RetCode ret = MakeJsonResInfoUnimplemented(handle_val, parent_val, (void *)test_req_id);
+
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+
 /*----------------------------------------------------------------------------*/
 
 //
@@ -8304,6 +8394,22 @@ int main(void)
         // SysAppStaIsStateQueueEmpty()
         cmocka_unit_test(test_SysAppStaIsStateQueueEmpty),
         cmocka_unit_test(test_ConvB64EncErrToString),
+
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+        // MakeJsonReqInfoUnimplemented()
+        cmocka_unit_test(test_MakeJsonReqInfoUnimplemented),
+
+        // MakeJsonResInfoUnimplemented()
+        cmocka_unit_test(test_MakeJsonResInfoUnimplemented),
+
+        // SysAppStateIsUnimplementedTopic()
+        cmocka_unit_test(test_SysAppStateIsUnimplementedTopic_Found),
+        cmocka_unit_test(test_SysAppStateIsUnimplementedTopic_NotFound),
+
+        // SysAppStateSendUnimplementedState()
+        cmocka_unit_test(test_SysAppStateSendUnimplementedState_Found),
+        cmocka_unit_test(test_SysAppStateSendUnimplementedState_NotFound),
+#endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
     };
 
     return (((cmocka_run_group_tests(tests, NULL, NULL)) == 0) ? 0 : 1);
