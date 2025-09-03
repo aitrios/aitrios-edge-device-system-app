@@ -89,7 +89,6 @@ int main(int argc, FAR char *argv[])
     unsigned char *gray_buff = NULL;
     struct senscord_image_property_t img_prop = {0};
 
-#if defined(__NuttX__)
     // Button Setup.
 
     RetCode ret = IsaBtnInitialize();
@@ -103,9 +102,6 @@ int main(int argc, FAR char *argv[])
         ret_main = 0; // reboot
         goto btn_aborted;
     }
-#else
-    RetCode ret;
-#endif // __NuttX__
 
     // Timer initialize.
 
@@ -555,9 +551,7 @@ malloc_failed:
 
     FinalizeApp();
 
-#if defined(__NuttX__)
 btn_aborted:
-#endif // __NuttX__
 timer_aborted:
 ps_aborted:
     /* Clear Qr mode timeout value */
