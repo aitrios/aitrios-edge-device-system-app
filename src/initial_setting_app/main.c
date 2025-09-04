@@ -355,15 +355,31 @@ int main(int argc, FAR char *argv[])
 
 #else // Use #else for build: CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
 
-        /* Map memory */
+        EsfMemoryManagerHandleInfo handle_info = {0};
 
-        esfmm_ret = EsfMemoryManagerMap((EsfMemoryManagerHandle)(uintptr_t)raw_data.address, NULL,
-                                        raw_data.size, (void *)&map_address);
+        esfmm_ret = EsfMemoryManagerGetHandleInfo(
+            (EsfMemoryManagerHandle)(uintptr_t)raw_data.address, &handle_info);
 
         if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_CRIT("EsfMemoryManagerMap : ret=%d", esfmm_ret);
+            ISA_CRIT("EsfMemoryManagerGetHandleInfo : ret=%d", esfmm_ret);
             senscord_stream_release_frame(s_stream, frame);
             break;
+        }
+
+        if (handle_info.target_area == kEsfMemoryManagerTargetOtherHeap) {
+            // raw_data.address represents malloc buffer.
+            map_address = (uint64_t *)raw_data.address;
+        }
+        else {
+            /* Map memory */
+            esfmm_ret = EsfMemoryManagerMap((EsfMemoryManagerHandle)(uintptr_t)raw_data.address,
+                                            NULL, raw_data.size, (void *)&map_address);
+
+            if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
+                ISA_CRIT("EsfMemoryManagerMap : ret=%d", esfmm_ret);
+                senscord_stream_release_frame(s_stream, frame);
+                break;
+            }
         }
 #endif
 
@@ -447,13 +463,15 @@ int main(int argc, FAR char *argv[])
 
         /* Unmap memory */
 
-        esfmm_ret = EsfMemoryManagerUnmap((EsfMemoryManagerHandle)(uintptr_t)raw_data.address,
-                                          NULL);
+        if (handle_info.target_area != kEsfMemoryManagerTargetOtherHeap) {
+            esfmm_ret = EsfMemoryManagerUnmap((EsfMemoryManagerHandle)(uintptr_t)raw_data.address,
+                                              NULL);
 
-        if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
-            ISA_CRIT("EsfMemoryManagerUnmap : ret=%d", esfmm_ret);
-            senscord_stream_release_frame(s_stream, frame);
-            break;
+            if (esfmm_ret != kEsfMemoryManagerResultSuccess) {
+                ISA_CRIT("EsfMemoryManagerUnmap : ret=%d", esfmm_ret);
+                senscord_stream_release_frame(s_stream, frame);
+                break;
+            }
         }
 
 #endif
@@ -967,7 +985,7 @@ static void ConvertfromRGB8PlanarToGray(unsigned char *gray_address, unsigned ch
 {
     // Convert from RGB_PLANAR to Y.
 
-    uint32_t plan_size = width * stride;
+    uint32_t plan_size = height * stride;
 
     for (uint32_t y = 0U; y < (uint32_t)height; y++) {
         uint8_t *r_plan = rgb_address;

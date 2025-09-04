@@ -1127,8 +1127,8 @@ timer_initialize_failed:
         task_delete(pid);
     }
 #else  /* __NuttX__ */
-    extern void evp_agent_shutdown();
-    evp_agent_shutdown();
+    //extern void evp_agent_shutdown();
+    //evp_agent_shutdown();
 #endif /* __NuttX__ */
 
 evp_agent_create_error:

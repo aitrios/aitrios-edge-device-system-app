@@ -277,11 +277,20 @@ static void MapMemory_Success(struct senscord_raw_data_t* raw_data, char* map_ad
 
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)raw_data->address);
+#if defined(__NuttX__)
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     expect_value(__wrap_EsfMemoryManagerMap, handle, raw_data->address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, raw_data->size);
     will_return(__wrap_EsfMemoryManagerMap, map_address); // ok, dummy ptr
     will_return(__wrap_EsfMemoryManagerMap, kEsfMemoryManagerResultSuccess);
+#else  // expect __linux__
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetOtherHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
+#endif // defined(__NuttX__)
 #endif
 }
 
@@ -623,9 +632,7 @@ static void test_main_BtnAborted_EsfPwrMgrPrepareReboot_Failed()
 /*----------------------------------------------------------------------------*/
 static void test_main_TimerAborted(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetFailed);
 
     TerminationProcessAborted();
@@ -636,9 +643,7 @@ static void test_main_TimerAborted(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_TimerAborted_WaitFactoryReset(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetFailed);
 
     expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
@@ -670,9 +675,7 @@ static void test_main_TimerAborted_WaitFactoryReset(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_TimeoutValue_Failed_PSAborted(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -693,9 +696,7 @@ static void test_main_TimeoutValue_Failed_PSAborted(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_PSCompleted(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -714,9 +715,7 @@ static void test_main_PSCompleted(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_PSCompleted_FR(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -735,9 +734,7 @@ static void test_main_PSCompleted_FR(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_PSSuccess_InitializeApp_malloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -767,9 +764,7 @@ static void test_main_PSSuccess_InitializeApp_malloc_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -800,9 +795,7 @@ static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     int32_t qr_mode_tmo = 0;
@@ -830,9 +823,7 @@ static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void** s
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_senscord_stream_get_property_ULog_gray_alloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -862,9 +853,7 @@ static void test_main_NotPS_senscord_stream_get_property_ULog_gray_alloc_failed(
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_senscord_stream_get_property_gray_alloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -893,9 +882,7 @@ static void test_main_NotPS_senscord_stream_get_property_gray_alloc_failed(void*
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_ULog_gray_alloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -925,9 +912,7 @@ static void test_main_NotPS_ULog_gray_alloc_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_gray_alloc_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -956,9 +941,7 @@ static void test_main_NotPS_gray_alloc_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -995,9 +978,7 @@ static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1042,9 +1023,7 @@ static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
 /*----------------------------------------------------------------------------*/
 static void test_main_NotPS_senscord_channel_get_raw_data_failed(void** state)
 {
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1110,9 +1089,7 @@ static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1179,9 +1156,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1253,9 +1228,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1325,6 +1298,77 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
 /*----------------------------------------------------------------------------*/
+static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
+{
+    struct senscord_image_property_t expected_img_prop = {
+        .height = QRCODE_IMAGE_HEIGHT,
+        .width = QRCODE_IMAGE_WIDTH,
+        .stride_bytes = QRCODE_IMAGE_WIDTH,
+        .pixel_format = SENSCORD_PIXEL_FORMAT_GREY}; // valid
+
+    senscord_frame_t frame = 0;
+    senscord_channel_t channel = 0;
+    EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+                                                 .size = 123456,
+                                                 .type = "dummy_raw_data_type",
+                                                 .timestamp = 202501090500}; // dummy
+
+    will_return(__wrap_IsaBtnInitialize, kRetOk);
+    will_return(__wrap_IsaTimerInitialize, kRetOk);
+
+    NotPSMode_Success();
+
+    expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
+    will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
+
+    InitializeApp_Success(&expected_img_prop);
+
+    GetSensCordStringProperty(0);
+    will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
+
+    // heap alloc
+    expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
+    expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
+    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+
+    SetLedStatusForQrCodeMode_Success();
+
+    // senscord_stream_get_frame
+    SensCordGetFrame(0);
+
+    // senscord_frame_get_channel_from_channel_id
+    SensCordGetChannelId(frame, 0x1, 0);
+
+    // senscord_channel_get_raw_data
+    expect_value(__wrap_senscord_channel_get_raw_data, channel, channel);
+    will_return(__wrap_senscord_channel_get_raw_data, &dummy_raw_data);
+    will_return(__wrap_senscord_channel_get_raw_data, 0); // ok
+
+    // EsfMemoryManagerGetHandleInfo (failed)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+#if defined(__NuttX__)
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+#else  // expect __linux__
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetOtherHeap);
+#endif // defined(__NuttX__)
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultParamError); // fail
+
+    // senscord_stream_release_frame
+    SensCordStreamReleaseFrame(frame, 0);
+
+    // heap free
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+
+    FinalizeApp_Success();
+
+    TerminationProcessAborted();
+
+    CallMainforTest(-1);
+}
+
+/*----------------------------------------------------------------------------*/
 static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
 {
     // define expected img_prop
@@ -1341,9 +1385,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1375,6 +1417,10 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0); // ok
 
     // call MemoryManager using expected img_prop (T5)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     char* dummy_map_address = "0x87654321"; // dummy
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
@@ -1412,9 +1458,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1446,6 +1490,10 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     char* dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
@@ -1484,9 +1532,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1518,6 +1564,10 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     char* dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
@@ -1557,9 +1607,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1591,6 +1639,10 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     char* dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
@@ -1628,9 +1680,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1662,6 +1712,10 @@ static void test_main_NotPS_map_alloc_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
+    expect_value(__wrap_EsfMemoryManagerGetHandleInfo, handle,
+                 (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
+    will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
     char* dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
@@ -1699,9 +1753,7 @@ static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1798,9 +1850,7 @@ static void test_main_NotPS_GrayScale_success(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1843,8 +1893,13 @@ static void test_main_NotPS_GrayScale_success(void** state)
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -1860,7 +1915,9 @@ static void test_main_NotPS_GrayScale_success(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -1919,13 +1976,28 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
 
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
+
+#if defined(__NuttX__)
     struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
+    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    if (map_address == NULL) {
+        goto exit;
+    }
+#else  // expect __linux__
+    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
+    if (raw_data_address == NULL) {
+        goto exit;
+    }
+    struct senscord_raw_data_t raw_data = {.address = raw_data_address,
+                                           .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
+                                           .type = "raw_data_type",
+                                           .timestamp = 202501290900};
+    char* map_address = "0x87654321"; // dummy ptr
+#endif // defined(__NuttX__)
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -1958,7 +2030,6 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
@@ -1987,9 +2058,10 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
     UnmapMemory_Success(map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(raw_data.address);
 #endif
-
+#endif
     // senscord_stream_release_frame
     SensCordStreamReleaseFrame(frame, 0);
 
@@ -2027,6 +2099,17 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
 
     CallMainforTest(0);
 
+#if defined(__NuttX__)
+    if (map_address != NULL) {
+        free(map_address);
+        map_address = NULL;
+    }
+#else  // expect __linux__
+    if (raw_data_address != NULL) {
+        free(raw_data_address);
+        raw_data_address = NULL;
+    }
+#endif // defined(__NuttX__)
     if (output_buf != NULL) {
         free(output_buf);
         output_buf = NULL;
@@ -2052,9 +2135,7 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2097,8 +2178,13 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2114,7 +2200,9 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2187,9 +2275,7 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     // to be called QrModeTimerCallback() instead of NotPSMode_Success()
@@ -2242,8 +2328,13 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2259,7 +2350,9 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2318,9 +2411,7 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2363,8 +2454,13 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2380,7 +2476,9 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2439,9 +2537,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2484,8 +2580,13 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2501,7 +2602,9 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2566,9 +2669,7 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2611,8 +2712,13 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2628,7 +2734,9 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2684,9 +2792,7 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2729,8 +2835,13 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2746,7 +2857,9 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2805,9 +2918,7 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2850,8 +2961,13 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
     int32_t dummy_out_size = 1; // dummy size (>0)
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address); // GrayScale
+#else                                          // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
+                 (uint64_t)mem_mng_handle); // GrayScale
+#endif                                         // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2867,7 +2983,9 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -2924,9 +3042,7 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -2968,8 +3084,12 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
     }
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address);
+#else  // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle, (uint64_t)mem_mng_handle);
+#endif // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -2985,7 +3105,9 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -3035,9 +3157,7 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -3079,8 +3199,12 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
     }
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address);
+#else  // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle, (uint64_t)mem_mng_handle);
+#endif // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -3096,7 +3220,9 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -3146,9 +3272,7 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -3190,8 +3314,12 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     }
     memset(output_buf, 0, QRCODE_PAYLOAD_MAX_SIZE);
 
+#if defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle,
                  (uint64_t)dummy_map_address);
+#else  // expect __linux__
+    expect_value(__wrap_IsaCodecQrDecodeQrCode, input->input_adr_handle, (uint64_t)mem_mng_handle);
+#endif // defined(__NuttX__)
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->width, QRCODE_IMAGE_WIDTH);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->height, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaCodecQrDecodeQrCode, input->stride, QRCODE_IMAGE_WIDTH);
@@ -3207,7 +3335,9 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     UnmapMemory_Success(dummy_map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(dummy_raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -3241,13 +3371,28 @@ static void test_main_NotPS_RGB_success(void** state)
 
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
-    struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
-                                           .type = "raw_data_type",
-                                           .timestamp = 202501290900};
 
 #if defined(__NuttX__)
+    struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3,
+                                           .type = "raw_data_type",
+                                           .timestamp = 202501290900};
+    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    if (map_address == NULL) {
+        goto exit;
+    }
+#else  // expect __linux__
+    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
+    if (raw_data_address == NULL) {
+        goto exit;
+    }
+    struct senscord_raw_data_t raw_data = {.address = raw_data_address,
+                                           .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
+                                           .type = "raw_data_type",
+                                           .timestamp = 202501290900};
+    char* map_address = "0x87654321"; // dummy ptr
+#endif // defined(__NuttX__)
+
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -3280,7 +3425,6 @@ static void test_main_NotPS_RGB_success(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* map_address = malloc(raw_data.size); // for ConvertfromRGB24ToGray()
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
@@ -3308,7 +3452,9 @@ static void test_main_NotPS_RGB_success(void** state)
     UnmapMemory_Success(map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -3348,6 +3494,17 @@ static void test_main_NotPS_RGB_success(void** state)
 
     CallMainforTest(0);
 
+#if defined(__NuttX__)
+    if (map_address != NULL) {
+        free(map_address);
+        map_address = NULL;
+    }
+#else  // expect __linux__
+    if (raw_data_address != NULL) {
+        free(raw_data_address);
+        raw_data_address = NULL;
+    }
+#endif // defined(__NuttX__)
     if (output_buf != NULL) {
         free(output_buf);
         output_buf = NULL;
@@ -3367,13 +3524,28 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
 
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
-    struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
-                                           .type = "raw_data_type",
-                                           .timestamp = 202501290900};
 
 #if defined(__NuttX__)
+    struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3,
+                                           .type = "raw_data_type",
+                                           .timestamp = 202501290900};
+    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    if (map_address == NULL) {
+        goto exit;
+    }
+#else  // expect __linux__
+    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
+    if (raw_data_address == NULL) {
+        goto exit;
+    }
+    struct senscord_raw_data_t raw_data = {.address = raw_data_address,
+                                           .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
+                                           .type = "raw_data_type",
+                                           .timestamp = 202501290900};
+    char* map_address = "0x87654321"; // dummy ptr
+#endif // defined(__NuttX__)
+
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -3406,7 +3578,6 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* map_address = malloc(raw_data.size); // for ConvertfromRGB8PlanarToGray()
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
@@ -3434,7 +3605,9 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
     UnmapMemory_Success(map_address);
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+#if defined(__NuttX__)
     UnmapMemory_Success(raw_data.address);
+#endif
 #endif
 
     // senscord_stream_release_frame
@@ -3474,6 +3647,17 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
 
     CallMainforTest(0);
 
+#if defined(__NuttX__)
+    if (map_address != NULL) {
+        free(map_address);
+        map_address = NULL;
+    }
+#else  // expect __linux__
+    if (raw_data_address != NULL) {
+        free(raw_data_address);
+        raw_data_address = NULL;
+    }
+#endif // defined(__NuttX__)
     if (output_buf != NULL) {
         free(output_buf);
         output_buf = NULL;
@@ -3501,9 +3685,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
 
-#if defined(__NuttX__)
     will_return(__wrap_IsaBtnInitialize, kRetOk);
-#endif
     will_return(__wrap_IsaTimerInitialize, kRetOk);
 
     NotPSMode_Success();
@@ -3881,6 +4063,9 @@ int main(void)
                                         teardown),
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
+        cmocka_unit_test_setup_teardown(test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed, setup,
+                                        teardown),
+#if defined(__NuttX__)
         cmocka_unit_test_setup_teardown(test_main_NotPS_invalid_height_map_alloc_failed, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_main_NotPS_invalid_width_map_alloc_failed, setup,
@@ -3891,6 +4076,7 @@ int main(void)
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_main_NotPS_map_alloc_failed, setup, teardown),
         cmocka_unit_test_setup_teardown(test_main_NotPS_GrayScale_Unmap_failed, setup, teardown),
+#endif
 #endif
         cmocka_unit_test_setup_teardown(test_main_NotPS_GrayScale_success, setup, teardown),
         cmocka_unit_test_setup_teardown(test_main_NotPS_GrayScale_width_not_equal_stride, setup,

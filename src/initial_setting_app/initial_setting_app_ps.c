@@ -826,8 +826,8 @@ STATIC IsaPsErrorCode ReleaseEvpAgent(PsInfo *ps_info)
         task_delete(ps_info->pid);
     }
 #else
-    extern void evp_agent_shutdown();
-    evp_agent_shutdown();
+    //extern void evp_agent_shutdown();
+    //evp_agent_shutdown();
 #endif
 
     ps_info->client = NULL;
