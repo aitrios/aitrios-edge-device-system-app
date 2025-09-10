@@ -60,7 +60,7 @@ IsaQrcodeErrorCode IsaQrcodeInit(void)
         sp_payload_info = (IsaQrcodePayloadInfo*)malloc(sizeof(IsaQrcodePayloadInfo));
 
         if (sp_payload_info == NULL) {
-            ISA_ERR("malloc failed");
+            ISA_CRIT("sp_payload_info malloc failed. size=%zu", sizeof(IsaQrcodePayloadInfo));
             break;
         }
 

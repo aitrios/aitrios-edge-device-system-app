@@ -110,7 +110,7 @@ RetCode SysAppTimerInitialize(void)
                                     SA_TIMER_THREAD_STACK_SIZE, &s_sensortemp_timer_ctx.handle);
 
     if (utim_ret != kUtilityTimerOk) {
-        SYSAPP_ERR("UtilityTimerCreateEx(sensor_temp) ret %d", utim_ret);
+        SYSAPP_CRIT("UtilityTimerCreateEx(sensor_temp) ret %d", utim_ret);
         ret = kRetFailed;
         goto sensor_temp_timer_create_failed;
     }
@@ -122,7 +122,7 @@ RetCode SysAppTimerInitialize(void)
                                     SA_TIMER_THREAD_STACK_SIZE, &s_hoursmeter_timer_ctx.handle);
 
     if (utim_ret != kUtilityTimerOk) {
-        SYSAPP_ERR("UtilityTimerCreateEx(hours_meter) ret %d", utim_ret);
+        SYSAPP_CRIT("UtilityTimerCreateEx(hours_meter) ret %d", utim_ret);
         ret = kRetFailed;
         goto hours_meter_timer_create_failed;
     }

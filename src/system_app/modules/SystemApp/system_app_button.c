@@ -216,7 +216,7 @@ RetCode SysAppBtnInitialize(void)
     esfbm_ret = EsfButtonManagerOpen(&s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerOpen() ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerOpen() ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_open_failed;
     }
@@ -228,7 +228,7 @@ RetCode SysAppBtnInitialize(void)
                                                         NULL /*T.B.D user_data*/, s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerRegisterPressedCallback() ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerRegisterPressedCallback() ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_pressed_cb_failed;
     }
@@ -240,7 +240,7 @@ RetCode SysAppBtnInitialize(void)
                                                          NULL /*T.B.D user_data*/, s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerRegisterReleasedCallback(5-29sec) ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerRegisterReleasedCallback(5-29sec) ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_released_5_29_cb_failed;
     }
@@ -252,7 +252,7 @@ RetCode SysAppBtnInitialize(void)
                                                          NULL /*T.B.D user_data*/, s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerRegisterReleasedCallback(30sec) ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerRegisterReleasedCallback(30sec) ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_released_30_cb_failed;
     }
@@ -264,7 +264,7 @@ RetCode SysAppBtnInitialize(void)
         s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerRegisterLongPressedCallback(5sec) ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerRegisterLongPressedCallback(5sec) ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_long_pressed_5_cb_failed;
     }
@@ -276,7 +276,7 @@ RetCode SysAppBtnInitialize(void)
         s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerRegisterLongPressedCallback(30sec) ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerRegisterLongPressedCallback(30sec) ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_long_pressed_30_cb_failed;
     }
@@ -286,7 +286,7 @@ RetCode SysAppBtnInitialize(void)
     esfbm_ret = EsfButtonManagerEnableNotificationCallback(s_esfbm_handle);
 
     if (esfbm_ret != kEsfButtonManagerStatusOk) {
-        SYSAPP_ERR("EsfButtonManagerEnableNotificationCallback() ret %d", esfbm_ret);
+        SYSAPP_CRIT("EsfButtonManagerEnableNotificationCallback() ret %d", esfbm_ret);
         ret = kRetFailed;
         goto bm_register_enable_cb_failed;
     }

@@ -2430,7 +2430,7 @@ RetCode SysAppStaInitialize(struct SYS_client* sys_client)
     int32_t sc_ret = senscord_core_init(&s_sccore);
 
     if (sc_ret < 0) {
-        SYSAPP_ERR("senscord_core_init() ret %d", sc_ret);
+        SYSAPP_CRIT("senscord_core_init() ret %d", sc_ret);
         s_sccore = 0;
         s_scstream = 0;
         ret = kRetFailed;
@@ -2456,7 +2456,7 @@ RetCode SysAppStaInitialize(struct SYS_client* sys_client)
     int mtx_ret = pthread_mutex_init(&s_senscord_access_mutex, NULL);
 
     if (mtx_ret != 0) {
-        SYSAPP_ERR("pthread_mutex_init");
+        SYSAPP_CRIT("pthread_mutex_init. mtx_ret=%d", mtx_ret);
         goto mtx_init_failed;
     }
 
