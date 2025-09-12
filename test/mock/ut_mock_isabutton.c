@@ -79,12 +79,6 @@ bool __wrap_IsaBtnCheckFactoryResetRequest(void)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_IsaBtnExecuteRebootCore(void)
-{
-    return mock_type(RetCode);
-}
-
-/*----------------------------------------------------------------------------*/
 RetCode __wrap_IsaBtnExecuteFactoryResetCore(void)
 {
     return mock_type(RetCode);

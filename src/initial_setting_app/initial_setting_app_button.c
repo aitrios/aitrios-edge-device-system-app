@@ -375,18 +375,6 @@ bool IsaBtnCheckFactoryResetRequest(void)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode IsaBtnExecuteRebootCore(void)
-{
-    RetCode ret = kRetOk;
-
-    s_reboot_requested = false;
-
-    EsfPwrMgrExecuteReboot();
-
-    return ret;
-}
-
-/*----------------------------------------------------------------------------*/
 RetCode IsaBtnExecuteFactoryResetCore(void)
 {
     ISA_INFO("Execute factory reset!");
