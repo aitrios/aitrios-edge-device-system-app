@@ -41,6 +41,7 @@
 #include "utility_timer.h"
 #include "power_manager.h"
 #include "firmware_manager.h"
+#include "log_manager.h"
 
 #include "system_app_direct_command.h"
 #include "system_app_configuration.h"
@@ -1122,13 +1123,28 @@ timer_initialize_failed:
         }
     }
 
+    // Cleanup log manager before EVP Agent stop.
+    EsfLogManagerStatus log_status = EsfLogManagerDeinit();
+    if (log_status != kEsfLogManagerStatusOk) {
+        SYSAPP_WARN("EsfLogManagerDeinit() failed with status %d", log_status);
+    }
+
 #if defined(__NuttX__)
     if (pid != (pid_t)-1) {
         task_delete(pid);
     }
 #else  /* __NuttX__ */
-    //extern void evp_agent_shutdown();
-    //evp_agent_shutdown();
+    /*
+    * Only call evp_agent_shutdown() if succeeded to stop Log Manager.
+    * Because there is possibility that the sys client still be in use
+    * by ESF if Log Manager could not be stop successfully.
+    * So we should not shutdown EVP agent here if in that situation
+    * to avoid unexpected bahavior.
+    */
+    if (log_status == kEsfLogManagerStatusOk) {
+        extern void evp_agent_shutdown();
+        evp_agent_shutdown();
+    }
 #endif /* __NuttX__ */
 
 evp_agent_create_error:

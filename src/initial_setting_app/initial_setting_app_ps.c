@@ -37,6 +37,7 @@
 #include "parameter_storage_manager.h"
 #include "power_manager.h"
 #include "led_manager.h"
+#include "log_manager.h"
 #include "system_app_common.h"
 #include "initial_setting_app_timer.h"
 #include "initial_setting_app_button.h"
@@ -821,13 +822,28 @@ STATIC IsaPsErrorCode ReleaseEvpAgent(PsInfo *ps_info)
         }
     }
 
+    // Cleanup log manager before EVP Agent stop.
+    EsfLogManagerStatus log_status = EsfLogManagerDeinit();
+    if (log_status != kEsfLogManagerStatusOk) {
+        ISA_WARN("EsfLogManagerDeinit() failed with status %d", log_status);
+    }
+
 #if defined(__NuttX__)
     if (ps_info->pid != (pid_t)-1) {
         task_delete(ps_info->pid);
     }
 #else
-    //extern void evp_agent_shutdown();
-    //evp_agent_shutdown();
+    /*
+    * Only call evp_agent_shutdown() if succeeded to stop Log Manager.
+    * Because there is possibility that the sys client still be in use
+    * by ESF if Log Manager could not be stop successfully.
+    * So we should not shutdown EVP agent here if in that situation
+    * to avoid unexpected bahavior.
+    */
+    if (log_status == kEsfLogManagerStatusOk) {
+        extern void evp_agent_shutdown();
+        evp_agent_shutdown();
+    }
 #endif
 
     ps_info->client = NULL;

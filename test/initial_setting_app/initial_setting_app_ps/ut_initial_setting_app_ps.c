@@ -18,6 +18,7 @@
 #include "system_app_common.h"
 #include "initial_setting_app_ps.h"
 #include "led_manager.h"
+#include "log_manager.h"
 #include "ut_mock_codec_json.h"
 #include "evp/sdk_sys.h"
 #include "json/include/json.h"
@@ -3594,6 +3595,9 @@ static void test_ReleaseEvpAgent_FullySuccess(void **state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif
@@ -3614,6 +3618,9 @@ static void test_ReleaseEvpAgent_ErrorEVP_Agent_unregister_sys_client(void **sta
     ps_info.pid = -1;
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, -1);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     ret = ReleaseEvpAgent(&ps_info);
 
@@ -5264,6 +5271,10 @@ static void test_SetupEvpAgent_ErrorSYS_set_configuration_cb_1st(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif
@@ -5308,6 +5319,9 @@ static void test_SetupEvpAgent_ErrorSYS_set_configuration_cb_2nd(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -5358,6 +5372,10 @@ static void test_SetupEvpAgent_ErrorSYS_register_command_cb(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif
@@ -5570,6 +5588,10 @@ static void test_IsaRunProvisioningService_FullySuccess(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif
@@ -5907,6 +5929,9 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
 
         will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+        // Check EsfLogManagerDeinit.
+        will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
         // Check task_delete.
 #if defined(__NuttX__)
         will_return(__wrap_task_delete, 0);
@@ -6100,6 +6125,9 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort(void **state)
         // Nop because SetupEvpAgent will not be executed.
     }
 
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check IsaBtnCheckRebootRequest.
 
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
@@ -6274,6 +6302,9 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort_FR(void **state)
         // Nop because SetupEvpAgent will not be executed.
     }
 
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check IsaBtnCheckFactoryResetRequest.
 
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
@@ -6371,6 +6402,9 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Error_RebootRequest(vo
         // Nop because SetupEvpAgent will not be executed.
     }
 
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check IsaBtnCheckRebootRequest.
 
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
@@ -6448,6 +6482,9 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Error_FactoryResetRequ
     {
         // Nop because SetupEvpAgent will not be executed.
     }
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check IsaBtnCheckRebootRequest.
 
@@ -6619,6 +6656,9 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
 
     // ReleaseEvpAgent()
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
     will_return(__wrap_IsaBtnCheckRebootRequest, true);
@@ -6793,6 +6833,9 @@ static void test_IsaRunProvisioningService_ErrorStartNTP_FR(void **state)
         will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
     }
 
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check EsfClockManagerStop.
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
@@ -6966,52 +7009,55 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
 
     // Check SetupEvpAgent. Will return failed.
 
-    {// Check SetDefaultEndpoint. Will return failed.
+    { // Check SetDefaultEndpoint. Will return failed.
 
-     {// Check mqtt_host malloc. Will return NULL.
+        { // Check mqtt_host malloc. Will return NULL.
 
-      will_return(mock_malloc, true);
-    will_return(mock_malloc, false);
-    expect_value(mock_malloc, __size, ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE);
+            will_return(mock_malloc, true);
+            will_return(mock_malloc, false);
+            expect_value(mock_malloc, __size, ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE);
 
-    // Check mqtt_port malloc. Will return NULL.
+            // Check mqtt_port malloc. Will return NULL.
 
-    will_return(mock_malloc, true);
-    will_return(mock_malloc, false);
-    expect_value(mock_malloc, __size, ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE);
-}
-}
+            will_return(mock_malloc, true);
+            will_return(mock_malloc, false);
+            expect_value(mock_malloc, __size, ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE);
+        }
+    }
 
-// Check EsfPwrMgrWdtTerminate.
+    // Check EsfPwrMgrWdtTerminate.
 
-// ReleaseEvpAgent
+    // ReleaseEvpAgent
 
-{
-    // Nop because SetupEvpAgent returned with NULL client.
-}
+    {
+        // Nop because SetupEvpAgent returned with NULL client.
+    }
 
-// Check IsaBtnCheckRebootRequest.
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
-expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-will_return(__wrap_IsaBtnCheckRebootRequest, true);
+    // Check IsaBtnCheckRebootRequest.
 
-// Check EsfClockManagerStop.
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, true);
 
-will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+    // Check EsfClockManagerStop.
 
-// Check free.
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
 
-will_return(mock_free, false);
+    // Check free.
 
-// Execute target.
+    will_return(mock_free, false);
 
-ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+    // Execute target.
 
-// Check return value.
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
 
-assert_int_equal(ret, kIsaPsSuccess);
+    // Check return value.
 
-return;
+    assert_int_equal(ret, kIsaPsSuccess);
+
+    return;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -7220,79 +7266,83 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
         {
             // Check SetResId.
 
-            {// Check JsonOpenAndDeserialize. Will fail.
+            { // Check JsonOpenAndDeserialize. Will fail.
 
-             {EsfJsonHandle json_handle;
-            will_return(__wrap_EsfJsonOpen, json_handle);
-            will_return(__wrap_EsfJsonOpen, kEsfJsonInternalError);
+                {
+                    EsfJsonHandle json_handle;
+                    will_return(__wrap_EsfJsonOpen, json_handle);
+                    will_return(__wrap_EsfJsonOpen, kEsfJsonInternalError);
+                }
+            }
+
+            // Check SendDirectCommandResponse. Will fail.
+
+            {
+                // Check JsonOpenAndInit. Will fail.
+
+                {
+                    EsfJsonHandle json_handle;
+                    will_return(__wrap_EsfJsonOpen, json_handle);
+                    will_return(__wrap_EsfJsonOpen, kEsfJsonInternalError);
+                }
+            }
         }
+
+        expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
+        will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
     }
 
-    // Check SendDirectCommandResponse. Will fail.
+    // Check SYS_process_event.
+
+    expect_any(__wrap_SYS_process_event, c);
+    expect_value(__wrap_SYS_process_event, ms, 0);
+    will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
+
+    // Check EsfPwrMgrWdtTerminate.
+
+    // ReleaseEvpAgent
 
     {
-        // Check JsonOpenAndInit. Will fail.
+        // Check EVP_Agent_unregister_sys_client.
 
-        {
-            EsfJsonHandle json_handle;
-            will_return(__wrap_EsfJsonOpen, json_handle);
-            will_return(__wrap_EsfJsonOpen, kEsfJsonInternalError);
-        }
-    }
-}
+        will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
-expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
-will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
-}
+        // Check EsfLogManagerDeinit.
+        will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
-// Check SYS_process_event.
-
-expect_any(__wrap_SYS_process_event, c);
-expect_value(__wrap_SYS_process_event, ms, 0);
-will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
-
-// Check EsfPwrMgrWdtTerminate.
-
-// ReleaseEvpAgent
-
-{
-    // Check EVP_Agent_unregister_sys_client.
-
-    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
-
-    // Check task_delete.
+        // Check task_delete.
 #if defined(__NuttX__)
-    will_return(__wrap_task_delete, 0);
+        will_return(__wrap_task_delete, 0);
 #endif
-}
+    }
 
-// Check IsaBtnCheckRebootRequest.
+    // Check IsaBtnCheckRebootRequest.
 
-expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-will_return(__wrap_IsaBtnCheckRebootRequest, true);
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, true);
 
-// Check EsfClockManagerStop.
+    // Check EsfClockManagerStop.
 
-will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
 
-// Check EsfPwrMgrPrepareReboot.
+    // Check EsfPwrMgrPrepareReboot.
 
-expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
-will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
+    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
+    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
 
-// Check free.
+    // Check free.
 
-will_return(mock_free, false);
+    will_return(mock_free, false);
 
-// Execute target.
+    // Execute target.
 
-ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
 
-// Check return value.
+    // Check return value.
 
-assert_int_equal(ret, kIsaPsReboot);
+    assert_int_equal(ret, kIsaPsReboot);
 
-return;
+    return;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -7445,6 +7495,10 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif
@@ -7621,6 +7675,10 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
 
     // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
 #endif

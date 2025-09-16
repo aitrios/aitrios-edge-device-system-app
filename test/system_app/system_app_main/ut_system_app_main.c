@@ -19,6 +19,7 @@
 #include "system_manager.h"
 #include "network_manager.h"
 #include "led_manager.h"
+#include "log_manager.h"
 #include "clock_manager.h"
 #include "clock_manager_setting.h"
 #include "sensor_main.h"
@@ -2675,6 +2676,10 @@ static void test_SysAppMain_SysProcessEventError(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -2817,6 +2822,10 @@ static void test_SysAppMain_SelfTerminateRequested(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -2956,6 +2965,10 @@ static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3105,6 +3118,10 @@ static void test_SysAppMain_RebootRequested(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -3252,6 +3269,10 @@ static void test_SysAppMain_FactoryResetRequested(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3418,6 +3439,10 @@ static void test_SysAppMain_DeployResetRequested(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -3579,6 +3604,10 @@ static void test_SysAppMain_DeployFactoryResetRequested(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3782,6 +3811,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -3978,6 +4011,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 1);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4183,6 +4220,10 @@ static void test_SysAppMain_ConnectNetworkRetry(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4440,6 +4481,10 @@ static void test_SysAppMain_SysAppTimerInitializeError(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -4518,6 +4563,10 @@ static void test_SysAppMain_SysAppDcmdInitializeError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4605,6 +4654,10 @@ static void test_SysAppMain_SysAppCfgInitializeError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4700,6 +4753,10 @@ static void test_SysAppMain_SysAppStaInitializeError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4803,6 +4860,10 @@ static void test_SysAppMain_SysAppUdInitializeError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4912,6 +4973,10 @@ static void test_SysAppMain_SysAppDeployInitializeError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -5032,6 +5097,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -5171,6 +5240,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void** state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+
     // Check task_delete.
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -5308,6 +5381,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void** state)
     // Check EVP_Agent_unregister_sys_client.
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check EsfLogManagerDeinit.
+
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check task_delete.
 #if defined(__NuttX__)
