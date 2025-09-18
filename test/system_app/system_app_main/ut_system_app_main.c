@@ -2677,8 +2677,10 @@ static void test_SysAppMain_SysProcessEventError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -2823,8 +2825,10 @@ static void test_SysAppMain_SelfTerminateRequested(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -2967,8 +2971,10 @@ static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3119,8 +3125,10 @@ static void test_SysAppMain_RebootRequested(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3271,8 +3279,10 @@ static void test_SysAppMain_FactoryResetRequested(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3440,8 +3450,10 @@ static void test_SysAppMain_DeployResetRequested(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3606,8 +3618,10 @@ static void test_SysAppMain_DeployFactoryResetRequested(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -3812,8 +3826,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4013,8 +4029,10 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
     will_return(__wrap_EVP_Agent_unregister_sys_client, 1);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4222,8 +4240,10 @@ static void test_SysAppMain_ConnectNetworkRetry(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4482,8 +4502,10 @@ static void test_SysAppMain_SysAppTimerInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4565,8 +4587,10 @@ static void test_SysAppMain_SysAppDcmdInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4656,8 +4680,10 @@ static void test_SysAppMain_SysAppCfgInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4755,8 +4781,10 @@ static void test_SysAppMain_SysAppStaInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4862,8 +4890,10 @@ static void test_SysAppMain_SysAppUdInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -4975,8 +5005,10 @@ static void test_SysAppMain_SysAppDeployInitializeError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -5099,8 +5131,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -5241,8 +5275,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)
@@ -5383,8 +5419,10 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void** state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
-
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check task_delete.
 #if defined(__NuttX__)

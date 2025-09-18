@@ -11,13 +11,14 @@ extern "C" {
 #endif
 
 typedef enum {
-  kIsaPsSuccess = 0,      // Success.
-  kIsaPsInvalidArgument,  // Argument error.
-  kIsaPsFailed,           // Failed.
-  kIsaPsReboot,           // Reboot.
-  kIsaPsDoesntRun,        // PS mode doesnt run.
-  kIsaPsFactoryReset,     // FactoryReset.
-  kIsaPsErrcodeNum
+    kIsaPsSuccess = 0,     // Success.
+    kIsaPsInvalidArgument, // Argument error.
+    kIsaPsFailed,          // Failed.
+    kIsaPsReboot,          // Reboot.
+    kIsaPsDoesntRun,       // PS mode doesnt run.
+    kIsaPsFactoryReset,    // FactoryReset.
+    kIsaPsSwitchToQrMode,  // Switch to QR mode.
+    kIsaPsErrcodeNum
 } IsaPsErrorCode;
 
 // Enable if preprocessing is need itself
@@ -28,7 +29,7 @@ typedef enum {
 
 // Force PS mode
 
-#define ISAPP_PS_MODE_FORCE_ENTRY  (0x77777777)
+#define ISAPP_PS_MODE_FORCE_ENTRY (0x77777777)
 
 // Public functions
 
@@ -38,4 +39,4 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_debug_mode);
 }
 #endif
 
-#endif  // _INITIAL_SETTING_APP_PS_H_
+#endif // _INITIAL_SETTING_APP_PS_H_

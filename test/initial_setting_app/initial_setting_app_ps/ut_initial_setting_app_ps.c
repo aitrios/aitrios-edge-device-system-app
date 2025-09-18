@@ -20,6 +20,7 @@
 #include "led_manager.h"
 #include "log_manager.h"
 #include "ut_mock_codec_json.h"
+#include "evp/agent.h"
 #include "evp/sdk_sys.h"
 #include "json/include/json.h"
 #include "system_manager.h"
@@ -3596,7 +3597,10 @@ static void test_ReleaseEvpAgent_FullySuccess(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -3620,7 +3624,10 @@ static void test_ReleaseEvpAgent_ErrorEVP_Agent_unregister_sys_client(void **sta
     will_return(__wrap_EVP_Agent_unregister_sys_client, -1);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     ret = ReleaseEvpAgent(&ps_info);
 
@@ -5273,7 +5280,10 @@ static void test_SetupEvpAgent_ErrorSYS_set_configuration_cb_1st(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -5321,7 +5331,10 @@ static void test_SetupEvpAgent_ErrorSYS_set_configuration_cb_2nd(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -5374,7 +5387,10 @@ static void test_SetupEvpAgent_ErrorSYS_register_command_cb(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -5421,10 +5437,273 @@ static void test_SetLedStatusForProvisioningService_ErrorEsfLedManagerSetStatus(
 
 /*----------------------------------------------------------------------------*/
 //
+// CheckAllowlist()
+//
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_AllowlistTrue(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Enrollment;
+    const char *topic = "system_settings";
+    const char *config = "{\"is_allowlisted\": true}";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+    bool is_allowlisted = true;
+
+    // JsonOpenAndDeserialize()
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, val);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // GetReqInfoToSetResInfo()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+    will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppCmnExtractBooleanValue()
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, parent_val, val);
+    expect_string(__wrap_SysAppCmnExtractBooleanValue, jsonkey, "is_allowlisted");
+    will_return(__wrap_SysAppCmnExtractBooleanValue, is_allowlisted);
+    will_return(__wrap_SysAppCmnExtractBooleanValue, 1);
+
+    // EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should remain IsaPsMode_Enrollment when allowlist is true
+    assert_int_equal(ps_info.mode, IsaPsMode_Enrollment);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_AllowlistFalse(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Enrollment;
+    const char *topic = "system_settings";
+    const char *config = "{\"is_allowlisted\": false}";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+    bool is_allowlisted = false;
+
+    // JsonOpenAndDeserialize()
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, val);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // GetReqInfoToSetResInfo()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+    will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppCmnExtractBooleanValue()
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, parent_val, val);
+    expect_string(__wrap_SysAppCmnExtractBooleanValue, jsonkey, "is_allowlisted");
+    will_return(__wrap_SysAppCmnExtractBooleanValue, is_allowlisted);
+    will_return(__wrap_SysAppCmnExtractBooleanValue, 1);
+
+    // EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should change to IsaPsMode_QrCode when allowlist is false
+    assert_int_equal(ps_info.mode, IsaPsMode_QrCode);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_ModeNotEnrollment(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Operation; // Not Enrollment mode
+    const char *topic = "system_settings";
+    const char *config = "{\"is_allowlisted\": false}";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+
+    // JsonOpenAndDeserialize()
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, val);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // GetReqInfoToSetResInfo()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+    will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppCmnExtractBooleanValue should not be called when mode is not Enrollment
+
+    // EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should remain unchanged when not in Enrollment mode
+    assert_int_equal(ps_info.mode, IsaPsMode_Operation);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_JsonDeserializeError(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Enrollment;
+    const char *topic = "system_settings";
+    const char *config = "invalid_json";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+
+    // JsonOpenAndDeserialize() - failure case
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, ESF_JSON_VALUE_INVALID);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonInternalError);
+
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should remain unchanged when JSON deserialize fails
+    assert_int_equal(ps_info.mode, IsaPsMode_Enrollment);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_InvalidExtractBooleanValue(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Enrollment;
+    const char *topic = "system_settings";
+    const char *config = "{\"is_allowlisted\": \"invalid_boolean\"}";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+    bool is_allowlisted = false;
+
+    // JsonOpenAndDeserialize()
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, val);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // GetReqInfoToSetResInfo()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+    will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppCmnExtractBooleanValue() - return invalid value (0 or negative)
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, parent_val, val);
+    expect_string(__wrap_SysAppCmnExtractBooleanValue, jsonkey, "is_allowlisted");
+    will_return(__wrap_SysAppCmnExtractBooleanValue, is_allowlisted);
+    will_return(__wrap_SysAppCmnExtractBooleanValue, 0); // Invalid return value
+
+    // EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should remain IsaPsMode_Enrollment when extraction fails
+    assert_int_equal(ps_info.mode, IsaPsMode_Enrollment);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_CheckAllowlist_EsfJsonCloseError(void **state)
+{
+    PsInfo ps_info = {0};
+    ps_info.mode = IsaPsMode_Enrollment;
+    const char *topic = "system_settings";
+    const char *config = "{\"is_allowlisted\": true}";
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+    bool is_allowlisted = true;
+
+    // JsonOpenAndDeserialize()
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+    expect_string(__wrap_EsfJsonDeserialize, str, config);
+    will_return(__wrap_EsfJsonDeserialize, val);
+    will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+    // GetReqInfoToSetResInfo()
+    expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+    expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+    will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+    will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+    // SysAppCmnExtractBooleanValue()
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnExtractBooleanValue, parent_val, val);
+    expect_string(__wrap_SysAppCmnExtractBooleanValue, jsonkey, "is_allowlisted");
+    will_return(__wrap_SysAppCmnExtractBooleanValue, is_allowlisted);
+    will_return(__wrap_SysAppCmnExtractBooleanValue, 1);
+
+    // EsfJsonClose() - return error to trigger error log
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, kEsfJsonInternalError);
+
+    CheckAllowlist(topic, config, &ps_info);
+
+    // Mode should remain IsaPsMode_Enrollment when allowlist is true
+    assert_int_equal(ps_info.mode, IsaPsMode_Enrollment);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+//
 // IsaRunProvisioningService()
 //
 /*----------------------------------------------------------------------------*/
-static void test_IsaRunProvisioningService_FullySuccess(void **state)
+static void test_IsaRunProvisioningService_Should_exit(void **state)
 {
     RetCode ret;
     bool is_ps_mode_force_entory = true;
@@ -5510,15 +5789,6 @@ static void test_IsaRunProvisioningService_FullySuccess(void **state)
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
@@ -5562,39 +5832,15 @@ static void test_IsaRunProvisioningService_FullySuccess(void **state)
     // 1st loop.
 
     {
-        // Check SYS_process_event.
-
-        expect_any(__wrap_SYS_process_event, c);
-        expect_value(__wrap_SYS_process_event, ms, 0);
-        will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
-
-        // Check IsaBtnCheckFactoryResetRequest.
-
-        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
-        // Check IsaBtnCheckRebootRequest.
-
-        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-        will_return(__wrap_IsaBtnCheckRebootRequest, false);
-    }
-
-    // 2nd loop.
-
-    {
+        // Check EVP_getAgentStatus.
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
         expect_any(__wrap_SYS_process_event, c);
         expect_value(__wrap_SYS_process_event, ms, 0);
         will_return(__wrap_SYS_process_event, SYS_RESULT_SHOULD_EXIT);
     }
 
-    // ReleaseEvpAgent()
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
-
-#if defined(__NuttX__)
-    will_return(__wrap_task_delete, 0);
-#endif
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
     will_return(__wrap_IsaBtnCheckRebootRequest, false);
 
@@ -5610,11 +5856,18 @@ static void test_IsaRunProvisioningService_FullySuccess(void **state)
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
 
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
     will_return(mock_free, false);
 
     ret = IsaRunProvisioningService(is_ps_mode_force_entory);
 
-    assert_int_equal(ret, kRetOk);
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
 
     return;
 }
@@ -5718,15 +5971,6 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
         will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
     }
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // Check StartSyncNtp. Will sync.
 
     {
@@ -5801,6 +6045,27 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
         expect_value(__wrap_SYS_set_configuration_cb, type, SYS_CONFIG_ANY);
         expect_any(__wrap_SYS_set_configuration_cb, user);
 
+        // For CheckAllowlist. Mode is not IsaPsMode_Enrollment, so no operation.
+        EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+        EsfJsonValue val = 1357;
+        const char *param = "";
+        const char *req_id_ptr = "TEST";
+        will_return(__wrap_EsfJsonOpen, handle_val);
+        will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+        expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+        expect_string(__wrap_EsfJsonDeserialize, str, param);
+        will_return(__wrap_EsfJsonDeserialize, val);
+        will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+        expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+        expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+        will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+        will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+        expect_value(__wrap_EsfJsonClose, handle, handle_val);
+        will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
         // Check SYS_set_configuration_cb. endpoint_settings.
 
         will_return(__wrap_SYS_set_configuration_cb, true); // Don't call cb.
@@ -5837,6 +6102,7 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
     {
         // Check SYS_process_event.
 
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
         expect_any(__wrap_SYS_process_event, c);
         expect_value(__wrap_SYS_process_event, ms, 0);
         will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -5882,6 +6148,7 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
     {
         // Check SYS_process_event.
 
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
         expect_any(__wrap_SYS_process_event, c);
         expect_value(__wrap_SYS_process_event, ms, 0);
         will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -5901,6 +6168,7 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
     {
         // Check SYS_process_event.
 
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
         expect_any(__wrap_SYS_process_event, c);
         expect_value(__wrap_SYS_process_event, ms, 0);
         will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -5930,7 +6198,10 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
         will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
         // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+        // workaround for Nuttx occur issue on FR.
         will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
         // Check task_delete.
 #if defined(__NuttX__)
@@ -6001,30 +6272,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort(void **state)
     expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
     will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
-    // ConnectNetwork() 1st call, will be failed.
-
-    {
-        memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
-        memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
-        esfnm_mask_expect.normal_mode.netif_kind = 1;
-        esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
-
-        // Check for EsfNetworkManagerOpen.
-
-        will_return(__wrap_EsfNetworkManagerOpen, 777);
-        will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultInvalidParameter);
-    }
-
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
-    // ConnectNetwork() 2nd call, will be aborted.
+    // ConnectNetwork() call, will be aborted.
 
     {
         memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -6126,7 +6374,10 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort(void **state)
     }
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check IsaBtnCheckRebootRequest.
 
@@ -6175,30 +6426,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort_FR(void **state)
     expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
     will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
-    // ConnectNetwork() 1st call, will be failed.
-
-    {
-        memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
-        memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
-        esfnm_mask_expect.normal_mode.netif_kind = 1;
-        esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
-
-        // Check for EsfNetworkManagerOpen.
-
-        will_return(__wrap_EsfNetworkManagerOpen, 777);
-        will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultInvalidParameter);
-    }
-
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
-    // ConnectNetwork() 2nd call, will be aborted.
+    // ConnectNetwork() call, will be aborted.
 
     {
         memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -6303,7 +6531,10 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort_FR(void **state)
     }
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
     // Check IsaBtnCheckFactoryResetRequest.
 
@@ -6358,7 +6589,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort_FR(void **state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaRunProvisioningService_ConnectNetwork_Error_RebootRequest(void **state)
+static void test_IsaRunProvisioningService_ConnectNetwork_Error(void **state)
 {
     RetCode ret;
     bool is_ps_mode_force_entory = true;
@@ -6388,128 +6619,30 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Error_RebootRequest(vo
         will_return(__wrap_EsfNetworkManagerOpen, 777);
         will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultInvalidParameter);
     }
-
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, true);
-
-    // Check EsfPwrMgrWdtTerminate.
-
-    // ReleaseEvpAgent
-
-    {
-        // Nop because SetupEvpAgent will not be executed.
-    }
-
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
 
     // Check IsaBtnCheckRebootRequest.
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, true);
-
-    // Check EsfClockManagerStop.
-
-    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
-
-    // Check EsfPwrMgrPrepareReboot.
-
-    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
-    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
-
-    // Check free.
-
-    will_return(mock_free, false);
-
-    // Execute target.
-
-    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
-
-    // Check return value.
-
-    assert_int_equal(ret, kIsaPsReboot);
-
-    return;
-}
-
-/*----------------------------------------------------------------------------*/
-static void test_IsaRunProvisioningService_ConnectNetwork_Error_FactoryResetRequest(void **state)
-{
-    RetCode ret;
-    bool is_ps_mode_force_entory = true;
-    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
-    EsfNetworkManagerParameter esfnm_param_expect = {0};
-
-    will_return(mock_malloc, true);
-    will_return(mock_malloc, true);
-    expect_value(mock_malloc, __size, sizeof(PsInfo));
-
-    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
-    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
-                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
-    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
-    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
-
-    // ConnectNetwork() 1st call, will be failed.
-
-    {
-        memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
-        memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
-        esfnm_mask_expect.normal_mode.netif_kind = 1;
-        esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
-
-        // Check for EsfNetworkManagerOpen.
-
-        will_return(__wrap_EsfNetworkManagerOpen, 777);
-        will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultInvalidParameter);
-    }
-
-    // Check IsaBtnCheckRebootRequest
 
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
     will_return(__wrap_IsaBtnCheckRebootRequest, false);
 
-    // Check IsaBtnCheckFactoryResetRequest
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
 
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
-
-    // Check EsfPwrMgrWdtTerminate.
-
-    // ReleaseEvpAgent
-
-    {
-        // Nop because SetupEvpAgent will not be executed.
-    }
-
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
-
-    // Check IsaBtnCheckRebootRequest.
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
 
     // Check EsfClockManagerStop.
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
 
-    // UnsetLedStatusForProvisioningService()
-
-    {
-        // Check EsfLedManagerSetStatus.
-
-        expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
-        expect_value(__wrap_EsfLedManagerSetStatus, status->status,
-                     kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
-        expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
-        will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
-    }
-
-    // Check IsaBtnExecuteFactoryResetCore
-
-    will_return(__wrap_IsaBtnExecuteFactoryResetCore, kRetOk);
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
     // Check free.
 
@@ -6521,7 +6654,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Error_FactoryResetRequ
 
     // Check return value.
 
-    assert_int_equal(ret, kIsaPsFactoryReset);
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
 
     return;
 }
@@ -6613,15 +6746,6 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
@@ -6651,39 +6775,42 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
 
     will_return(__wrap_EsfClockManagerSetParams, kClockManagerInternalError);
 
-    // Check IsaBtnCheckFactoryResetRequest.
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
-    // ReleaseEvpAgent()
-
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
-
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
 
     // Check EsfClockManagerStop.
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
 
-    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
-    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
     will_return(mock_free, false);
 
     ret = IsaRunProvisioningService(is_ps_mode_force_entory);
 
-    assert_int_equal(ret, kIsaPsReboot);
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
 
     return;
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaRunProvisioningService_ErrorStartNTP_FR(void **state)
+static void test_IsaRunProvisioningService_StartSyncNtp_Abort_FactoryReset(void **state)
 {
     RetCode ret;
-    bool is_ps_mode_force_entory = true;
+    bool is_ps_mode_force_entory = false;
 
     EsfClockManagerParams cm_param = {
         .common.sync_interval = 64,
@@ -6766,50 +6893,62 @@ static void test_IsaRunProvisioningService_ErrorStartNTP_FR(void **state)
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
 
-    // Check IsaBtnCheckRebootRequest
+    // StartSyncNtp() - SetParams
+    {
+        // Check EsfClockManagerSetParams.
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                     cm_mask.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                     cm_mask.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                     cm_mask.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->skip_and_limit.limit_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                     cm_mask.slew_setting.type);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->slew_setting.stable_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                     cm_param.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                     cm_param.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                     cm_param.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                     cm_param.slew_setting.type);
+        will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
 
-    // Check IsaBtnCheckFactoryResetRequest
+        // Check EsfClockManagerRegisterCbOnNtpSyncComplete.
 
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+        will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
 
-    // StartNTP()
-    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
-                 cm_mask.common.sync_interval);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
-                 cm_mask.common.polling_time);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
-                 cm_mask.skip_and_limit.type);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
-                 0);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
-                 cm_mask.slew_setting.type);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
-                 0);
-    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+        will_return(__wrap_EsfClockManagerStart, false);
+        will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
 
-    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
-                 cm_param.common.sync_interval);
-    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
-                 cm_param.common.polling_time);
-    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
-                 cm_param.skip_and_limit.type);
-    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
-                 cm_param.slew_setting.type);
+        // Check button calls in while loop (exactly 1 iteration)
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, false);
 
-    will_return(__wrap_EsfClockManagerSetParams, kClockManagerInternalError);
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
 
-    // Check IsaBtnCheckFactoryResetRequest.
+        will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+        will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+    }
 
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
 
-    // Check IsaBtnCheckRebootRequest.
+    // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
+    // Check IsaBtnCheckRebootRequest at cleanup
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
     will_return(__wrap_IsaBtnCheckRebootRequest, false);
 
@@ -6821,24 +6960,16 @@ static void test_IsaRunProvisioningService_ErrorStartNTP_FR(void **state)
     expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
     will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
 
-    // UnsetLedStatusForProvisioningService()
-
-    {
-        // Check EsfLedManagerSetStatus.
-
-        expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
-        expect_value(__wrap_EsfLedManagerSetStatus, status->status,
-                     kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
-        expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
-        will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
-    }
-
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
-
     // Check EsfClockManagerStop.
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
     // Check IsaBtnExecuteFactoryResetCore
 
@@ -6849,6 +6980,168 @@ static void test_IsaRunProvisioningService_ErrorStartNTP_FR(void **state)
     ret = IsaRunProvisioningService(is_ps_mode_force_entory);
 
     assert_int_equal(ret, kIsaPsFactoryReset);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_StartSyncNtp_Abort_Reboot(void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = false;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartSyncNtp() - SetParams
+    {
+        // Check EsfClockManagerSetParams.
+
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                     cm_mask.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                     cm_mask.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                     cm_mask.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->skip_and_limit.limit_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                     cm_mask.slew_setting.type);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->slew_setting.stable_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                     cm_param.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                     cm_param.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                     cm_param.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                     cm_param.slew_setting.type);
+        will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+        // Check EsfClockManagerRegisterCbOnNtpSyncComplete.
+
+        will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+        will_return(__wrap_EsfClockManagerStart, false);
+        will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+        will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+        will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+    }
+
+    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+
+    // ReleaseEvpAgent
+    // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
+    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+    // Check EsfClockManagerStop.
+
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check EsfPwrMgrPrepareReboot.
+
+    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
+    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
+
+    will_return(mock_free, false);
+
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    assert_int_equal(ret, kIsaPsReboot);
 
     return;
 }
@@ -6952,15 +7245,6 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
         will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
     }
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // Check StartSyncNtp. Will sync.
 
     {
@@ -7033,17 +7317,29 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
         // Nop because SetupEvpAgent returned with NULL client.
     }
 
-    // Check EsfLogManagerDeinit.
-    will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
-
     // Check IsaBtnCheckRebootRequest.
 
     expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
 
     // Check EsfClockManagerStop.
 
     will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
 
     // Check free.
 
@@ -7055,7 +7351,737 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
 
     // Check return value.
 
-    assert_int_equal(ret, kIsaPsSuccess);
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_EvpConnectWait_FactoryResetRequested(void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = true;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartNTP()
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                 cm_mask.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                 cm_mask.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                 cm_mask.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                 cm_mask.slew_setting.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                 cm_param.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                 cm_param.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                 cm_param.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                 cm_param.slew_setting.type);
+
+    will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // SetupEvpAgent
+    SetupEvpAgent_FullySuccess();
+
+    // Loop to simulate EVP connection wait with factory reset request
+    {
+        // First call to EVP_getAgentStatus - not connected
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_DISCONNECTED);
+
+        // Check IsaBtnCheckRebootRequest
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
+    }
+
+    // ReleaseEvpAgent
+
+    {
+        // Check EVP_Agent_unregister_sys_client.
+
+        will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+        // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+        // workaround for Nuttx occur issue on FR.
+        will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
+
+        // Check task_delete.
+#if defined(__NuttX__)
+        will_return(__wrap_task_delete, 0);
+#endif
+    }
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
+
+    // Check EsfClockManagerStop.
+
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // Check IsaBtnExecuteFactoryResetCore
+
+    will_return(__wrap_IsaBtnExecuteFactoryResetCore, kRetOk);
+
+    will_return(mock_free, false);
+
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    assert_int_equal(ret, kIsaPsFactoryReset);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrModeSuccess(
+    void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = true;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartNTP()
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                 cm_mask.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                 cm_mask.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                 cm_mask.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                 cm_mask.slew_setting.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                 cm_param.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                 cm_param.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                 cm_param.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                 cm_param.slew_setting.type);
+
+    will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // SetupEvpAgent
+    SetupEvpAgent_FullySuccess();
+
+    // Loop to simulate EVP connection wait with reboot request
+    {
+        // First call to EVP_getAgentStatus - not connected
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_DISCONNECTED);
+
+        // Check IsaBtnCheckFactoryResetRequest - false
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+
+        // Check IsaBtnCheckRebootRequest - true
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+        // EsfSystemManagerSetQrModeTimeoutValue should be called with -1 and succeed
+        expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, -1);
+        will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
+    }
+
+    // ReleaseEvpAgent
+    {
+        // Check EVP_Agent_unregister_sys_client.
+        will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+        // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+        // workaround for Nuttx occur issue on FR.
+        will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
+
+        // Check task_delete.
+#if defined(__NuttX__)
+        will_return(__wrap_task_delete, 0);
+#endif
+    }
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+    // Check EsfClockManagerStop.
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check EsfPwrMgrPrepareReboot.
+
+    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
+    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
+
+    will_return(mock_free, false);
+
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    assert_int_equal(ret, kIsaPsReboot);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrModeError(
+    void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = true;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartNTP()
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                 cm_mask.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                 cm_mask.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                 cm_mask.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                 cm_mask.slew_setting.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                 cm_param.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                 cm_param.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                 cm_param.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                 cm_param.slew_setting.type);
+
+    will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // SetupEvpAgent
+    SetupEvpAgent_FullySuccess();
+
+    // Loop to simulate EVP connection wait with reboot request
+    {
+        // First call to EVP_getAgentStatus - not connected
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_DISCONNECTED);
+
+        // Check IsaBtnCheckFactoryResetRequest - false
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+
+        // Check IsaBtnCheckRebootRequest - true
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+        // EsfSystemManagerSetQrModeTimeoutValue should be called with -1 and fail
+        expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, -1);
+        will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue,
+                    kEsfSystemManagerResultInternalError);
+    }
+
+    // ReleaseEvpAgent
+    {
+        // Check EVP_Agent_unregister_sys_client.
+        will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+        // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+        // workaround for Nuttx occur issue on FR.
+        will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
+
+        // Check task_delete.
+#if defined(__NuttX__)
+        will_return(__wrap_task_delete, 0);
+#endif
+    }
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, true);
+
+    // Check EsfClockManagerStop.
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check EsfPwrMgrPrepareReboot.
+
+    expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
+    will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
+
+    will_return(mock_free, false);
+
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    assert_int_equal(ret, kIsaPsReboot);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_EvpConnectTimeout(void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = true;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartNTP()
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                 cm_mask.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                 cm_mask.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                 cm_mask.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                 cm_mask.slew_setting.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                 cm_param.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                 cm_param.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                 cm_param.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                 cm_param.slew_setting.type);
+
+    will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // SetupEvpAgent
+    SetupEvpAgent_FullySuccess();
+
+    // Loop to simulate EVP connection timeout (30 iterations)
+    // EVP_CONNECT_WAIT_MAX_SEC = 30
+    for (int i = 0; i < 30; i++) {
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_DISCONNECTED);
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    }
+
+    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
+
+    // Check EsfClockManagerStop.
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // Check free.
+    will_return(mock_free, false);
+
+    // Execute target.
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    // Check return value.
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
 
     return;
 }
@@ -7158,15 +8184,6 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
         will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
         will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
     }
-
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
 
     // Check StartSyncNtp. Will sync.
 
@@ -7293,7 +8310,7 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
     }
 
     // Check SYS_process_event.
-
+    will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
     expect_any(__wrap_SYS_process_event, c);
     expect_value(__wrap_SYS_process_event, ms, 0);
     will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -7308,7 +8325,10 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
         will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
         // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+        // workaround for Nuttx occur issue on FR.
         will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
         // Check task_delete.
 #if defined(__NuttX__)
@@ -7432,15 +8452,6 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
@@ -7481,6 +8492,7 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
     // SetupEvpAgent
     SetupEvpAgent_FullySuccess();
 
+    will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
     expect_any(__wrap_SYS_process_event, c);
     expect_value(__wrap_SYS_process_event, ms, 0);
     will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -7497,7 +8509,10 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -7616,15 +8631,6 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
     will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
 
-    // Check IsaBtnCheckRebootRequest
-
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
-
-    // Check IsaBtnCheckFactoryResetRequest
-
-    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
-
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
@@ -7665,6 +8671,7 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
     // SetupEvpAgent
     SetupEvpAgent_FullySuccess();
 
+    will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
     expect_any(__wrap_SYS_process_event, c);
     expect_value(__wrap_SYS_process_event, ms, 0);
     will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
@@ -7677,7 +8684,10 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
     // Check EsfLogManagerDeinit.
+#if defined(__linux__)
+    // workaround for Nuttx occur issue on FR.
     will_return(__wrap_EsfLogManagerDeinit, kEsfLogManagerStatusOk);
+#endif
 
 #if defined(__NuttX__)
     will_return(__wrap_task_delete, 0);
@@ -7722,6 +8732,457 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
     assert_int_equal(ret, kIsaPsFactoryReset);
 
     return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_Qr_Cleanup_unregister_sys_client_Error(void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = true;
+
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+    esfnm_mask_expect.normal_mode.netif_kind = 1;
+    esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+    will_return(__wrap_EsfNetworkManagerOpen, 777);
+    will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                 esfnm_mask_expect.normal_mode.netif_kind);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.subnet_mask,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.encryption,
+                 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                 esfnm_param_expect.normal_mode.netif_kind);
+
+    will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultStatusAlreadyRunning);
+
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+    will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+
+    // StartNTP()
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                 cm_mask.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                 cm_mask.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                 cm_mask.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                 cm_mask.slew_setting.type);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_rtc_correction_value,
+                 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                 cm_param.common.sync_interval);
+    expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                 cm_param.common.polling_time);
+    expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                 cm_param.skip_and_limit.type);
+    expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                 cm_param.slew_setting.type);
+
+    will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, true);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // SetupEvpAgent
+    SetupEvpAgent_FullySuccess();
+
+    // Loop to simulate EVP connection timeout (30 iterations)
+    // EVP_CONNECT_WAIT_MAX_SEC = 30
+    for (int i = 0; i < 30; i++) {
+        will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_DISCONNECTED);
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    }
+
+    will_return(__wrap_EVP_Agent_unregister_sys_client, -1); //Error
+
+    // Check IsaBtnCheckRebootRequest at cleanup
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
+
+    // Check EsfClockManagerStop.
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    // Check UnsetLedStatusForProvisioningService.
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // Check free.
+    will_return(mock_free, false);
+
+    // Execute target.
+    ret = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    // Check return value.
+    assert_int_equal(ret, kIsaPsSwitchToQrMode);
+
+    return;
+}
+
+/*--------------------------------------------------------------------------*/
+static void test_IsaRunProvisioningService_AllowlistFalse(void **state)
+{
+    RetCode ret;
+    bool is_ps_mode_force_entory = false;
+    EsfNetworkManagerParameterMask esfnm_mask_expect = {0};
+    EsfNetworkManagerParameter esfnm_param_expect = {0};
+    EsfClockManagerParams cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    EsfClockManagerParamsMask cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    will_return(mock_malloc, true);
+    will_return(mock_malloc, true);
+    expect_value(mock_malloc, __size, sizeof(PsInfo));
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, true);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    // ConnectNetwork()
+    {
+        memset(&esfnm_mask_expect, 0, sizeof(EsfNetworkManagerParameterMask));
+        memset(&esfnm_param_expect, 0, sizeof(EsfNetworkManagerParameter));
+        esfnm_mask_expect.normal_mode.netif_kind = 1;
+        esfnm_param_expect.normal_mode.netif_kind = 1; // Ether.
+
+        // Check for EsfNetworkManagerOpen.
+
+        will_return(__wrap_EsfNetworkManagerOpen, 777);
+        will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultSuccess);
+
+        // Check EsfNetworkManagerRegisterCallback.
+
+        will_return(__wrap_EsfNetworkManagerRegisterCallback, kEsfNetworkManagerResultSuccess);
+
+        // Check EsfNetworkManagerLoadParameter.
+
+        will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+        will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+        // Check EsfNetworkManagerSaveParameter.
+
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.ip, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.ssid, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.password, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.wifi_sta.encryption,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.ip_method, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.netif_kind,
+                     esfnm_mask_expect.normal_mode.netif_kind);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.ip, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter,
+                     mask->accesspoint_mode.dev_ip.subnet_mask, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.gateway,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.ssid, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.password,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter,
+                     mask->accesspoint_mode.wifi_ap.encryption, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->accesspoint_mode.wifi_ap.channel,
+                     0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.url, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.port, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.username, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->proxy.password, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.netif_kind,
+                     esfnm_param_expect.normal_mode.netif_kind);
+        will_return(__wrap_EsfNetworkManagerSaveParameter, kEsfNetworkManagerResultSuccess);
+
+        // Check EsfNetworkManagerStart. Will connect.
+
+        will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerNotifyInfoConnected);
+        will_return(__wrap_EsfNetworkManagerStart, kEsfNetworkManagerResultSuccess);
+    }
+
+    // Check StartSyncNtp. Will sync.
+    {
+        // Check EsfClockManagerSetParams.
+
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
+                     cm_mask.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
+                     cm_mask.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.type,
+                     cm_mask.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.limit_packet_time, 0);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->skip_and_limit.limit_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->skip_and_limit.sanity_limit, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.type,
+                     cm_mask.slew_setting.type);
+        expect_value(__wrap_EsfClockManagerSetParams,
+                     mask->slew_setting.stable_rtc_correction_value, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->slew_setting.stable_sync_number, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,
+                     cm_param.common.sync_interval);
+        expect_value(__wrap_EsfClockManagerSetParams, data->common.polling_time,
+                     cm_param.common.polling_time);
+        expect_value(__wrap_EsfClockManagerSetParams, data->skip_and_limit.type,
+                     cm_param.skip_and_limit.type);
+        expect_value(__wrap_EsfClockManagerSetParams, data->slew_setting.type,
+                     cm_param.slew_setting.type);
+        will_return(__wrap_EsfClockManagerSetParams, kClockManagerSuccess);
+
+        // Check EsfClockManagerRegisterCbOnNtpSyncComplete.
+
+        will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+        // Check EsfClockManagerStart.
+
+        will_return(__wrap_EsfClockManagerStart, true);
+        will_return(__wrap_EsfClockManagerStart, true);
+        will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+        // Check EsfClockManagerUnregisterCbOnNtpSyncComplete.
+
+        will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+    }
+
+    // SetupEvpAgent() setup
+    {
+        SetDefaultEndpoint_FullySuccess();
+
+        // Check task_create.
+        task_create_Success();
+
+        will_return(__wrap_EVP_Agent_register_sys_client, (SYS_client *)0x1000);
+
+        will_return(__wrap_SYS_set_configuration_cb, true); // Do call cb.
+        will_return(__wrap_SYS_set_configuration_cb, SYS_RESULT_OK);
+        expect_any(__wrap_SYS_set_configuration_cb, c);
+        expect_string(__wrap_SYS_set_configuration_cb, topic, "system_settings");
+        expect_value(__wrap_SYS_set_configuration_cb, cb, ConfigurationCallback);
+        expect_value(__wrap_SYS_set_configuration_cb, type, SYS_CONFIG_ANY);
+        expect_any(__wrap_SYS_set_configuration_cb, user);
+
+        // Check SYS_set_configuration_cb. endpoint_settings.
+
+        will_return(__wrap_SYS_set_configuration_cb, true); // Don't call cb.
+        will_return(__wrap_SYS_set_configuration_cb, SYS_RESULT_OK);
+        expect_any(__wrap_SYS_set_configuration_cb, c);
+        expect_string(__wrap_SYS_set_configuration_cb, topic, "PRIVATE_endpoint_settings");
+        expect_value(__wrap_SYS_set_configuration_cb, cb, ConfigurationCallback);
+        expect_value(__wrap_SYS_set_configuration_cb, type, SYS_CONFIG_ANY);
+        expect_any(__wrap_SYS_set_configuration_cb, user);
+
+        // Check SYS_register_command_cb. reboot callback will be called.
+
+        expect_any(__wrap_SYS_register_command_cb, c);
+        expect_string(__wrap_SYS_register_command_cb, command, "reboot");
+        expect_value(__wrap_SYS_register_command_cb, cb, DirectCommandRebootCallback);
+        expect_any(__wrap_SYS_register_command_cb, user);
+        will_return(__wrap_SYS_register_command_cb, false); // Don't call cb.
+        will_return(__wrap_SYS_register_command_cb, SYS_RESULT_OK);
+
+        expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
+        will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
+    }
+
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue val = 1357;
+    const char *req_id_ptr = "TEST";
+
+    // First configuration callback - empty config "{}"
+    {
+        will_return(__wrap_EsfJsonOpen, handle_val);
+        will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+        expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+        expect_string(__wrap_EsfJsonDeserialize, str, "{}");
+        will_return(__wrap_EsfJsonDeserialize, val);
+        will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+        // GetReqInfoToSetResInfo() expectations for first call
+        expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+        expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+        will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+        will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+        // EsfJsonClose() expectations for first call
+        expect_value(__wrap_EsfJsonClose, handle, handle_val);
+        will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+    }
+
+    // Second configuration callback - allowlist=false config
+    {
+        will_return(__wrap_EsfJsonOpen, handle_val);
+        will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+        expect_value(__wrap_EsfJsonDeserialize, handle, handle_val);
+        expect_string(__wrap_EsfJsonDeserialize, str, "{\"is_allowlisted\": false}");
+        will_return(__wrap_EsfJsonDeserialize, val);
+        will_return(__wrap_EsfJsonDeserialize, kEsfJsonSuccess);
+
+        // GetReqInfoToSetResInfo() expectations for second call
+        expect_value(__wrap_SysAppCmnGetReqId, handle, handle_val);
+        expect_value(__wrap_SysAppCmnGetReqId, parent_val, val);
+        will_return(__wrap_SysAppCmnGetReqId, req_id_ptr);
+        will_return(__wrap_SysAppCmnGetReqId, kRetOk);
+
+        // SysAppCmnExtractBooleanValue() expectations for second call - allowlist=false
+        expect_value(__wrap_SysAppCmnExtractBooleanValue, handle, handle_val);
+        expect_value(__wrap_SysAppCmnExtractBooleanValue, parent_val, val);
+        expect_string(__wrap_SysAppCmnExtractBooleanValue, jsonkey, "is_allowlisted");
+        will_return(__wrap_SysAppCmnExtractBooleanValue, false); // allowlist=false
+        will_return(__wrap_SysAppCmnExtractBooleanValue, 1);     // Extraction succeeds
+
+        // EsfJsonClose() expectations for second call
+        expect_value(__wrap_EsfJsonClose, handle, handle_val);
+        will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+    }
+
+    // SYS_process_event
+    will_return(__wrap_EVP_getAgentStatus, EVP_AGENT_STATUS_CONNECTED);
+    expect_any(__wrap_SYS_process_event, c);
+    expect_value(__wrap_SYS_process_event, ms, 0);
+    will_return(__wrap_SYS_process_event, SYS_RESULT_OK);
+    will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    // Cleanup for QR mode
+    will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
+
+    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+
+    expect_any(__wrap_EsfSystemManagerSetProjectId, data);
+    expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetProjectId, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetRegisterToken, data);
+    expect_value(__wrap_EsfSystemManagerSetRegisterToken, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetRegisterToken, kEsfSystemManagerResultOk);
+
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    will_return(mock_free, false);
+
+    // Trigger allowlist=false scenario before calling the main function
+    ut_trigger_allowlist_false_scenario();
+
+    // Execute target - this will trigger the 2-call allowlist=false scenario during SYS_process_event
+    IsaPsErrorCode actual_result = IsaRunProvisioningService(is_ps_mode_force_entory);
+
+    // Verify that we switched to QR mode
+    assert_int_equal(kIsaPsSwitchToQrMode, actual_result);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -7887,20 +9348,35 @@ int main(void)
         // SetupEvpAgent()
         cmocka_unit_test(test_SetLedStatusForProvisioningService_FullySuccess),
         cmocka_unit_test(test_SetLedStatusForProvisioningService_ErrorEsfLedManagerSetStatus),
+        // CheckAllowlist()
+        cmocka_unit_test(test_CheckAllowlist_AllowlistTrue),
+        cmocka_unit_test(test_CheckAllowlist_AllowlistFalse),
+        cmocka_unit_test(test_CheckAllowlist_ModeNotEnrollment),
+        cmocka_unit_test(test_CheckAllowlist_JsonDeserializeError),
+        cmocka_unit_test(test_CheckAllowlist_InvalidExtractBooleanValue),
+        cmocka_unit_test(test_CheckAllowlist_EsfJsonCloseError),
         // IsaRunProvisioningService()
-        cmocka_unit_test(test_IsaRunProvisioningService_FullySuccess),
+        cmocka_unit_test(test_IsaRunProvisioningService_Should_exit),
         cmocka_unit_test(test_IsaRunProvisioningService_SendTelemetry),
         cmocka_unit_test(test_IsaRunProvisioningService_PsInfoAllocError),
         cmocka_unit_test(test_IsaRunProvisioningService_ConnectNetwork_Abort),
         cmocka_unit_test(test_IsaRunProvisioningService_ConnectNetwork_Abort_FR),
-        cmocka_unit_test(test_IsaRunProvisioningService_ConnectNetwork_Error_RebootRequest),
-        cmocka_unit_test(test_IsaRunProvisioningService_ConnectNetwork_Error_FactoryResetRequest),
+        cmocka_unit_test(test_IsaRunProvisioningService_ConnectNetwork_Error),
         cmocka_unit_test(test_IsaRunProvisioningService_ErrorStartNTP),
-        cmocka_unit_test(test_IsaRunProvisioningService_ErrorStartNTP_FR),
+        cmocka_unit_test(test_IsaRunProvisioningService_StartSyncNtp_Abort_FactoryReset),
+        cmocka_unit_test(test_IsaRunProvisioningService_StartSyncNtp_Abort_Reboot),
         cmocka_unit_test(test_IsaRunProvisioningService_Error_SetupEvpAgent),
+        cmocka_unit_test(test_IsaRunProvisioningService_EvpConnectWait_FactoryResetRequested),
+        cmocka_unit_test(
+            test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrModeSuccess),
+        cmocka_unit_test(
+            test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrModeError),
+        cmocka_unit_test(test_IsaRunProvisioningService_EvpConnectTimeout),
         cmocka_unit_test(test_IsaRunProvisioningService_DirectCommandRebootRequested),
         cmocka_unit_test(test_IsaRunProvisioningService_ErrorReboot),
         cmocka_unit_test(test_IsaRunProvisioningService_ErrorFactoryReset),
+        cmocka_unit_test(test_IsaRunProvisioningService_Qr_Cleanup_unregister_sys_client_Error),
+        cmocka_unit_test(test_IsaRunProvisioningService_AllowlistFalse),
     };
 
     return (((cmocka_run_group_tests(tests, NULL, NULL)) == 0) ? 0 : 1);

@@ -68,6 +68,10 @@
 #define SEND_ENROLLDATA_INTERVAL_CNT \
     ((SEND_ENROLLDATA_INTERVAL_SEC * 1000 * 1000) / EVP_PROCESS_EVENT_INTERVAL_US)
 
+// Wait time for EVP connection (seconds)
+
+#define EVP_CONNECT_WAIT_MAX_SEC (30)
+
 // EVP process event interval milliseconds
 
 #define EVP_PROCESS_EVENT_INTERVAL_US (100 * 1000)
@@ -84,7 +88,7 @@ typedef enum {
     IsaPsMode_Idle = 0,
     IsaPsMode_Operation,
     IsaPsMode_Enrollment,
-    IsaPsMode_QrCode, /* Currently unused. Not set anywhere */
+    IsaPsMode_QrCode,
     IsaPsMode_Reboot,
     IsaPsMode_FactoryReset,
     IsaPsModeNum
@@ -532,6 +536,50 @@ clean_up_exit:
 }
 
 /*--------------------------------------------------------------------------*/
+STATIC void CheckAllowlist(const char *topic, const char *config, PsInfo *info)
+{
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue esfj_val = ESF_JSON_VALUE_INVALID;
+
+    // Open ESF Json and create JsonValue from param.
+    EsfJsonErrorCode esfj_ret = JsonOpenAndDeserialize(&esfj_handle, &esfj_val, config);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        ISA_ERR("JsonOpenAndDeserialize failed ret %d", esfj_ret);
+        return;
+    }
+
+    // Set res_info.
+    ResInfoContext res_info = {0};
+    RetCode ret = GetReqInfoToSetResInfo(esfj_handle, esfj_val, &res_info);
+
+    if (ret == kRetOk && info->mode == IsaPsMode_Enrollment) {
+        bool is_allowlisted = false;
+        int extret = SysAppCmnExtractBooleanValue(esfj_handle, esfj_val, "is_allowlisted",
+                                                  &is_allowlisted);
+
+        if (extret > 0) {
+            ISA_INFO("is_allowlisted: %s", is_allowlisted ? "true" : "false");
+            if (!is_allowlisted) {
+                info->mode = IsaPsMode_QrCode;
+            }
+        }
+        else {
+            ISA_ERR("Invalid is_allowlisted extret %d", extret);
+        }
+    }
+
+    // Clean up.
+    esfj_ret = EsfJsonClose(esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        ISA_ERR("EsfJsonClose(%p) ret %d", esfj_handle, esfj_ret);
+    }
+
+    return;
+}
+
+/*--------------------------------------------------------------------------*/
 STATIC bool GetEnrollmentData(bool *is_device_manifest, char **buf_manifest, char **buf_project_id,
                               char **buf_token)
 {
@@ -822,11 +870,17 @@ STATIC IsaPsErrorCode ReleaseEvpAgent(PsInfo *ps_info)
         }
     }
 
+#if defined(__linux__)
+    /*
+    * Regression preventing FR execution in the Nuttx environment
+    * Commented out to revert to a previous state    
+    */
     // Cleanup log manager before EVP Agent stop.
     EsfLogManagerStatus log_status = EsfLogManagerDeinit();
     if (log_status != kEsfLogManagerStatusOk) {
         ISA_WARN("EsfLogManagerDeinit() failed with status %d", log_status);
     }
+#endif /* __linux__ */
 
 #if defined(__NuttX__)
     if (ps_info->pid != (pid_t)-1) {
@@ -867,6 +921,10 @@ STATIC void ConfigurationCallback(SYS_client *, const char *topic, const char *c
         ISA_INFO("Conf: %s", topic);
         EndpointSettings(((PsInfo *)usr_data)->client, topic, config, usr_data);
     }
+    else if (strcmp(topic, "system_settings") == 0) {
+        ISA_INFO("Conf: %s", topic);
+        CheckAllowlist(topic, config, usr_data);
+    }
     else {
         ISA_WARN("Skip: %s", topic);
     }
@@ -875,7 +933,7 @@ STATIC void ConfigurationCallback(SYS_client *, const char *topic, const char *c
 
     PsInfo *ps_info = (PsInfo *)usr_data;
 
-    if (ps_info->mode != IsaPsMode_Enrollment) {
+    if ((ps_info->mode != IsaPsMode_Enrollment) && (ps_info->mode != IsaPsMode_QrCode)) {
         ISA_INFO("1st configuration received");
         ps_info->mode = IsaPsMode_Enrollment;
     }
@@ -1351,43 +1409,33 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
 
     ISA_INFO("Setting up network");
 
-    do {
-        ret = ConnectNetwork();
+    // If the network connection fails for 30 seconds,
+    // the system will switch to QR mode.
+    ret = ConnectNetwork();
 
-        if (ret == kRetAbort) {
-            if (IsaBtnCheckFactoryResetRequest()) {
-                ISA_INFO("Network connect abort for factory_reset.");
-                ps_info->mode = IsaPsMode_FactoryReset;
-            }
-            else {
-                ISA_INFO("Network connect abort for reboot.");
-                ps_info->mode = IsaPsMode_Reboot;
-            }
-            goto network_abort;
-        }
-
-        if (ret != kRetOk) {
-            ISA_WARN("ConnectNetwork() ret %d, retry.", ret);
-        }
-
-        // Check reboot request.
-
-        if (IsaBtnCheckRebootRequest()) {
-            ps_info->mode = IsaPsMode_Reboot;
-            goto network_abort;
-        }
-
-        // Check factory_reset request.
-
+    if (ret == kRetAbort) {
         if (IsaBtnCheckFactoryResetRequest()) {
+            ISA_INFO("Network connect abort for factory_reset.");
             ps_info->mode = IsaPsMode_FactoryReset;
-            goto network_abort;
         }
+        else {
+            ISA_INFO("Network connect abort for reboot.");
+            ps_info->mode = IsaPsMode_Reboot;
+        }
+        goto network_abort;
+    }
 
-        sleep(1);
-    } while (ret != kRetOk);
+    if (ret != kRetOk) {
+        ISA_ERR("ConnectNetwork() ret %d, Switching QR code mode", ret);
+        ps_info->mode = IsaPsMode_QrCode;
+        goto network_abort;
+    }
 
-    if ((ret = StartSyncNtp()) != kRetOk) {
+    // If NTP time synchronization fails for 30 seconds,
+    // the system will switch to QR mode.
+    ret = StartSyncNtp();
+
+    if (ret == kRetAbort) {
         if (IsaBtnCheckFactoryResetRequest()) {
             ISA_INFO("StartSyncNtp() ret %d for factory_reset.", ret);
             ps_info->mode = IsaPsMode_FactoryReset;
@@ -1399,9 +1447,16 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
         goto ntpsync_abort;
     }
 
+    if (ret != kRetOk) {
+        ISA_ERR("StartSyncNtp() ret %d, Switching QR code mode", ret);
+        ps_info->mode = IsaPsMode_QrCode;
+        goto ntpsync_abort;
+    }
+
     /* Setup EvpAgent */
 
     if ((ret = SetupEvpAgent(ps_info)) != kRetOk) {
+        ps_info->mode = IsaPsMode_QrCode;
         goto errout;
     }
 
@@ -1415,17 +1470,45 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
 
     int interval = SEND_ENROLLDATA_INTERVAL_CNT;
 
-    bool is_evp_connect_checked = false;
-
     for (;;) {
-        /* Check EVP Connection and control LED */
+        // Check connection to EVP. (Check MQTT sync)
+        uint32_t wait_count = 0;
+        for (wait_count = 0; wait_count < EVP_CONNECT_WAIT_MAX_SEC; wait_count++) {
+            if (EVP_getAgentStatus() == EVP_AGENT_STATUS_CONNECTED) {
+                break;
+            }
+            ISA_INFO("EVP not connected yet...");
 
-        if (!is_evp_connect_checked) {
-            is_evp_connect_checked = true;
+            if (IsaBtnCheckFactoryResetRequest()) {
+                ps_info->mode = IsaPsMode_FactoryReset;
+                goto errout;
+            }
+
+            if (IsaBtnCheckRebootRequest()) {
+                // Set QR mode timeout value to enter QR mode at next reboot.
+
+                EsfSystemManagerResult esfsm_ret = EsfSystemManagerSetQrModeTimeoutValue(-1);
+
+                if (esfsm_ret != kEsfSystemManagerResultOk) {
+                    ISA_ERR("EsfSystemManagerSetQrModeTimeoutValue() ret %d", esfsm_ret);
+                }
+
+                ps_info->mode = IsaPsMode_Reboot;
+                goto errout;
+            }
+
+            sleep(1);
+        }
+
+        if (wait_count >= EVP_CONNECT_WAIT_MAX_SEC) {
+            ISA_ERR("Timeout for connection to EVP");
+            ps_info->mode = IsaPsMode_QrCode;
+            goto errout;
         }
 
         if (SYS_process_event(ps_info->client, 0) == SYS_RESULT_SHOULD_EXIT) {
             ISA_CRIT("SYS_process_event() == SYS_RESULT_SHOULD_EXIT");
+            ps_info->mode = IsaPsMode_QrCode;
             break;
         }
 
@@ -1467,6 +1550,12 @@ IsaPsErrorCode IsaRunProvisioningService(bool is_ps_mode_force_entory)
             }
         }
 
+        // If allowlist is false, break the loop.
+        if (ps_info->mode == IsaPsMode_QrCode) {
+            ISA_ERR("Allowlist is false, Switching QR code mode");
+            break;
+        }
+
         usleep(EVP_PROCESS_EVENT_INTERVAL_US);
     }
 
@@ -1475,13 +1564,25 @@ network_abort:
 errout:
     /* Clean up */
 
-    // Stop Keep Alive of WDT
+    if (ps_info->mode != IsaPsMode_QrCode) {
+        // Stop Keep Alive of WDT
 
-    ISA_INFO("Stop Keep Alive of WDT");
+        ISA_INFO("Stop Keep Alive of WDT");
 
-    EsfPwrMgrWdtTerminate();
+        EsfPwrMgrWdtTerminate();
 
-    ReleaseEvpAgent(ps_info);
+        ReleaseEvpAgent(ps_info);
+    }
+    else {
+        // As a safety measure, unregister callback functions when
+        // transitioning to QR mode while EVP is running.
+        if (ps_info->client != NULL) {
+            int sys_ret = EVP_Agent_unregister_sys_client(ps_info->client);
+            if (sys_ret != 0) {
+                ISA_ERR("EVP_Agent_unregister_sys_client() ret %d", sys_ret);
+            }
+        }
+    }
 
 #if 0 /*T.B.D EsfClockManagerDeinit_often_causes_crash.*/
   /* Release ClockManager */
@@ -1526,6 +1627,11 @@ errout:
         }
 
         ercd = kIsaPsReboot;
+    }
+    else if (ps_info->mode == IsaPsMode_QrCode) {
+        ISA_INFO("Switch to QR code mode");
+        UnsetLedStatusForProvisioningService();
+        ercd = kIsaPsSwitchToQrMode;
     }
     else {
         ISA_INFO("Not perform reboot in mode(%d)", ps_info->mode);

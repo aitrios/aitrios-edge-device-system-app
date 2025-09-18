@@ -27,6 +27,20 @@
 #endif // INITIAL_SETTING_APP_UT
 
 /****************************************************************************
+ * Pre-processor definitions
+ ****************************************************************************/
+
+// Wait time for NTP sync (seconds)
+#define NTP_SYNC_WAIT_MAX_SEC (30)
+
+// Wait time for Wifi connection (seconds)
+#define WIFI_CONNECT_WAIT_MAX_SEC (15)
+
+// Wait time for Ether connection (seconds)
+// If waiting for WiFi connection, it will be half the time
+#define ETHER_CONNECT_WAIT_MAX_SEC (30)
+
+/****************************************************************************
  * Private Functions
  ****************************************************************************/
 
@@ -149,7 +163,7 @@ STATIC RetCode ConnectNetwork(void)
                     break;
                 }
 
-                if (connect_wait_retry > 15) {
+                if (connect_wait_retry > WIFI_CONNECT_WAIT_MAX_SEC) {
                     // In case factory reset, keep ServiceLED lighting before stop network.
 
                     if (IsaBtnCheckFactoryResetRequest()) {
@@ -224,8 +238,6 @@ STATIC RetCode ConnectNetwork(void)
         }
 
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
-            connect_wait_retry = 0;
-
             while (true) {
                 ISA_INFO("Wait Ether connect...");
 
@@ -236,7 +248,7 @@ STATIC RetCode ConnectNetwork(void)
                     break;
                 }
 
-                if (connect_wait_retry > 15) {
+                if (connect_wait_retry > ETHER_CONNECT_WAIT_MAX_SEC) {
                     // In case factory reset, keep ServiceLED lighting before stop network.
 
                     if (IsaBtnCheckFactoryResetRequest()) {
@@ -326,6 +338,8 @@ STATIC RetCode StartSyncNtp(void)
     // NTP server should be saved in EsfClockManager. (Default NTP server is too.)
     //
 
+    uint32_t sync_wait_retry = 0;
+
     EsfClockManagerParams cm_param = {
         .common.sync_interval = 64,
         .common.polling_time = 3,
@@ -384,8 +398,16 @@ STATIC RetCode StartSyncNtp(void)
                 goto esfcm_sync_abort;
             }
 
+            if (sync_wait_retry > NTP_SYNC_WAIT_MAX_SEC) {
+                ISA_CRIT("NTP sync timeout.");
+                EsfClockManagerStop();
+                ret = kRetFailed;
+                goto esfcm_sync_abort;
+            }
+
             ISA_INFO("Wait NTP sync...");
-            sleep(2);
+            sync_wait_retry++;
+            sleep(1);
         }
 
         // Reset sync notify for retry.

@@ -1123,11 +1123,17 @@ timer_initialize_failed:
         }
     }
 
+#if defined(__linux__)
+    /*
+    * Regression preventing FR execution in the Nuttx environment
+    * Commented out to revert to a previous state    
+    */
     // Cleanup log manager before EVP Agent stop.
     EsfLogManagerStatus log_status = EsfLogManagerDeinit();
     if (log_status != kEsfLogManagerStatusOk) {
         SYSAPP_WARN("EsfLogManagerDeinit() failed with status %d", log_status);
     }
+#endif /* __linux__ */
 
 #if defined(__NuttX__)
     if (pid != (pid_t)-1) {
