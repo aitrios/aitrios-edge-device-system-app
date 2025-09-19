@@ -25,4 +25,3 @@ RetCode IsaTimerStart(uint32_t time, IsaTimerCallback notify_cb);
 RetCode IsaTimerStop(void);
 
 #endif // _INITIAL_SETTING_APP_TIMER_H_
-

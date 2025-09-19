@@ -10,9 +10,9 @@
 #include "utility_timer.h"
 
 typedef struct {
-  UtilityTimerHandle handle;
-  bool is_working;
-  IsaTimerCallback cb;
+    UtilityTimerHandle handle;
+    bool is_working;
+    IsaTimerCallback cb;
 } IsaTimerContext;
 
-#endif  // _INITIAL_SETTING_APP_TIMER_PRIVATE_H_
+#endif // _INITIAL_SETTING_APP_TIMER_PRIVATE_H_

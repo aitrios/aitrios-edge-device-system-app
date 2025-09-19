@@ -16,22 +16,23 @@ extern "C" {
 #include "system_app_common.h"
 
 typedef enum {
-  LedTypePower   = kEsfLedManagerTargetLedPower,
-  LedTypeWiFi    = kEsfLedManagerTargetLedWifi,
-  LedTypeService = kEsfLedManagerTargetLedService,
-  LedTypeNum     = kEsfLedManagerTargetLedNum
+    LedTypePower = kEsfLedManagerTargetLedPower,
+    LedTypeWiFi = kEsfLedManagerTargetLedWifi,
+    LedTypeService = kEsfLedManagerTargetLedService,
+    LedTypeNum = kEsfLedManagerTargetLedNum
 } LedType;
 
 // An enumerated type that defines the state of the Application.
 typedef enum LedAppStatus {
-  LedAppStatusForceOff                        = kEsfLedManagerLedStatusForcedOff,
-  LedAppStatusAbleToAcceptInput               = kEsfLedManagerLedStatusAbleToAcceptInputs,
-  LedAppStatusUnableToAcceptInput             = kEsfLedManagerLedStatusUnableToAcceptInputs,
-  LedAppStatusWaitingForInputToConnect        = kEsfLedManagerLedStatusWaitingForInputsToConnectConsole,
-  LedAppStatusErrorDownloadFailed             = kEsfLedManagerLedStatusErrorDownloadFailed,
-  LedAppStatusErrorUpdateMemoryAllocateFailed = kEsfLedManagerLedStatusErrorUpdateMemoryAllocateFailed,
-  LedAppStatusErrorDataFlashFailed            = kEsfLedManagerLedStatusErrorDataFlashFailed,
-  LedAppStatusNum                             = kEsfLedManagerLedStatusNum
+    LedAppStatusForceOff = kEsfLedManagerLedStatusForcedOff,
+    LedAppStatusAbleToAcceptInput = kEsfLedManagerLedStatusAbleToAcceptInputs,
+    LedAppStatusUnableToAcceptInput = kEsfLedManagerLedStatusUnableToAcceptInputs,
+    LedAppStatusWaitingForInputToConnect = kEsfLedManagerLedStatusWaitingForInputsToConnectConsole,
+    LedAppStatusErrorDownloadFailed = kEsfLedManagerLedStatusErrorDownloadFailed,
+    LedAppStatusErrorUpdateMemoryAllocateFailed =
+        kEsfLedManagerLedStatusErrorUpdateMemoryAllocateFailed,
+    LedAppStatusErrorDataFlashFailed = kEsfLedManagerLedStatusErrorDataFlashFailed,
+    LedAppStatusNum = kEsfLedManagerLedStatusNum
 } LedAppStatus;
 
 // Public functions

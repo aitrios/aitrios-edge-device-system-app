@@ -10,41 +10,46 @@ extern "C" {
 #include "int_fix.c"
 }
 
-TEST(SampleSetNumFix, success) {
+TEST(SampleSetNumFix, success)
+{
     int test = 1234567;
     SampleSetNumFix(test);
     EXPECT_EQ(num_fix_, test);
     EXPECT_STREQ(num_fix_string, "1234567");
 }
 
-TEST(SampleSetNumFix, truncate) {
+TEST(SampleSetNumFix, truncate)
+{
     int test = 1234567890;
     SampleSetNumFix(test);
     EXPECT_EQ(num_fix_, test);
     EXPECT_STREQ(num_fix_string, "1234567");
 }
 
-TEST(SampleIsOddFix, odd) {
+TEST(SampleIsOddFix, odd)
+{
     int test = 1;
     SampleSetNumFix(test);
     EXPECT_TRUE(SampleIsOddFix());
 }
 
-TEST(SampleIsOddFix, even) {
+TEST(SampleIsOddFix, even)
+{
     int test = 2;
     SampleSetNumFix(test);
     EXPECT_FALSE(SampleIsOddFix());
 }
 
-TEST(SampleIsEvenFix, odd) {
+TEST(SampleIsEvenFix, odd)
+{
     int test = 1;
     SampleSetNumFix(test);
     EXPECT_FALSE(SampleIsEvenFix());
 }
 
-TEST(SampleIsEvenFix, even) {
+TEST(SampleIsEvenFix, even)
+{
     int test = 2;
     SampleSetNumFix(test);
     EXPECT_TRUE(SampleIsEvenFix());
 }
-

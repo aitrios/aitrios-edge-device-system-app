@@ -22,4 +22,3 @@ RetCode SysAppCfgWirelessSetting(const char* param);
 RetCode SysAppCfgEndpointSettings(const char* param);
 
 #endif //_SYSTEM_APP_CONFIGURATION_H_
-

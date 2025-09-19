@@ -14,7 +14,7 @@ extern "C" {
 #ifdef SYSTEM_APP_UT
 #include <unistd.h>
 #include "system_app_common.h"
-#endif  // #ifdef SYSTEM_APP_UT
+#endif // #ifdef SYSTEM_APP_UT
 
 // Public data type
 
@@ -24,13 +24,9 @@ typedef int (*SysAppUdDownloadCb)(uint8_t *data, size_t dl_size, void *p_usr_dat
 
 RetCode SysAppUdInitialize(struct SYS_client *iot_client_ud);
 RetCode SysAppUdFinalize(void);
-size_t  SysAppUdGetImageSize(char *request_url, int *http_status);
-ssize_t SysAppUdGetImageData(char              *request_url,
-                             size_t             offset,
-                             size_t             size,
-                             SysAppUdDownloadCb cb,
-                             void              *usr_param,
-                             int               *http_status);
+size_t SysAppUdGetImageSize(char *request_url, int *http_status);
+ssize_t SysAppUdGetImageData(char *request_url, size_t offset, size_t size, SysAppUdDownloadCb cb,
+                             void *usr_param, int *http_status);
 void SysAppUdRequestToStopDownload(void);
 bool SysAppUdIsThisRequestToStopForDownload(void);
 void SysAppUdCancelDownloadStopRequest(void);

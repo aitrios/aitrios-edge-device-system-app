@@ -15,7 +15,8 @@ extern "C" {
 }
 #undef main
 
-TEST(system_app_main, main) {
+TEST(system_app_main, main)
+{
     int32_t argc = 1;
     char cmdname[] = "system_app";
     char *argv[1024] = {cmdname};

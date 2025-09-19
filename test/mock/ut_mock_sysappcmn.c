@@ -15,7 +15,7 @@
 #include "system_app_common.h"
 #include "ut_mock_sysappcmn.h"
 
-#define EXTRACT_REAL_NUMBER_GET_VAL_MAX_NUM                               \
+#define EXTRACT_REAL_NUMBER_GET_VAL_MAX_NUM \
     (32 * 2) // "32" means max array number of read/write_sensor_register \
              // "2" means execute number of SetSysAppCmnExtractRealNumberValue() per one array
 #define SET_REAL_NUMBER_SET_VAL_MAX_NUM EXTRACT_REAL_NUMBER_GET_VAL_MAX_NUM
