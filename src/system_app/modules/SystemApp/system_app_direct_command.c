@@ -1720,7 +1720,10 @@ STATIC void DirectCommandUnimplementedCallback(struct SYS_client* client, SYS_re
 STATIC bool IsUnimplementedMethod(const char* method)
 {
     static const char* unimplemented_methods[] = {
-        "reboot", "shutdown", "factory_reset", "read_sensor_register", "write_sensor_register",
+        "shutdown",
+        "factory_reset",
+        "read_sensor_register",
+        "write_sensor_register",
     };
 
     bool ret = false;

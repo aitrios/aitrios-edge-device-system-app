@@ -1183,6 +1183,12 @@ ssfss_init_error:
 
     return NULL;
 #else
+// Workaround: On Linux without system function, execute reboot command directly here.
+#ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
+    if (reason == RebootRequested) {
+        execl("/sbin/reboot", "reboot", (char *)NULL);
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION */
     return reason;
 #endif /* __NuttX__ */
 }
