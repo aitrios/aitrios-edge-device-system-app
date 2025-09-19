@@ -86,6 +86,7 @@ int main(int argc, FAR char *argv[])
 #endif                    // INITIAL_SETTING_APP_UT
     int ret_main = -1; // -1:Wait for factory reset button to be pressed, 0:reboot, 1:factory_reset
     bool init_success = false;
+    bool write_flash_error = false;
     unsigned char *gray_buff = NULL;
     struct senscord_image_property_t img_prop = {0};
 
@@ -111,6 +112,19 @@ int main(int argc, FAR char *argv[])
         ISA_CRIT("IsaTimerInitialize() ret %d", ret);
         goto timer_aborted;
     }
+
+#ifdef ISAPP_DO_PREPROCESS_SC
+
+    /* Senscord Init() */
+
+    SsfSensorErrCode ret_sensor = SsfSensorInit();
+
+    if (ret_sensor != kSsfSensorOk) {
+        ISA_CRIT("SsfSensorInit() failed : ret=%d", ret_sensor);
+        goto sensor_init_aborted;
+    }
+
+#endif // ISAPP_DO_PREPROCESS_SC
 
     // Determine QR mode or not.
 
@@ -143,6 +157,9 @@ int main(int argc, FAR char *argv[])
             // and the factory reset process will be executed, so you can exit main at this point.
 
             return 0;
+        }
+        else if (ercd == kIsaPsSwitchToQrMode) {
+            // Switch to QR mode without timeout.
         }
         else if (ercd != kIsaPsSuccess) {
             // If an error occurs in IsaRunProvisioningService,
@@ -518,6 +535,7 @@ int main(int argc, FAR char *argv[])
 
                 if (ret_qrcode != kIsaQrcode_Success) {
                     ISA_ERR("IsaWriteQrcodePayloadToFlash() failed : ret=%d", ret_qrcode);
+                    write_flash_error = true;
                 }
 
                 ret_main = 0;
@@ -574,7 +592,14 @@ timer_aborted:
 ps_aborted:
     /* Clear Qr mode timeout value */
 
-    EsfSystemManagerResult esfss_ret = EsfSystemManagerSetQrModeTimeoutValue(0);
+    uint32_t clear_qr_mode_tmo = 0;
+    if (write_flash_error) {
+        // If an error occurs while writing to flash,
+        // set the QR mode timeout value to -1 to enter QR mode on the next boot.
+        clear_qr_mode_tmo = -1;
+    }
+
+    EsfSystemManagerResult esfss_ret = EsfSystemManagerSetQrModeTimeoutValue(clear_qr_mode_tmo);
 
     if (esfss_ret != kEsfSystemManagerResultOk) {
         ISA_ERR("EsfSystemManagerSetQrModeTimeoutValue() ret %d", esfss_ret);
@@ -666,19 +691,6 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
             ISA_CRIT("IsaQrcodeInit() failed : ret=%d\n", ret_qrcode);
             break;
         }
-
-#ifdef ISAPP_DO_PREPROCESS_SC
-
-        /* Senscord Init() */
-
-        ret_sensor = SsfSensorInit();
-
-        if (ret_sensor != kSsfSensorOk) {
-            ISA_CRIT("SsfSensorInit() failed : ret=%d", ret_sensor);
-            break;
-        }
-
-#endif // ISAPP_DO_PREPROCESS_SC
 
         /* Senscord Core Init */
 

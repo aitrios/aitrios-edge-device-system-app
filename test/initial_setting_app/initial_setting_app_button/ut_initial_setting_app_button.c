@@ -727,29 +727,6 @@ static void test_IsaBtnCheckFactoryResetRequest(void **state)
 /*----------------------------------------------------------------------------*/
 
 //
-// IsaBtnExecuteRebootCore()
-//
-
-/*----------------------------------------------------------------------------*/
-static void test_IsaBtnExecuteRebootCore(void **state)
-{
-    bool ret;
-
-    s_reboot_requested = true;
-
-    expect_function_call(__wrap_EsfPwrMgrExecuteReboot);
-
-    ret = IsaBtnExecuteRebootCore();
-
-    assert_int_equal(ret, kRetOk);
-    assert_false(s_reboot_requested);
-
-    return;
-}
-
-/*----------------------------------------------------------------------------*/
-
-//
 // IsaBtnExecuteFactoryResetCore()
 //
 
@@ -1059,9 +1036,6 @@ int main(void)
 
         // IsaBtnCheckFactoryResetRequest()
         cmocka_unit_test(test_IsaBtnCheckFactoryResetRequest),
-
-        // IsaBtnExecuteRebootCore()
-        cmocka_unit_test(test_IsaBtnExecuteRebootCore),
 
         // IsaBtnExecuteFactoryResetCore()
         cmocka_unit_test(test_IsaBtnExecuteFactoryResetCore_FullySuccess),

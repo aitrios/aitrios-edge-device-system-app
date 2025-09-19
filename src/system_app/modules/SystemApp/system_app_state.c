@@ -111,7 +111,6 @@ STATIC struct {
     {.topic = ST_TOPIC_NETWORK_SETTINGS, .topic_str = "network_settings"},
     {.topic = ST_TOPIC_WIRELESS_SETTING, .topic_str = "wireless_setting"},
     {.topic = ST_TOPIC_ENDPOINT_SETTINGS, .topic_str = "PRIVATE_endpoint_settings"},
-    {.topic = ST_TOPIC_DEPLOY_FIRMWARE, .topic_str = "PRIVATE_deploy_firmware"},
 };
 #endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 

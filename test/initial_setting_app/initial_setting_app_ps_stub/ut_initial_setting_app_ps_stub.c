@@ -1648,7 +1648,7 @@ static void test_ConnectNetwork_ErrorEtherConnectRetryOver(void **state)
 
     EsfNetworkManagerHandle expected_esfnm_handle = (EsfNetworkManagerHandle)0x99887766;
     NetworkManagerExecCb exec_cb_location = kNetworkManagerExecCbNothing;
-    int expect_connect_wait_retry = 16;
+    int expect_connect_wait_retry = 31;
 
     // This is expected paramter for Ether
     EsfNetworkManagerParameterMask expected_esfnm_mask;
@@ -1740,7 +1740,7 @@ static void test_ConnectNetwork_ErrorEtherConnectRetryOverErrorEsfNetworkManager
 
     EsfNetworkManagerHandle expected_esfnm_handle = (EsfNetworkManagerHandle)0x99887766;
     NetworkManagerExecCb exec_cb_location = kNetworkManagerExecCbNothing;
-    int expect_connect_wait_retry = 16;
+    int expect_connect_wait_retry = 31;
 
     // This is expected paramter for Ether
     EsfNetworkManagerParameterMask expected_esfnm_mask;
@@ -2529,6 +2529,76 @@ static void test_StartSyncNtp_AbortFactoryResetRequestEnable(void **state)
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_StartSyncNtp_TimeoutNtpSync(void **state)
+{
+    RetCode ret;
+
+    ClockManagerExecCb exec_cb_location =
+        kClockManagerExecCbNothing; // Don't execute callback to simulate timeout
+    int expect_ntp_sync_retry =
+        31; // NTP_SYNC_WAIT_MAX_SEC (30) - will timeout after 31 iterations (0-30)
+    bool expect_ntp_sync = false; // NTP sync never completes due to timeout
+
+    // These are expected parameters for ClockManagerParams
+    EsfClockManagerParamsMask expected_cm_mask = {
+        .common.sync_interval = 1,
+        .common.polling_time = 1,
+        .skip_and_limit.type = 1,
+        .slew_setting.type = 1,
+    };
+
+    EsfClockManagerParams expected_cm_param = {
+        .common.sync_interval = 64,
+        .common.polling_time = 3,
+        .skip_and_limit.type = kClockManagerParamTypeDefault,
+        .slew_setting.type = kClockManagerParamTypeDefault,
+    };
+
+    s_ntp_sync_notify = false;
+    s_ntp_sync_done = false;
+
+    CheckEsfClockManagerSetParams(&expected_cm_param, &expected_cm_mask, kClockManagerSuccess);
+
+    // Check callback
+    expect_value(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, on_ntp_sync_complete,
+                 NtpSyncCallback);
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, exec_cb_location);
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, expect_ntp_sync);
+    will_return(__wrap_EsfClockManagerRegisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // Callback function don't exec
+    expect_function_call(__wrap_EsfClockManagerStart);
+    will_return(__wrap_EsfClockManagerStart, false);
+    will_return(__wrap_EsfClockManagerStart, kClockManagerSuccess);
+
+    // Check Ntp Sync Retry for timeout scenario
+    // Button checks return false for NTP_SYNC_WAIT_MAX_SEC+1 times, then timeout occurs
+    for (int i = 0; i <= expect_ntp_sync_retry; i++) {
+        expect_function_call(__wrap_IsaBtnCheckRebootRequest);
+        will_return(__wrap_IsaBtnCheckRebootRequest, false);
+        will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
+    }
+
+    // EsfClockManagerStop is called when timeout occurs
+    expect_function_call(__wrap_EsfClockManagerStop);
+    will_return(__wrap_EsfClockManagerStop, kClockManagerSuccess);
+
+    expect_function_call(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete);
+    will_return(__wrap_EsfClockManagerUnregisterCbOnNtpSyncComplete, kClockManagerSuccess);
+
+    // Exec test target
+    ret = StartSyncNtp();
+
+    // Check return value: should be kRetFailed due to timeout
+    assert_int_equal(ret, kRetFailed);
+    // NTP sync callback was never called, so these should remain false
+    assert_false(s_ntp_sync_notify);
+    assert_false(s_ntp_sync_done);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 
 //
 // NetworkManagerCallback()
@@ -2641,6 +2711,7 @@ int main(void)
         cmocka_unit_test(test_StartSyncNtp_FullySuccessSyncRetry),
         cmocka_unit_test(test_StartSyncNtp_AbortRebootRequestEnable),
         cmocka_unit_test(test_StartSyncNtp_AbortFactoryResetRequestEnable),
+        cmocka_unit_test(test_StartSyncNtp_TimeoutNtpSync),
 
         // NetworkManagerCallback
         cmocka_unit_test(test_NetworkManagerCallback_FullySuccess),

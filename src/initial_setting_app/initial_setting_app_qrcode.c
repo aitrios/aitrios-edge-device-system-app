@@ -688,6 +688,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
         SysAppLedSetAppStatus(LedTypePower, LedAppStatusErrorDataFlashFailed);
         sleep(5);
         SysAppLedUnsetAppStatus(LedTypePower, LedAppStatusErrorDataFlashFailed);
+        ret = kIsaQrcode_Failed;
     }
 
     return ret;

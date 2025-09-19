@@ -673,10 +673,56 @@ static void test_main_TimerAborted_WaitFactoryReset(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_main_SsfSensorInit_Failed(void** state)
+{
+    will_return(__wrap_IsaBtnInitialize, kRetOk);
+    will_return(__wrap_IsaTimerInitialize, kRetOk);
+
+#ifdef ISAPP_DO_PREPROCESS_SC
+    // SsfSensorInit failure case
+    will_return(__wrap_EsfSensorInit, kEsfSensorFail);
+
+    will_return(__wrap_EsfSensorExit, kEsfSensorOk);
+#endif // ISAPP_DO_PREPROCESS_SC
+
+    will_return(__wrap_IsaQrcodeExit, kIsaQrcode_Success);
+
+    // Mock expectations for cleanup (ret_main remains -1 due to failure)
+    expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
+    will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
+
+    // Since ret_main == -1, it goes to the infinite loop waiting for factory reset
+    // But for test, we mock it to return factory reset request immediately
+    will_return(__wrap_IsaBtnCheckFactoryResetRequest, true);
+
+    // Disable LED status before factory reset
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsole);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->status,
+                 kEsfLedManagerLedStatusWaitingForInputsToConnectConsoleGlobalProvisioner);
+    expect_value(__wrap_EsfLedManagerSetStatus, status->enabled, false);
+    will_return(__wrap_EsfLedManagerSetStatus, kEsfLedManagerSuccess);
+
+    will_return(__wrap_IsaBtnExecuteFactoryResetCore, kRetOk);
+
+    will_return(__wrap_IsaTimerFinalize, kRetOk);
+    will_return(__wrap_IsaBtnFinalize, kRetOk);
+
+    // Expected return value: -1 (error, wait for factory reset)
+    CallMainforTest(-1);
+}
+
+/*----------------------------------------------------------------------------*/
 static void test_main_TimeoutValue_Failed_PSAborted(void** state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -698,6 +744,7 @@ static void test_main_PSCompleted(void** state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -717,6 +764,7 @@ static void test_main_PSCompleted_FR(void** state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -736,6 +784,7 @@ static void test_main_PSSuccess_InitializeApp_malloc_failed(void** state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -766,6 +815,7 @@ static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void** state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -797,6 +847,7 @@ static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void** s
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
+    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     int32_t qr_mode_tmo = 0;
     expect_memory(__wrap_EsfSystemManagerGetQrModeTimeoutValue, data, &qr_mode_tmo,
@@ -2635,7 +2686,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     FinalizeApp_Success();
 
     // termination process (ret = 0)
-    expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
+    expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, -1);
     will_return(__wrap_EsfSystemManagerSetQrModeTimeoutValue, kEsfSystemManagerResultOk);
     expect_function_call(__wrap_EsfPwrMgrPrepareReboot);
     will_return(__wrap_EsfPwrMgrPrepareReboot, kEsfPwrMgrOk);
@@ -3770,26 +3821,12 @@ static void test_InitializeApp_IsaQrcodeInit_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_SsfSensorInit_failed(void** state)
-{
-    expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
-    will_return(mock_malloc, true);
-    will_return(mock_malloc, true); // success
-    will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorFail); // fail
-
-    struct senscord_image_property_t img_prop = {0};
-    InitializeApp(&img_prop);
-}
-
-/*----------------------------------------------------------------------------*/
 static void test_InitializeApp_senscord_core_init_failed(void** state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     // senscord_core_init
     SensCordCoreInit(-1); // fail
@@ -3806,7 +3843,6 @@ static void test_InitializeApp_senscord_core_open_stream_failed(void** state)
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     SensCordCoreInit(0);
 
@@ -3824,7 +3860,6 @@ static void test_InitializeApp_senscord_stream_set_property_aimodel_failed(void*
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     SensCordCoreInit(0);
     SensCordCoreOpenStream(0);
@@ -3844,7 +3879,6 @@ static void test_InitializeApp_senscord_stream_set_property_inputdata_failed(voi
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     // senscord_core_init
     SensCordCoreInit(0);
@@ -3866,7 +3900,6 @@ static void test_InitializeApp_senscord_stream_start_failed(void** state)
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     SensCordCoreInit(0);
     SensCordCoreOpenStream(0);
@@ -3892,7 +3925,6 @@ static void test_InitializeApp_senscord_stream_get_property_failed(void** state)
     will_return(mock_malloc, true);
     will_return(mock_malloc, true);
     will_return(__wrap_IsaQrcodeInit, kIsaQrcode_Success);
-    will_return(__wrap_EsfSensorInit, kEsfSensorOk);
 
     SensCordCoreInit(0);
     SensCordCoreOpenStream(0);
@@ -4036,6 +4068,9 @@ int main(void)
 #endif
         cmocka_unit_test(test_main_TimerAborted),
         cmocka_unit_test(test_main_TimerAborted_WaitFactoryReset),
+#ifdef ISAPP_DO_PREPROCESS_SC
+        cmocka_unit_test(test_main_SsfSensorInit_Failed),
+#endif // ISAPP_DO_PREPROCESS_SC
         cmocka_unit_test(test_main_TimeoutValue_Failed_PSAborted),
         cmocka_unit_test(test_main_PSCompleted),
         cmocka_unit_test(test_main_PSCompleted_FR),
@@ -4105,7 +4140,6 @@ int main(void)
         // InitializeApp()
         cmocka_unit_test(test_InitializeApp_malloc_failed),
         cmocka_unit_test_setup_teardown(test_InitializeApp_IsaQrcodeInit_failed, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_InitializeApp_SsfSensorInit_failed, setup, teardown),
         cmocka_unit_test_setup_teardown(test_InitializeApp_senscord_core_init_failed, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_InitializeApp_senscord_core_open_stream_failed, setup,

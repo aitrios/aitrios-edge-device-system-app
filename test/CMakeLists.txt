@@ -539,7 +539,6 @@ set(WRAP_ISA_BUTTON_SYMBOLES
     IsaBtnFinalize
     IsaBtnCheckRebootRequest
     IsaBtnCheckFactoryResetRequest
-    IsaBtnExecuteRebootCore
     IsaBtnExecuteFactoryResetCore
 )
 

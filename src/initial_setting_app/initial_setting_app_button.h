@@ -13,8 +13,6 @@ RetCode IsaBtnInitialize(void);
 RetCode IsaBtnFinalize(void);
 bool IsaBtnCheckRebootRequest(void);
 bool IsaBtnCheckFactoryResetRequest(void);
-RetCode IsaBtnExecuteRebootCore(void);
 RetCode IsaBtnExecuteFactoryResetCore(void); // This API can be called after SysAppBtnFinalize().
 
 #endif // _SYSTEM_APP_BUTTON_H_
-

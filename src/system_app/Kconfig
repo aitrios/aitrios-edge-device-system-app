@@ -70,6 +70,12 @@ config EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 	---help---
 		Enable system functions like OTA/Network/Setting.
 
+config EXTERNAL_SYSTEMAPP_SYSTEM_UPDATE_SUPPORT
+	bool "Enable system update support"
+	default n
+	---help---
+		Enable system update functionality for Raspberry Pi.
+
 config EXTERNAL_SYSTEMAPP_SCHEMA
 	string "schema string"
 	default "dtmi:com:sony_semicon:aitrios:sss:edge:system:t3p;2"

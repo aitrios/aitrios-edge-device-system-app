@@ -2374,7 +2374,7 @@ static void test_IsaWriteQrcodePayloadToFlash_SetEmptyProjectId_failed(void **st
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2429,7 +2429,7 @@ static void test_IsaWriteQrcodePayloadToFlash_SetEmptyRegisterToken_failed(void 
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2612,7 +2612,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_SysMgrSet_failed(void **
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -2677,7 +2677,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_NwkMgrSave_failed(void *
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -2800,7 +2800,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubPort_SysMgrSet_failed(void *
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -2864,7 +2864,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubPort_NwkMgrSave_failed(void 
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3040,7 +3040,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsEnable_SysMgrSe
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3104,7 +3104,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsEnable_NwkMgrSa
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3226,7 +3226,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsDisable_SysMgrS
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3290,7 +3290,7 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsDisable_NwkMgrS
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3411,7 +3411,7 @@ static void test_IsaWriteQrcodePayloadToFlash_ProjectId_SysMgrSet_failed(void **
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3474,7 +3474,7 @@ static void test_IsaWriteQrcodePayloadToFlash_ProjectId_NwkMgrSave_failed(void *
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3597,7 +3597,7 @@ static void test_IsaWriteQrcodePayloadToFlash_RegisterToken_SysMgrSet_failed(voi
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -3661,7 +3661,7 @@ static void test_IsaWriteQrcodePayloadToFlash_RegisterToken_NwkMgrSave_failed(vo
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -4879,7 +4879,7 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_NwkMgrSave_failed(void 
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -5155,7 +5155,7 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_NwkMgrSave_failed(void *
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 
@@ -5222,7 +5222,7 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_empty_NwkMgrSave_failed(
 
     ret = IsaWriteQrcodePayloadToFlash();
 
-    assert_int_equal(ret, kIsaQrcode_Success);
+    assert_int_equal(ret, kIsaQrcode_Failed);
     return;
 }
 

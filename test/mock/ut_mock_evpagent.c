@@ -26,7 +26,8 @@ static bool s_direct_command_cb_callreq = false;
 static SYS_config_cb s_configuration_cb = NULL;
 static void *s_configuration_cb_user = NULL;
 static bool s_configuration_cb_callreq = false;
-#endif // INITIAL_SETTING_APP_PS
+static bool s_trigger_allowlist_false = false; /* Special flag for allowlist test */
+#endif                                         // INITIAL_SETTING_APP_PS
 
 static SYS_telemetry_cb s_telemetry_cb = NULL;
 static void *s_telemetry_user = NULL;
@@ -141,8 +142,27 @@ enum SYS_result __wrap_SYS_process_event(struct SYS_client *c, int ms)
 
     if (s_configuration_cb != NULL) {
         if (s_configuration_cb_callreq == true) {
-            s_configuration_cb(c, "system_settings", "", SYS_CONFIG_HUB, SYS_REASON_FINISHED,
-                               s_configuration_cb_user);
+            if (s_trigger_allowlist_false) {
+                /* Special case for allowlist=false test */
+                /* Call twice: 1st to set Enrollment mode, 2nd with allowlist=false */
+
+                /* First call: empty config to trigger Enrollment mode setting */
+                s_configuration_cb(c, "system_settings", "{}", SYS_CONFIG_HUB, SYS_REASON_FINISHED,
+                                   s_configuration_cb_user);
+
+                /* Second call: with allowlist=false config */
+                const char *allowlist_config = "{\"is_allowlisted\": false}";
+                s_configuration_cb(c, "system_settings", allowlist_config, SYS_CONFIG_HUB,
+                                   SYS_REASON_FINISHED, s_configuration_cb_user);
+
+                s_trigger_allowlist_false = false; /* Reset after use */
+            }
+            else {
+                print_message("Normal configuration callback");
+                /* Normal case - single call */
+                s_configuration_cb(c, "system_settings", "", SYS_CONFIG_HUB, SYS_REASON_FINISHED,
+                                   s_configuration_cb_user);
+            }
 
             s_configuration_cb = NULL;
             s_configuration_cb_user = NULL;
@@ -232,3 +252,12 @@ void __wrap_evp_agent_shutdown(void)
 {
     ;
 }
+
+#ifdef INITIAL_SETTING_APP_PS
+/*----------------------------------------------------------------------------*/
+void ut_trigger_allowlist_false_scenario(void)
+{
+    /* Special test function to trigger allowlist=false scenario */
+    s_trigger_allowlist_false = true;
+}
+#endif // INITIAL_SETTING_APP_PS
