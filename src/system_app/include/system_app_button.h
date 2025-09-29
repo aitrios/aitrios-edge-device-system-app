@@ -16,4 +16,3 @@ bool SysAppBtnCheckFactoryResetRequest(void);
 RetCode SysAppBtnExecuteFactoryResetCore(void); // This API can be called after SysAppBtnFinalize().
 
 #endif // _SYSTEM_APP_BUTTON_H_
-

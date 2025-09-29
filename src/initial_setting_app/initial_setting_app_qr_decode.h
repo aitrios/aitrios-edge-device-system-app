@@ -17,56 +17,56 @@ extern "C" {
 
 // This code defines an enumeration type for the result of executing an API.
 typedef enum {
-  kDecodeQrSuccess,           // No errors.
-  kDecodeQrParamError,        // Parameter Error.
-  kDecodeQrOssInternalError,  // Internal Error in OSS.
-  kDecodeQrDetectCountError,  // Detection Count Error.
-  kDecodeQrNotDetectError,    // Undetectable error.
-  kDecodeQrDecodeError,       // Decode Error.
-  kDecodeQrOutputSizeOver,    // Payload size over.
-  kDecodeQrOtherError         // Other Errors.
+    kDecodeQrSuccess,          // No errors.
+    kDecodeQrParamError,       // Parameter Error.
+    kDecodeQrOssInternalError, // Internal Error in OSS.
+    kDecodeQrDetectCountError, // Detection Count Error.
+    kDecodeQrNotDetectError,   // Undetectable error.
+    kDecodeQrDecodeError,      // Decode Error.
+    kDecodeQrOutputSizeOver,   // Payload size over.
+    kDecodeQrOtherError        // Other Errors.
 } IsaCodecQrError;
 
 // The definition of the data type of the decoded result.
 typedef enum {
-  kDecodeQrOutputNumeric,       // Numerical value.
-  kDecodeQrOutputAlphanumeric,  // Alphanumeric.
-  kDecodeQrOutputBinary,        // Binary.
-  kDecodeQrOutputKanji          // Kanji.
+    kDecodeQrOutputNumeric,      // Numerical value.
+    kDecodeQrOutputAlphanumeric, // Alphanumeric.
+    kDecodeQrOutputBinary,       // Binary.
+    kDecodeQrOutputKanji         // Kanji.
 } IsaCodecQrOutputType;
 
 // The decoded result output destination information.
 typedef struct {
-  // The address of the beginning of the output destination for decoding
-  // results.
-  uint64_t output_adr_handle;
+    // The address of the beginning of the output destination for decoding
+    // results.
+    uint64_t output_adr_handle;
 
-  // The maximum size of the decoded output result.
-  int32_t output_max_size;
+    // The maximum size of the decoded output result.
+    int32_t output_max_size;
 } IsaCodecQrOutputBuf;
 
 // Input data information.
 typedef struct {
-  // The address of the first input data.
-  uint64_t input_adr_handle;
+    // The address of the first input data.
+    uint64_t input_adr_handle;
 
-  // The width of the image in pixels.
-  int32_t width;
+    // The width of the image in pixels.
+    int32_t width;
 
-  // The height of the image in pixels.
-  int32_t height;
+    // The height of the image in pixels.
+    int32_t height;
 
-  // The stride (in bytes) of the input image.
-  int32_t stride;
+    // The stride (in bytes) of the input image.
+    int32_t stride;
 
-  // Decoding result output destination information
-  IsaCodecQrOutputBuf out_buf;
+    // Decoding result output destination information
+    IsaCodecQrOutputBuf out_buf;
 } IsaCodecQrInputParam;
 
 // Decoded information from the QR code.
 typedef struct {
-  int32_t output_size;               // Decoded result payload size.
-  IsaCodecQrOutputType output_type;  // Output data type.
+    int32_t output_size;              // Decoded result payload size.
+    IsaCodecQrOutputType output_type; // Output data type.
 } IsaCodecQrOutputInfo;
 
 // """Detect and decode QR codes from grayscale images.
@@ -104,4 +104,4 @@ IsaCodecQrError IsaCodecQrDecodeQrCode(const IsaCodecQrInputParam *input,
 }
 #endif
 
-#endif  // INITIAL_SETTING_APP_QR_DECODE_H_
+#endif // INITIAL_SETTING_APP_QR_DECODE_H_

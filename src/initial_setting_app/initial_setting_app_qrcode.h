@@ -14,27 +14,25 @@ extern "C" {
 #endif
 
 typedef enum {
-  kIsaQrcode_Success = 0,      // Success.
-  kIsaQrcode_InvalidArgument,  // Argument error.
-  kIsaQrcode_Failed,           // Failed.
+    kIsaQrcode_Success = 0,     // Success.
+    kIsaQrcode_InvalidArgument, // Argument error.
+    kIsaQrcode_Failed,          // Failed.
 
-  kIsaQrcode_ErrcodeNum
+    kIsaQrcode_ErrcodeNum
 } IsaQrcodeErrorCode;
 
 typedef enum {
-  kIsaQrcodeDecode_AllRecognized = 0,
-  kIsaQrcodeDecode_PartRecognized,
-  kIsaQrcodeDecode_Invalid,
+    kIsaQrcodeDecode_AllRecognized = 0,
+    kIsaQrcodeDecode_PartRecognized,
+    kIsaQrcodeDecode_Invalid,
 
-  kIsaQrcodeDecode_ResultNum
+    kIsaQrcodeDecode_ResultNum
 } IsaQrcodeDecodeResult;
 
 IsaQrcodeErrorCode IsaQrcodeInit(void);
 
-IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload,
-                                          int32_t payload_size,
-                                          IsaQrcodeDecodeResult* result,
-                                          uint8_t* qr_count);
+IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size,
+                                          IsaQrcodeDecodeResult* result, uint8_t* qr_count);
 
 IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void);
 
@@ -53,4 +51,4 @@ IsaQrcodeErrorCode IsaQrcodeExit(void);
 }
 #endif
 
-#endif  // _INITIAL_SETTING_APP_QRCODE_H_
+#endif // _INITIAL_SETTING_APP_QRCODE_H_

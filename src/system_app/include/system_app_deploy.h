@@ -13,7 +13,7 @@ extern "C" {
 
 // Deploy handle
 
-typedef void* SysAppDeployHandle;
+typedef void *SysAppDeployHandle;
 
 // Public functions
 
@@ -24,9 +24,9 @@ RetCode SysAppDeployGetFirmwareState(char **state, uint32_t *p_size);
 RetCode SysAppDeployGetAiModelState(char **state, uint32_t *p_size);
 RetCode SysAppDeployGetSensorCalibrationParamState(char **state, uint32_t *p_size);
 RetCode SysAppDeployFreeState(char *state);
-bool    SysAppDeployCheckResetRequest(bool *is_downgrade);
-void    SysAppDeployFactoryReset(void);
-bool    SysAppDeployGetCancel(void);
+bool SysAppDeployCheckResetRequest(bool *is_downgrade);
+void SysAppDeployFactoryReset(void);
+bool SysAppDeployGetCancel(void);
 
 #ifdef __cplusplus
 }

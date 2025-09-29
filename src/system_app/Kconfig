@@ -82,4 +82,18 @@ config EXTERNAL_SYSTEMAPP_SCHEMA
 	---help---
 		Schema string sending as PRIVATE_reserved state.
 
+config EXTERNAL_SYSTEMAPP_TEMPERATURE_UPPER_THRESHOLD
+	int "Temperature upper threshold"
+	default 100
+	---help---
+		Upper temperature threshold in degrees Celsius.
+		An error message will be generated when temperature exceeds this value.
+
+config EXTERNAL_SYSTEMAPP_TEMPERATURE_LOWER_THRESHOLD
+	int "Temperature lower threshold"
+	default -20
+	---help---
+		Lower temperature threshold in degrees Celsius.
+		An error message will be generated when temperature falls below this value.
+
 endif

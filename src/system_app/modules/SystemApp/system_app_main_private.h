@@ -10,9 +10,9 @@
 // Operation to launch
 
 typedef enum {
-  ToInitialSetting = 0,
-  ToSystem,
-  ToOperationNum,
+    ToInitialSetting = 0,
+    ToSystem,
+    ToOperationNum,
 } ToOperation;
 
-#endif  // _SYSTEM_APP_MAIN_PRIVATE_H_
+#endif // _SYSTEM_APP_MAIN_PRIVATE_H_

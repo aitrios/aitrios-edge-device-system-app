@@ -89,8 +89,7 @@ struct quirc *IsaCodecQrCreateInstance(int32_t width, int32_t height);
 //     kDecodeQrParamError: If the argument's instance or qr_code_info is NULL, or
 //       image_addr is 0, it returns.
 // """
-IsaCodecQrError IsaCodecQrDetect(uint64_t image_addr,
-                                 struct quirc_code *qr_code_info,
+IsaCodecQrError IsaCodecQrDetect(uint64_t image_addr, struct quirc_code *qr_code_info,
                                  struct quirc *instance);
 
 // """This function decodes QR code information and returns the decoded result.
@@ -121,8 +120,8 @@ IsaCodecQrError IsaCodecQrDetect(uint64_t image_addr,
 //     kDecodeQrParamError: If the argument qr_code_info or qr_code_data is NULL, it
 //       returns.
 // """
-IsaCodecQrError IsaCodecQrDecodeQrCodeInfo(
-    const struct quirc_code *qr_code_info, struct quirc_data *qr_code_data);
+IsaCodecQrError IsaCodecQrDecodeQrCodeInfo(const struct quirc_code *qr_code_info,
+                                           struct quirc_data *qr_code_data);
 
 // """The decoded result is stored in the output buffer specified by the upper
 // App.
@@ -169,10 +168,9 @@ IsaCodecQrError IsaCodecQrDecodeQrCodeInfo(
 //       output_buffer_info->output_adr_handle is 0, it returns. If the
 //       argument's qr_code_data->data_type is undefined, it returns.
 // """
-IsaCodecQrError IsaCodecQrStoreDecodingResult(
-    const IsaCodecQrOutputBuf *output_buffer_info,
-    const struct quirc_data *qr_code_data,
-    IsaCodecQrOutputInfo *output_result_info);
+IsaCodecQrError IsaCodecQrStoreDecodingResult(const IsaCodecQrOutputBuf *output_buffer_info,
+                                              const struct quirc_data *qr_code_data,
+                                              IsaCodecQrOutputInfo *output_result_info);
 #endif // CONFIG_EXTERNAL_QUIRC
 
-#endif  // INITIAL_SETTING_APP_QR_DECODE_INTERNAL_H_
+#endif // INITIAL_SETTING_APP_QR_DECODE_INTERNAL_H_

@@ -13,7 +13,7 @@ extern "C" {
 
 #ifdef SYSTEM_APP_UT
 #include <string.h>
-#endif  // SYSTEM_APP_UT
+#endif // SYSTEM_APP_UT
 
 #include "utility_log.h"
 #include "utility_log_module_id.h"
@@ -28,18 +28,24 @@ extern "C" {
 #define ULOG_MODULE_ID MODULE_ID_SYSTEM
 
 #if !defined(__FILE_NAME__)
-  #define __FILE_NAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define __FILE_NAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
 #if 1 /* Use MACROs of UtiltyLog.*/
 /* for DLog */
 
-#define SYSAPP_CRIT(fmt, ...) WRITE_DLOG_CRITICAL(ULOG_MODULE_ID, "%s %d [CRT]" fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
-#define SYSAPP_ERR(fmt, ...) WRITE_DLOG_ERROR(ULOG_MODULE_ID, "%s %d [ERR] " fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
-#define SYSAPP_WARN(fmt, ...) WRITE_DLOG_WARN(ULOG_MODULE_ID, "%s %d [WAR] " fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
-#define SYSAPP_INFO(fmt, ...) WRITE_DLOG_INFO(ULOG_MODULE_ID, "%s %d [INF] " fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
-#define SYSAPP_DBG(fmt, ...) WRITE_DLOG_DEBUG(ULOG_MODULE_ID, "%s %d [DBG] " fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
-#define SYSAPP_TRC(fmt, ...) WRITE_DLOG_TRACE(ULOG_MODULE_ID, "%s %d [TRC] " fmt, __FILE_NAME__, __LINE__,##__VA_ARGS__)
+#define SYSAPP_CRIT(fmt, ...) \
+    WRITE_DLOG_CRITICAL(ULOG_MODULE_ID, "%s %d [CRT]" fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_ERR(fmt, ...) \
+    WRITE_DLOG_ERROR(ULOG_MODULE_ID, "%s %d [ERR] " fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_WARN(fmt, ...) \
+    WRITE_DLOG_WARN(ULOG_MODULE_ID, "%s %d [WAR] " fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_INFO(fmt, ...) \
+    WRITE_DLOG_INFO(ULOG_MODULE_ID, "%s %d [INF] " fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_DBG(fmt, ...) \
+    WRITE_DLOG_DEBUG(ULOG_MODULE_ID, "%s %d [DBG] " fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_TRC(fmt, ...) \
+    WRITE_DLOG_TRACE(ULOG_MODULE_ID, "%s %d [TRC] " fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)
 
 /* for ELog */
 
@@ -65,25 +71,34 @@ extern "C" {
 #define SYSAPP_ELOG_TRC(event_id) WRITE_ELOG_TRACE(ULOG_MODULE_ID, event_id)
 #else
 /* for DLog */
-  #if 1
+#if 1
 #include "stdio.h"
 
-#define SYSAPP_CRIT(fmt, ...) printf("%s %d [CRT] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_CRIT(fmt, ...) \
+    printf("%s %d [CRT] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
 #define SYSAPP_ERR(fmt, ...) printf("%s %d [ERR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_WARN(fmt, ...) printf("%s %d [WAR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_INFO(fmt, ...) printf("%s %d [INF] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_WARN(fmt, ...) \
+    printf("%s %d [WAR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_INFO(fmt, ...) \
+    printf("%s %d [INF] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
 #define SYSAPP_DBG(fmt, ...) printf("%s %d [DBG] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
 #define SYSAPP_TRC(fmt, ...) printf("%s %d [TRC] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-  #else
+#else
 #include <syslog.h>
 
-#define SYSAPP_CRIT(fmt, ...) syslog(LOG_ERR, "%s %d [CRT] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_ERR(fmt, ...) syslog(LOG_ERR, "%s %d [ERR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_WARN(fmt, ...) syslog(LOG_WARNING, "%s %d [WAR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_INFO(fmt, ...) syslog(LOG_INFO, "%s %d [INF] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_DBG(fmt, ...) syslog(LOG_DEBUG, "%s %d [DBG] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-#define SYSAPP_TRC(fmt, ...) syslog(LOG_DEBUG, "%s %d [TRC] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
-  #endif
+#define SYSAPP_CRIT(fmt, ...) \
+    syslog(LOG_ERR, "%s %d [CRT] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_ERR(fmt, ...) \
+    syslog(LOG_ERR, "%s %d [ERR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_WARN(fmt, ...) \
+    syslog(LOG_WARNING, "%s %d [WAR] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_INFO(fmt, ...) \
+    syslog(LOG_INFO, "%s %d [INF] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_DBG(fmt, ...) \
+    syslog(LOG_DEBUG, "%s %d [DBG] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#define SYSAPP_TRC(fmt, ...) \
+    syslog(LOG_DEBUG, "%s %d [TRC] " fmt "\n", __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+#endif
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -92,21 +107,14 @@ extern "C" {
 //int SysAppLogConvertExternalLevel(EsfLogManagerDlogLevel esflevel);
 //int SysAppLogConvertInternalLevel(CfgStLogLevel level);
 
-RetCode SysAppLogGetParameterNumber(CfgStLogFilter filter,
-                                    SystemSettingsProperty prop,
+RetCode SysAppLogGetParameterNumber(CfgStLogFilter filter, SystemSettingsProperty prop,
                                     int *ret_value);
-RetCode SysAppLogGetParameterString(CfgStLogFilter filter,
-                                    SystemSettingsProperty prop,
-                                    char *ret_value,
-                                    size_t buff_size);
-RetCode SysAppLogSetParameterNumber(CfgStLogFilter filter,
-                                    SystemSettingsProperty prop,
+RetCode SysAppLogGetParameterString(CfgStLogFilter filter, SystemSettingsProperty prop,
+                                    char *ret_value, size_t buff_size);
+RetCode SysAppLogSetParameterNumber(CfgStLogFilter filter, SystemSettingsProperty prop,
                                     int set_value);
-RetCode SysAppLogSetParameterString(CfgStLogFilter filter,
-                                    SystemSettingsProperty prop,
-                                    const char *set_value,
-                                    size_t buff_size);
-
+RetCode SysAppLogSetParameterString(CfgStLogFilter filter, SystemSettingsProperty prop,
+                                    const char *set_value, size_t buff_size);
 
 /*----------------------------------------------------------------------------*/
 /* Globals                                                                    */

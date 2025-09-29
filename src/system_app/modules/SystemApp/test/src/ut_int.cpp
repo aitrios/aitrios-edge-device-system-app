@@ -10,41 +10,46 @@ extern "C" {
 #include "int.c"
 }
 
-TEST(SampleSetNum, success) {
+TEST(SampleSetNum, success)
+{
     int test = 1234567;
     SampleSetNum(test);
     EXPECT_EQ(num_, test);
     EXPECT_STREQ(num_string, "1234567");
 }
 
-TEST(SampleSetNum, truncate) {
+TEST(SampleSetNum, truncate)
+{
     int test = 1234567890;
     SampleSetNum(test);
     EXPECT_EQ(num_, test);
     EXPECT_STREQ(num_string, "1234567");
 }
 
-TEST(SampleIsOdd, odd) {
+TEST(SampleIsOdd, odd)
+{
     int test = 1;
     SampleSetNum(test);
     EXPECT_TRUE(SampleIsOdd());
 }
 
-TEST(SampleIsOdd, even) {
+TEST(SampleIsOdd, even)
+{
     int test = 2;
     SampleSetNum(test);
     EXPECT_FALSE(SampleIsOdd());
 }
 
-TEST(SampleIsEven, odd) {
+TEST(SampleIsEven, odd)
+{
     int test = 1;
     SampleSetNum(test);
     EXPECT_FALSE(SampleIsEven());
 }
 
-TEST(SampleIsEven, even) {
+TEST(SampleIsEven, even)
+{
     int test = 2;
     SampleSetNum(test);
     EXPECT_TRUE(SampleIsEven());
 }
-

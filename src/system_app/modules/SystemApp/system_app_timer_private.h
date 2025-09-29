@@ -10,9 +10,9 @@
 #include "utility_timer.h"
 
 typedef struct {
-  UtilityTimerHandle handle;
-  bool is_working;
-  TimerCallback cb;
+    UtilityTimerHandle handle;
+    bool is_working;
+    TimerCallback cb;
 } TimerContext;
 
-#endif  // _SYSTEM_APP_TIMER_PRIVATE_H_
+#endif // _SYSTEM_APP_TIMER_PRIVATE_H_

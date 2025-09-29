@@ -14,10 +14,10 @@
 //
 
 typedef enum {
-  SensorTempIntervalTimer = 0,
-  HoursMeterIntervalTimer,
+    SensorTempIntervalTimer = 0,
+    HoursMeterIntervalTimer,
 
-  TimerTypeNum
+    TimerTypeNum
 } TimerType;
 
 typedef void (*TimerCallback)(void);
