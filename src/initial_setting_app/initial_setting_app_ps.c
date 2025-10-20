@@ -1137,6 +1137,18 @@ exit:
     return ret;
 }
 
+/*----------------------------------------------------------------------------*/
+STATIC void ClearProjectIdAndRegisterToken(void)
+{
+    if (EsfSystemManagerSetProjectId("", 1) != kEsfSystemManagerResultOk) {
+        ISA_ERR("EsfSystemManagerSetProjectId");
+    }
+
+    if (EsfSystemManagerSetRegisterToken("", 1) != kEsfSystemManagerResultOk) {
+        ISA_ERR("EsfSystemManagerSetRegisterToken");
+    }
+}
+
 /*--------------------------------------------------------------------------*/
 STATIC RetCode SetDefaultEndpoint(PsInfo *ps_info)
 {
@@ -1590,17 +1602,26 @@ errout:
   EsfClockManagerDeinit();
 #endif
 
-    /* Delete RegisterToken and ProjectId
-   * when there is no reset request via the button (when the endpoint is set). */
+    if (ps_info->mode == IsaPsMode_QrCode) {
+        // Delete RegisterToken, ProjectId, EvpHubUrl and EvpHubPort settings to
+        // ensure transition to PS mode when reboot (power off) occurs after
+        // switching to QR code mode.
 
-    if (!IsaBtnCheckRebootRequest()) {
-        if (EsfSystemManagerSetProjectId("", 1) != kEsfSystemManagerResultOk) {
-            ISA_ERR("EsfSystemManagerGetProjectId");
+        ClearProjectIdAndRegisterToken();
+
+        if (EsfSystemManagerSetEvpHubUrl("", 1) != kEsfSystemManagerResultOk) {
+            ISA_ERR("EsfSystemManagerSetEvpHubUrl");
         }
 
-        if (EsfSystemManagerSetRegisterToken("", 1) != kEsfSystemManagerResultOk) {
-            ISA_ERR("EsfSystemManagerGetRegisterToken");
+        if (EsfSystemManagerSetEvpHubPort("", 1) != kEsfSystemManagerResultOk) {
+            ISA_ERR("EsfSystemManagerSetEvpHubPort");
         }
+    }
+    else if (!IsaBtnCheckRebootRequest()) {
+        // Delete RegisterToken and ProjectId
+        // when there is no reset request via the button (when the endpoint is set).
+
+        ClearProjectIdAndRegisterToken();
     }
 
     EsfClockManagerStop();

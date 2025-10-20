@@ -5841,8 +5841,13 @@ static void test_IsaRunProvisioningService_Should_exit(void **state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -6620,10 +6625,13 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Error(void **state)
         will_return(__wrap_EsfNetworkManagerOpen, kEsfNetworkManagerResultInvalidParameter);
     }
 
-    // Check IsaBtnCheckRebootRequest.
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -6775,8 +6783,13 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
 
     will_return(__wrap_EsfClockManagerSetParams, kClockManagerInternalError);
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -7317,10 +7330,13 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
         // Nop because SetupEvpAgent returned with NULL client.
     }
 
-    // Check IsaBtnCheckRebootRequest.
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -8052,9 +8068,13 @@ static void test_IsaRunProvisioningService_EvpConnectTimeout(void **state)
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
-    // Check IsaBtnCheckRebootRequest at cleanup
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -8872,9 +8892,13 @@ static void test_IsaRunProvisioningService_Qr_Cleanup_unregister_sys_client_Erro
 
     will_return(__wrap_EVP_Agent_unregister_sys_client, -1); //Error
 
-    // Check IsaBtnCheckRebootRequest at cleanup
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
@@ -9154,8 +9178,13 @@ static void test_IsaRunProvisioningService_AllowlistFalse(void **state)
     // Cleanup for QR mode
     will_return(__wrap_EVP_Agent_unregister_sys_client, 0);
 
-    expect_function_call(__wrap_IsaBtnCheckRebootRequest);
-    will_return(__wrap_IsaBtnCheckRebootRequest, false);
+    expect_any(__wrap_EsfSystemManagerSetEvpHubUrl, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubUrl, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubUrl, kEsfSystemManagerResultOk);
+
+    expect_any(__wrap_EsfSystemManagerSetEvpHubPort, data);
+    expect_value(__wrap_EsfSystemManagerSetEvpHubPort, data_size, 1);
+    will_return(__wrap_EsfSystemManagerSetEvpHubPort, kEsfSystemManagerResultOk);
 
     expect_any(__wrap_EsfSystemManagerSetProjectId, data);
     expect_value(__wrap_EsfSystemManagerSetProjectId, data_size, 1);
