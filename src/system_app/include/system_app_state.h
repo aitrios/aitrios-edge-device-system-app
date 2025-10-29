@@ -62,6 +62,9 @@ RetCode SysAppStateReadoutNetworkSettings(void);
 RetCode SysAppStateReadoutWirelessSetting(void);
 RetCode SysAppStateReadoutPeriodicSetting(void);
 RetCode SysAppStateReadoutEndpointSettings(void);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+RetCode SysAppStateReadoutStreamingSettings(void);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 RetCode SysAppStateUpdateNumber(uint32_t topic, uint32_t type, int number);
 RetCode SysAppStateUpdateNumberWithIdx(uint32_t topic, uint32_t type, int number, uint32_t idx);

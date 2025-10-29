@@ -6,7 +6,18 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
 #include <arpa/inet.h>
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+#include <ifaddrs.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <errno.h>
+#include <string.h>
+#include "system_app_vsc_manager.h"
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 #include "evp/sdk_sys.h"
 
@@ -30,11 +41,38 @@
 // Macros.
 //
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+#define HOSTNAME_MAX_LEN 256
+#define DEFAULT_MAX_RECORD_TIME 30
+#define MAX_RECORD_TIME_LIMIT 1440
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 //
 // File private structure and enum.
 //
 
 typedef enum { IPvInvalid = -1, IPv4 = 1, IPv6 = 2 } IpVer;
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+// Streaming configuration structures
+
+typedef struct {
+    char server_ip[CFGST_STREAMING_RTSP_SERVER_IP_LEN + 1];
+    char stream_name[CFGST_STREAMING_RTSP_STREAM_NAME_LEN + 1];
+    char user_name[CFGST_STREAMING_RTSP_USER_NAME_LEN + 1];
+    char password[CFGST_STREAMING_RTSP_PASSWORD_LEN + 1];
+    bool config_found;
+} RtspConfig;
+
+typedef struct {
+    char server_ip[CFGST_STREAMING_NFS_SERVER_IP_LEN + 1];
+    char mount_path[CFGST_STREAMING_NFS_MOUNT_PATH_LEN + 1];
+    int nfs_version;
+    bool use_tcp;
+    int max_record_time;
+    bool config_found;
+} NfsConfig;
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
 
 //
 // File static variables.
@@ -107,6 +145,75 @@ static IpVer CheckIpAddressType(const char *ip_string)
 
     return IPvInvalid;
 }
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+/*----------------------------------------------------------------------*/
+static bool IsValidHostname(const char *hostname)
+{
+    if (hostname == NULL) {
+        return false;
+    }
+
+    size_t len = strnlen(hostname, HOSTNAME_MAX_LEN + 1);
+
+    // hostname is invalid
+
+    if (len == 0 || len > HOSTNAME_MAX_LEN) {
+        return false;
+    }
+
+    // Check each character and validate hostname rules
+
+    bool has_non_digit = false;
+
+    for (size_t i = 0; i < len; i++) {
+        char c = hostname[i];
+
+        // Valid characters: a-z, A-Z, 0-9, hyphen(-)
+
+        if (!(isalnum(c) || (c == '-'))) {
+            return false;
+        }
+
+        // Must not start or end with hyphen
+
+        if (c == '-' && (i == 0 || i == len - 1)) {
+            return false;
+        }
+
+        // Track if hostname contains non-digit characters
+
+        if (!isdigit(c)) {
+            has_non_digit = true;
+        }
+    }
+
+    if (!has_non_digit) {
+        return false;
+    }
+
+    return true;
+}
+
+/*----------------------------------------------------------------------*/
+static bool IsValidServerAddress(const char *address)
+{
+    if (address == NULL) {
+        return false;
+    }
+
+    // First, check if it's a valid IPv4 address
+
+    IpVer ip_check = CheckIpAddressType(address);
+    if (ip_check == IPv4) {
+        return true;
+    }
+
+    // If not a valid IPv4, check if it's a valid hostname
+
+    return IsValidHostname(address);
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 /*----------------------------------------------------------------------*/
 static bool CheckUpdateNumber(uint32_t topic, uint32_t type, int number)
@@ -729,6 +836,11 @@ STATIC void ConfigurationCallback(struct SYS_client *client, const char *topic, 
     else if (strcmp(topic, "network_settings") == 0) {
         SysAppCfgNetworkSettings((const char *)config);
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (strcmp(topic, "streaming_settings") == 0) {
+        SysAppCfgStreamingSettings((const char *)config);
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else if (strcmp(topic, "periodic_setting") == 0) {
         SysAppCfgPeriodicSetting((const char *)config);
     }
@@ -789,6 +901,16 @@ static RetCode RegisterConfigurationCallback(void)
                     "wireless_setting", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
         goto exit;
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Register streaming_settings
+    sys_ret = SYS_set_configuration_cb(s_sys_client, "streaming_settings", ConfigurationCallback,
+                                       SYS_CONFIG_ANY, NULL);
+    if (sys_ret != SYS_RESULT_OK) {
+        SYSAPP_CRIT("SYS_set_configuration_cb(%p, %s, %p, %d, NULL) ret %d", s_sys_client,
+                    "streaming_settings", ConfigurationCallback, SYS_CONFIG_ANY, sys_ret);
+        goto exit;
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     // Register PRIVATE_endpoint_settings
     sys_ret = SYS_set_configuration_cb(s_sys_client, "PRIVATE_endpoint_settings",
                                        ConfigurationCallback, SYS_CONFIG_ANY, NULL);
@@ -1033,6 +1155,544 @@ STATIC bool IsValidUrlOrNullString(const char *domain, int max_len)
 
     return IsValidUrlOrIpAddress(domain, max_len);
 }
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgInitializeJsonParsing(const char *param, EsfJsonHandle *esfj_handle,
+                                              EsfJsonValue *val)
+{
+    // Open handle and set config parameters.
+
+    EsfJsonErrorCode esfj_ret = EsfJsonOpen(esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonOpen(%p) ret %d", esfj_handle, esfj_ret);
+        return kRetFailed;
+    }
+
+    esfj_ret = EsfJsonDeserialize(*esfj_handle, param, val);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonDeserialize(%p) ret %d", *esfj_handle, esfj_ret);
+        return kRetFailed;
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgJsonClose(EsfJsonHandle esfj_handle)
+{
+    // Close handle.
+
+    EsfJsonErrorCode esfj_ret = EsfJsonClose(esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonClose(%p) ret %d", esfj_handle, esfj_ret);
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessRequestId(EsfJsonHandle esfj_handle, EsfJsonValue val,
+                                      const uint32_t topic)
+{
+    // Get req_id property.
+
+    const char *req_id = NULL;
+    RetCode ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
+
+    if (ret == kRetOk) {
+        if (strnlen(req_id, (CFG_RES_ID_LEN + 1)) <= CFG_RES_ID_LEN) {
+            SysAppStateUpdateString(topic, Id, req_id);
+        }
+        else {
+            SysAppStateUpdateString(topic, Id, "0");
+            SysAppStateSetInvalidArgError(topic, Id);
+        }
+    }
+    else {
+        SysAppStateUpdateString(topic, Id, "0");
+
+        if (ret == kRetFailed) {
+            SysAppStateSetInvalidArgError(topic, Id);
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static int SysAppCfgProcessStreamState(EsfJsonHandle esfj_handle, EsfJsonValue val,
+                                       const uint32_t topic, bool *found)
+{
+    // Get process_state property.
+
+    int process_state = 0;
+    int extret = SysAppCmnExtractNumberValue(esfj_handle, val, "process_state", &process_state);
+    *found = (extret >= 0);
+
+    if (*found) {
+        if (extret >= 1) {
+            if ((process_state >= StreamOff) && (process_state < StreamProcessStateNum)) {
+                SysAppStateUpdateNumber(topic, StreamingProcessState, process_state);
+                return process_state;
+            }
+            else {
+                SYSAPP_WARN("Invalid process_state %d", process_state);
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid process_state %d", process_state);
+        }
+    }
+
+    return StreamOff; // Return default value
+}
+
+/*----------------------------------------------------------------------*/
+static int SysAppCfgProcessOperatingMode(EsfJsonHandle esfj_handle, EsfJsonValue val,
+                                         const uint32_t topic, bool *found)
+{
+    // Get operating_mode property.
+
+    int operating_mode = 0;
+    int extret = SysAppCmnExtractNumberValue(esfj_handle, val, "operating_mode", &operating_mode);
+    *found = (extret >= 0);
+
+    if (*found) {
+        if (extret >= 1) {
+            if ((operating_mode >= StreamOnly) && (operating_mode < StreamOperatingModeNum)) {
+                SysAppStateUpdateNumber(topic, OperatingMode, operating_mode);
+                return operating_mode;
+            }
+            else {
+                SYSAPP_WARN("Invalid operating_mode %d", operating_mode);
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid operating_mode %d", operating_mode);
+        }
+    }
+
+    return StreamOnly; // Return default value
+}
+
+/*----------------------------------------------------------------------*/
+static char *LoadDeviceIpAddress(char *addr_buf, int addr_buf_len, const char *ifa_name)
+{
+    struct ifaddrs *ifaddrs_list = NULL;
+    struct ifaddrs *ifa = NULL;
+    char ip_str[INET_ADDRSTRLEN] = {0};
+    const char *target_interface = ifa_name ? ifa_name : "eth0";
+
+    // Initialize buffer
+
+    addr_buf[0] = '\0';
+
+    // Get list of network interfaces using POSIX getifaddrs()
+
+    if (getifaddrs(&ifaddrs_list) == -1) {
+        SYSAPP_WARN("Failed to get network interfaces: %s", strerror(errno));
+        return addr_buf;
+    }
+
+    // Look for interface
+
+    for (ifa = ifaddrs_list; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_INET)
+            continue;
+
+        if (strcmp(ifa->ifa_name, target_interface) == 0) {
+            struct sockaddr_in *addr_in = (struct sockaddr_in *)ifa->ifa_addr;
+
+            // Skip loopback (127.0.0.1)
+            if (addr_in->sin_addr.s_addr == htonl(INADDR_LOOPBACK))
+                continue;
+
+            if (inet_ntop(AF_INET, &addr_in->sin_addr, ip_str, INET_ADDRSTRLEN) != NULL &&
+                CheckIpAddressType(ip_str) == IPv4) {
+                strncpy(addr_buf, ip_str, addr_buf_len - 1);
+                addr_buf[addr_buf_len - 1] = '\0';
+                SYSAPP_INFO("Device IP address retrieved from %s: %s", target_interface, ip_str);
+                break;
+            }
+        }
+    }
+
+    // Cleanup
+
+    freeifaddrs(ifaddrs_list);
+
+    if (addr_buf[0] == '\0') {
+        SYSAPP_WARN("No valid IPv4 address found on %s interface", target_interface);
+    }
+
+    return addr_buf;
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessRtspServerIp(EsfJsonHandle esfj_handle, EsfJsonValue rtsp_config_val,
+                                         const uint32_t topic, RtspConfig *config)
+{
+    const char *server_ip = NULL;
+    int extret = SysAppCmnExtractStringValue(esfj_handle, rtsp_config_val, "server_ip", &server_ip);
+
+    if (extret >= 0) {
+        if ((extret >= 1) && (strnlen(server_ip, CFGST_STREAMING_RTSP_SERVER_IP_LEN + 1) <=
+                              CFGST_STREAMING_RTSP_SERVER_IP_LEN)) {
+            IpVer ip_check = CheckIpAddressType(server_ip);
+            if (ip_check == IPv4) {
+                SysAppStateUpdateString(topic, ServerIp, server_ip);
+                strncpy(config->server_ip, server_ip, sizeof(config->server_ip) - 1);
+                config->server_ip[sizeof(config->server_ip) - 1] = '\0';
+            }
+            else {
+                SYSAPP_WARN("Invalid server_ip %s", server_ip);
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid server_ip");
+        }
+    }
+    else {
+        // server_ip not provided in JSON, try to auto-configure with deviceIP
+
+        char device_ip[CFGST_STREAMING_RTSP_SERVER_IP_LEN + 1] = {0};
+
+        if (LoadDeviceIpAddress(device_ip, sizeof(device_ip), NULL) != NULL &&
+            device_ip[0] != '\0') {
+            SYSAPP_INFO("Auto-configuring RTSP server_ip with device IP: %s", device_ip);
+            SysAppStateUpdateString(topic, ServerIp, device_ip);
+            strncpy(config->server_ip, device_ip, sizeof(config->server_ip) - 1);
+            config->server_ip[sizeof(config->server_ip) - 1] = '\0';
+        }
+        else {
+            SYSAPP_WARN("Failed to auto-configure server_ip: unable to retrieve device IP address");
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessRtspStreamName(EsfJsonHandle esfj_handle, EsfJsonValue rtsp_config_val,
+                                           const uint32_t topic, RtspConfig *config)
+{
+    // Get stream_name property.
+
+    const char *stream_name = NULL;
+    int extret = SysAppCmnExtractStringValue(esfj_handle, rtsp_config_val, "stream_name",
+                                             &stream_name);
+
+    if (extret >= 0) {
+        if (strnlen(stream_name ? stream_name : "", CFGST_STREAMING_RTSP_STREAM_NAME_LEN + 1) <=
+            CFGST_STREAMING_RTSP_STREAM_NAME_LEN) {
+            SysAppStateUpdateString(topic, StreamName,
+                                    stream_name ? stream_name : DEFAULT_STREAM_NAME);
+            strncpy(config->stream_name, stream_name ? stream_name : DEFAULT_STREAM_NAME,
+                    sizeof(config->stream_name) - 1);
+            config->stream_name[sizeof(config->stream_name) - 1] = '\0';
+        }
+        else {
+            SYSAPP_WARN("Invalid stream_name");
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessRtspAuth(EsfJsonHandle esfj_handle, EsfJsonValue rtsp_config_val,
+                                     const uint32_t topic, RtspConfig *config)
+{
+    // Get user_name property.
+
+    const char *user_name = NULL;
+    int extret = SysAppCmnExtractStringValue(esfj_handle, rtsp_config_val, "user_name", &user_name);
+
+    if (extret >= 0) {
+        if (strnlen(user_name ? user_name : "", CFGST_STREAMING_RTSP_USER_NAME_LEN + 1) <=
+            CFGST_STREAMING_RTSP_USER_NAME_LEN) {
+            SysAppStateUpdateString(topic, UserName, user_name ? user_name : "");
+            strncpy(config->user_name, user_name ? user_name : "", sizeof(config->user_name) - 1);
+            config->user_name[sizeof(config->user_name) - 1] = '\0';
+        }
+        else {
+            SYSAPP_WARN("Invalid user_name");
+        }
+    }
+
+    // Get password property.
+
+    const char *password = NULL;
+    extret = SysAppCmnExtractStringValue(esfj_handle, rtsp_config_val, "password", &password);
+
+    if (extret >= 0) {
+        if (strnlen(password ? password : "", CFGST_STREAMING_RTSP_PASSWORD_LEN + 1) <=
+            CFGST_STREAMING_RTSP_PASSWORD_LEN) {
+            SysAppStateUpdateString(topic, Password, password ? password : "");
+            strncpy(config->password, password ? password : "", sizeof(config->password) - 1);
+            config->password[sizeof(config->password) - 1] = '\0';
+        }
+        else {
+            SYSAPP_WARN("Invalid password");
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static RtspConfig SysAppCfgProcessRtspConfig(EsfJsonHandle esfj_handle, EsfJsonValue val,
+                                             const uint32_t topic)
+{
+    RtspConfig config = {.server_ip = "",
+                         .stream_name = DEFAULT_STREAM_NAME,
+                         .user_name = "",
+                         .password = "",
+                         .config_found = false};
+
+    // Get rtsp_config property.
+
+    EsfJsonValue rtsp_config_val = ESF_JSON_VALUE_INVALID;
+    EsfJsonErrorCode esfj_ret = EsfJsonObjectGet(esfj_handle, val, "rtsp_config", &rtsp_config_val);
+    config.config_found = (esfj_ret == kEsfJsonSuccess);
+
+    if (config.config_found) {
+        // Process server IP
+
+        SysAppCfgProcessRtspServerIp(esfj_handle, rtsp_config_val, topic, &config);
+
+        // Process stream name
+
+        SysAppCfgProcessRtspStreamName(esfj_handle, rtsp_config_val, topic, &config);
+
+        // Process authentication
+
+        SysAppCfgProcessRtspAuth(esfj_handle, rtsp_config_val, topic, &config);
+    }
+
+    return config;
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessNfsServerSettings(EsfJsonHandle esfj_handle,
+                                              EsfJsonValue nfs_config_val, const uint32_t topic,
+                                              NfsConfig *config)
+{
+    // Get server_ip property.
+
+    const char *server_ip = NULL;
+    int extret = SysAppCmnExtractStringValue(esfj_handle, nfs_config_val, "server_ip", &server_ip);
+
+    if (extret >= 0) {
+        if ((extret >= 1) && (strnlen(server_ip, CFGST_STREAMING_NFS_SERVER_IP_LEN + 1) <=
+                              CFGST_STREAMING_NFS_SERVER_IP_LEN)) {
+            if (IsValidServerAddress(server_ip)) {
+                SysAppStateUpdateString(topic, NfsServerIp, server_ip);
+                strncpy(config->server_ip, server_ip, sizeof(config->server_ip) - 1);
+                config->server_ip[sizeof(config->server_ip) - 1] = '\0';
+            }
+            else {
+                SYSAPP_WARN("Invalid server_ip %s (must be a valid IPv4 address or hostname)",
+                            server_ip);
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid server_ip");
+        }
+    }
+
+    // Get mount_path property.
+
+    const char *mount_path = NULL;
+    extret = SysAppCmnExtractStringValue(esfj_handle, nfs_config_val, "mount_path", &mount_path);
+
+    if (extret >= 0) {
+        if ((extret >= 1) && (strnlen(mount_path, CFGST_STREAMING_NFS_MOUNT_PATH_LEN + 1) <=
+                              CFGST_STREAMING_NFS_MOUNT_PATH_LEN)) {
+            SysAppStateUpdateString(topic, MountPath, mount_path);
+            strncpy(config->mount_path, mount_path, sizeof(config->mount_path) - 1);
+            config->mount_path[sizeof(config->mount_path) - 1] = '\0';
+        }
+        else {
+            SYSAPP_WARN("Invalid mount_path");
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static void SysAppCfgProcessNfsProtocolSettings(EsfJsonHandle esfj_handle,
+                                                EsfJsonValue nfs_config_val, const uint32_t topic,
+                                                NfsConfig *config)
+{
+    // Get nfs_version property.
+
+    int nfs_version = 0;
+    int extret = SysAppCmnExtractNumberValue(esfj_handle, nfs_config_val, "nfs_version",
+                                             &nfs_version);
+
+    if (extret >= 0) {
+        if ((extret >= 1) && (nfs_version >= NfsVersion3) && (nfs_version <= NfsVersion4)) {
+            SysAppStateUpdateNumber(topic, NfsVersion, nfs_version);
+            config->nfs_version = nfs_version;
+        }
+        else {
+            SYSAPP_WARN("Invalid nfs_version %d", nfs_version);
+        }
+    }
+
+    // Get use_tcp property.
+
+    bool use_tcp = false;
+    extret = SysAppCmnExtractBooleanValue(esfj_handle, nfs_config_val, "use_tcp", &use_tcp);
+
+    if (extret >= 0) {
+        if (extret >= 1) {
+            SysAppStateUpdateNumber(topic, UseTcp, use_tcp ? 1 : 0);
+            config->use_tcp = use_tcp;
+        }
+        else {
+            SYSAPP_WARN("Invalid use_tcp %d", use_tcp);
+        }
+    }
+
+    // Get max_record_time property.
+
+    int max_record_time = DEFAULT_MAX_RECORD_TIME;
+    extret = SysAppCmnExtractNumberValue(esfj_handle, nfs_config_val, "max_record_time",
+                                         &max_record_time);
+
+    if (extret >= 0) {
+        if ((extret >= 1) && (max_record_time > 0) && (max_record_time <= MAX_RECORD_TIME_LIMIT)) {
+            SysAppStateUpdateNumber(topic, MaxRecordTime, max_record_time);
+            config->max_record_time = max_record_time;
+        }
+        else {
+            SYSAPP_WARN("Invalid max_record_time %d (must be 1-1440 minutes)", max_record_time);
+        }
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static NfsConfig SysAppCfgProcessNfsConfig(EsfJsonHandle esfj_handle, EsfJsonValue val,
+                                           const uint32_t topic)
+{
+    NfsConfig config = {.server_ip = "",
+                        .mount_path = "",
+                        .nfs_version = NfsVersion3,
+                        .use_tcp = false,
+                        .max_record_time = DEFAULT_MAX_RECORD_TIME,
+                        .config_found = false};
+
+    // Get nfs_config property.
+
+    EsfJsonValue nfs_config_val = ESF_JSON_VALUE_INVALID;
+    EsfJsonErrorCode esfj_ret = EsfJsonObjectGet(esfj_handle, val, "nfs_config", &nfs_config_val);
+    config.config_found = (esfj_ret == kEsfJsonSuccess);
+
+    if (config.config_found) {
+        SysAppCfgProcessNfsServerSettings(esfj_handle, nfs_config_val, topic, &config);
+        SysAppCfgProcessNfsProtocolSettings(esfj_handle, nfs_config_val, topic, &config);
+    }
+
+    return config;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyRtspConfig(const RtspConfig *rtsp_config)
+{
+    if (!rtsp_config->config_found || strlen(rtsp_config->server_ip) == 0) {
+        return kRetOk;
+    }
+
+    // Apply RTSP server configuration
+
+    vsclient_result_t vsc_ret = SysAppVscConfigureRtspServer(rtsp_config->server_ip,
+                                                             rtsp_config->stream_name);
+
+    if (vsc_ret != VSCLIENT_SUCCESS) {
+        SysAppVscHandleCreateError(vsc_ret, "RTSP server configuration",
+                                   ST_TOPIC_STREAMING_SETTINGS);
+        SYSAPP_ERR("RTSP server configuration failed: %s/%s", rtsp_config->server_ip,
+                   rtsp_config->stream_name);
+        return kRetFailed;
+    }
+
+    // Apply RTSP authentication configuration (if username or password is specified)
+
+    if (strlen(rtsp_config->user_name) > 0 || strlen(rtsp_config->password) > 0) {
+        vsc_ret = SysAppVscConfigureRtspAuth(rtsp_config->user_name, rtsp_config->password);
+
+        if (vsc_ret != VSCLIENT_SUCCESS) {
+            SysAppVscHandleCreateError(vsc_ret, "RTSP authentication configuration",
+                                       ST_TOPIC_STREAMING_SETTINGS);
+            SYSAPP_ERR("RTSP authentication configuration failed");
+            return kRetFailed;
+        }
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyNfsConfig(const NfsConfig *nfs_config)
+{
+    if (!nfs_config->config_found || strlen(nfs_config->server_ip) == 0 ||
+        strlen(nfs_config->mount_path) == 0) {
+        return kRetOk;
+    }
+
+    SYSAPP_DBG("NFS Config: server=%s mount=%s v%d %s", nfs_config->server_ip,
+               nfs_config->mount_path, nfs_config->nfs_version, nfs_config->use_tcp ? "tcp" : "udp",
+               nfs_config->max_record_time);
+    vsclient_result_t vsc_ret = SysAppVscConfigureNfs(nfs_config->server_ip, nfs_config->mount_path,
+                                                      nfs_config->nfs_version, nfs_config->use_tcp,
+                                                      nfs_config->max_record_time);
+
+    if (vsc_ret != VSCLIENT_SUCCESS) {
+        SysAppVscHandleCreateError(vsc_ret, "NFS configuration", ST_TOPIC_STREAMING_SETTINGS);
+        SYSAPP_ERR("NFS configuration failed: %s:%s (v%d,%s,max_record_time:%d)",
+                   nfs_config->server_ip, nfs_config->mount_path, nfs_config->nfs_version,
+                   nfs_config->use_tcp ? "tcp" : "udp", nfs_config->max_record_time);
+        return kRetFailed;
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyOperatingMode(int parsed_operating_mode)
+{
+    vsclient_result_t vsc_ret = SysAppVscSetMode(parsed_operating_mode);
+
+    if (vsc_ret != VSCLIENT_SUCCESS) {
+        SysAppVscHandleCreateError(vsc_ret, "Operating mode configuration",
+                                   ST_TOPIC_STREAMING_SETTINGS);
+        SYSAPP_ERR("Operating mode configuration failed");
+        return kRetFailed;
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyStreamControl(int parsed_process_state)
+{
+    if (parsed_process_state == StreamOn) {
+        vsclient_result_t vsc_ret = SysAppVscStartStream();
+
+        if (vsc_ret != VSCLIENT_SUCCESS) {
+            SysAppVscHandleCreateError(vsc_ret, "Stream start", ST_TOPIC_STREAMING_SETTINGS);
+            SYSAPP_ERR("Stream start failed");
+            return kRetFailed;
+        }
+    }
+    else if (parsed_process_state == StreamOff) {
+        vsclient_result_t vsc_ret = SysAppVscStopStream();
+
+        if (vsc_ret != VSCLIENT_SUCCESS) {
+            SysAppVscHandleCreateError(vsc_ret, "Stream stop", ST_TOPIC_STREAMING_SETTINGS);
+            SYSAPP_ERR("Stream stop failed");
+            return kRetFailed;
+        }
+    }
+
+    return kRetOk;
+}
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
 
 //
 // Public functions.
@@ -2871,3 +3531,100 @@ endpoint_settings_exit:
 
     return ret;
 }
+
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
+/*----------------------------------------------------------------------*/
+RetCode SysAppCfgStreamingSettings(const char *param)
+{
+    RetCode ret = kRetOk;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    const uint32_t topic = ST_TOPIC_STREAMING_SETTINGS;
+
+    // Variables for parsed values
+
+    int parsed_process_state = StreamOff;
+    int parsed_operating_mode = StreamOnly;
+
+    // Initialize JSON parsing.
+
+    ret = SysAppCfgInitializeJsonParsing(param, &esfj_handle, &val);
+
+    if (ret != kRetOk) {
+        return kRetFailed;
+    }
+
+    // Process request ID.
+
+    SysAppCfgProcessRequestId(esfj_handle, val, topic);
+
+    // Process stream state.
+
+    bool process_state_found = false;
+    parsed_process_state = SysAppCfgProcessStreamState(esfj_handle, val, topic,
+                                                       &process_state_found);
+
+    // Process operating mode.
+
+    bool operating_mode_found = false;
+    parsed_operating_mode = SysAppCfgProcessOperatingMode(esfj_handle, val, topic,
+                                                          &operating_mode_found);
+
+    // Process RTSP configuration.
+
+    RtspConfig rtsp_config = SysAppCfgProcessRtspConfig(esfj_handle, val, topic);
+
+    // Process NFS configuration.
+
+    NfsConfig nfs_config = SysAppCfgProcessNfsConfig(esfj_handle, val, topic);
+
+    // Apply VSC configurations.
+
+    ret = SysAppCfgApplyRtspConfig(&rtsp_config);
+
+    if (ret != kRetOk) {
+        goto send_state;
+    }
+
+    // Apply NFS configurations.
+
+    ret = SysAppCfgApplyNfsConfig(&nfs_config);
+
+    if (ret != kRetOk) {
+        goto send_state;
+    }
+
+    // Apply operating mode.
+
+    if (operating_mode_found) {
+        ret = SysAppCfgApplyOperatingMode(parsed_operating_mode);
+        if (ret != kRetOk) {
+            goto send_state;
+        }
+    }
+
+    // Apply process state.
+
+    if (process_state_found) {
+        ret = SysAppCfgApplyStreamControl(parsed_process_state);
+        if (ret != kRetOk) {
+            goto send_state;
+        }
+    }
+
+send_state:
+    // Request to send streaming_settings.
+
+    ret = SysAppStateSendState(ST_TOPIC_STREAMING_SETTINGS);
+
+    if (ret != kRetOk) {
+        SYSAPP_WARN("Send streaming_settings failed %d", ret);
+    }
+
+    // Close handle.
+
+    SysAppCfgJsonClose(esfj_handle);
+
+    return ret;
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */

@@ -2102,6 +2102,9 @@ static void test_SysAppCfgInitialize_FullySuccess(void **state)
     ForSysSetConfigurationCb(expect_evp_client, "network_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "periodic_setting", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "wireless_setting", SYS_RESULT_OK);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    ForSysSetConfigurationCb(expect_evp_client, "streaming_settings", SYS_RESULT_OK);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_endpoint_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_deploy_firmware", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_deploy_ai_model", SYS_RESULT_OK);
@@ -2227,6 +2230,9 @@ static void test_SysAppCfgInitialize_ErrorSysSetConfigurationCbPrivateEndpointSe
     ForSysSetConfigurationCb(expect_evp_client, "network_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "periodic_setting", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "wireless_setting", SYS_RESULT_OK);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    ForSysSetConfigurationCb(expect_evp_client, "streaming_settings", SYS_RESULT_OK);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_endpoint_settings",
                              SYS_RESULT_ERROR_ALREADY_REGISTERED);
 
@@ -2251,6 +2257,9 @@ static void test_SysAppCfgInitialize_ErrorSysSetConfigurationCbPrivateDeployFirm
     ForSysSetConfigurationCb(expect_evp_client, "network_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "periodic_setting", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "wireless_setting", SYS_RESULT_OK);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    ForSysSetConfigurationCb(expect_evp_client, "streaming_settings", SYS_RESULT_OK);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_endpoint_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_deploy_firmware",
                              SYS_RESULT_ERROR_ALREADY_REGISTERED);
@@ -2276,6 +2285,9 @@ static void test_SysAppCfgInitialize_ErrorSysSetConfigurationCbPrivateDeployAiMo
     ForSysSetConfigurationCb(expect_evp_client, "network_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "periodic_setting", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "wireless_setting", SYS_RESULT_OK);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    ForSysSetConfigurationCb(expect_evp_client, "streaming_settings", SYS_RESULT_OK);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_endpoint_settings", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_deploy_firmware", SYS_RESULT_OK);
     ForSysSetConfigurationCb(expect_evp_client, "PRIVATE_deploy_ai_model",

@@ -89,6 +89,12 @@ config EXTERNAL_SYSTEMAPP_TEMPERATURE_UPPER_THRESHOLD
 		Upper temperature threshold in degrees Celsius.
 		An error message will be generated when temperature exceeds this value.
 
+config EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
+	bool "Enable Video Streaming feature"
+	default n
+	---help---
+		Enable the Video Streaming feature.
+
 config EXTERNAL_SYSTEMAPP_TEMPERATURE_LOWER_THRESHOLD
 	int "Temperature lower threshold"
 	default -20

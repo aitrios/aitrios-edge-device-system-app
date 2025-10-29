@@ -36,6 +36,9 @@
 
 STATIC TimerContext s_sensortemp_timer_ctx;
 STATIC TimerContext s_hoursmeter_timer_ctx;
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+STATIC TimerContext s_streaming_settings_timer_ctx;
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 //
 // File static private functions.
@@ -65,6 +68,20 @@ STATIC void HoursMeterTimerCallback(void *timer_cb_params)
     return;
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+/*----------------------------------------------------------------------*/
+STATIC void StreamingSettingsTimerCallback(void *timer_cb_params)
+{
+    SYSAPP_INFO("StreamingSettingsTimerCallback() param %p", timer_cb_params);
+
+    if (s_streaming_settings_timer_ctx.cb != NULL) {
+        s_streaming_settings_timer_ctx.cb();
+    }
+
+    return;
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 /*----------------------------------------------------------------------*/
 static TimerContext *GetTimerContext(TimerType type)
 {
@@ -76,6 +93,11 @@ static TimerContext *GetTimerContext(TimerType type)
     else if (type == HoursMeterIntervalTimer) {
         return &s_hoursmeter_timer_ctx;
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (type == StreamingSettingsIntervalTimer) {
+        return &s_streaming_settings_timer_ctx;
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else {
         return NULL;
     }
@@ -103,6 +125,12 @@ RetCode SysAppTimerInitialize(void)
     s_hoursmeter_timer_ctx.is_working = false;
     s_hoursmeter_timer_ctx.cb = NULL;
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    s_streaming_settings_timer_ctx.handle = (UtilityTimerHandle)NULL;
+    s_streaming_settings_timer_ctx.is_working = false;
+    s_streaming_settings_timer_ctx.cb = NULL;
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
     // Create timer for sensor temperature.
 
     utim_ret = UtilityTimerCreateEx(SensorTempTimerCallback, NULL,
@@ -127,11 +155,31 @@ RetCode SysAppTimerInitialize(void)
         goto hours_meter_timer_create_failed;
     }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Create timer for streaming settings.
+
+    utim_ret = UtilityTimerCreateEx(
+        StreamingSettingsTimerCallback, NULL, CONFIG_UTILITY_TIMER_THREAD_PRIORITY,
+        SA_TIMER_THREAD_STACK_SIZE, &s_streaming_settings_timer_ctx.handle);
+
+    if (utim_ret != kUtilityTimerOk) {
+        SYSAPP_CRIT("UtilityTimerCreateEx(streaming_settings) ret %d", utim_ret);
+        ret = kRetFailed;
+        goto streaming_settings_timer_create_failed;
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
     return ret;
 
     //
     // Error handling.
     //
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+streaming_settings_timer_create_failed:
+
+    UtilityTimerDelete(s_hoursmeter_timer_ctx.handle);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 hours_meter_timer_create_failed:
 
@@ -167,6 +215,17 @@ RetCode SysAppTimerFinalize(void)
         SYSAPP_WARN("UtilityTimerDelete(hours_meter) ret %d", utim_ret);
         ret = kRetFailed;
     }
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Delete timer for streaming settings.
+
+    utim_ret = UtilityTimerDelete(s_streaming_settings_timer_ctx.handle);
+
+    if (utim_ret != kUtilityTimerOk) {
+        SYSAPP_WARN("UtilityTimerDelete(streaming_settings) ret %d", utim_ret);
+        ret = kRetFailed;
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
     return ret;
 }
