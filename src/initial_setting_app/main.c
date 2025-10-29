@@ -668,7 +668,6 @@ STATIC bool InitializeApp(struct senscord_image_property_t *img_prop)
     bool ret = false;
     int32_t ret_senscord = -1;
     IsaQrcodeErrorCode ret_qrcode = kIsaQrcode_Failed;
-    SsfSensorErrCode ret_sensor = kSsfSensorFail;
     const char ISA_STREAM_KEY[] = "inference_stream";
 
     do {

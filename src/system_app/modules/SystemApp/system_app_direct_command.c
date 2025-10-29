@@ -50,7 +50,7 @@
 
 typedef union {
     EsfMemoryManagerHandle handle; // for lheap
-    void* raw;                     // for malloc
+    void *raw;                     // for malloc
 } encode_buf_t;
 
 typedef union {
@@ -62,7 +62,7 @@ typedef union {
 // File static variables.
 //
 
-STATIC struct SYS_client* s_sys_client = NULL;
+STATIC struct SYS_client *s_sys_client = NULL;
 STATIC TerminationReason s_terminate_request = UnDefined;
 
 //
@@ -71,7 +71,7 @@ STATIC TerminationReason s_terminate_request = UnDefined;
 
 /*----------------------------------------------------------------------*/
 static RetCode AllocateAndFopenMemoryManagerHandle(size_t buf_size,
-                                                   EsfMemoryManagerHandle* buf_handle)
+                                                   EsfMemoryManagerHandle *buf_handle)
 {
     RetCode ret = kRetOk;
     EsfMemoryManagerResult esfmm_ret = kEsfMemoryManagerResultSuccess;
@@ -104,15 +104,15 @@ static RetCode FcloseAndFreeMemoryManagerHandle(EsfMemoryManagerHandle buf_handl
 }
 
 /*----------------------------------------------------------------------*/
-STATIC void ResponseSendCompleteCallback(struct SYS_client* client, enum SYS_callback_reason reason,
-                                         void* context)
+STATIC void ResponseSendCompleteCallback(struct SYS_client *client, enum SYS_callback_reason reason,
+                                         void *context)
 {
     if (context == NULL) {
         SYSAPP_ERR("ResponseSendCompleteCallback(%d, %p)", reason, context);
         return;
     }
 
-    DcResponseContext* ctx = (DcResponseContext*)context;
+    DcResponseContext *ctx = (DcResponseContext *)context;
 
     *(ctx->send_complete) = true;
 
@@ -121,15 +121,15 @@ STATIC void ResponseSendCompleteCallback(struct SYS_client* client, enum SYS_cal
 }
 
 /*----------------------------------------------------------------------*/
-STATIC void ResponseSendCompleteCallbackHandle(struct SYS_client* client,
-                                               enum SYS_callback_reason reason, void* context)
+STATIC void ResponseSendCompleteCallbackHandle(struct SYS_client *client,
+                                               enum SYS_callback_reason reason, void *context)
 {
     if (context == NULL) {
         SYSAPP_ERR("ResponseSendCompleteCallbackHandle(%d, %p)", reason, context);
         return;
     }
 
-    DcResponseContext* ctx = (DcResponseContext*)context;
+    DcResponseContext *ctx = (DcResponseContext *)context;
 
     *(ctx->send_complete) = true;
 
@@ -138,25 +138,25 @@ STATIC void ResponseSendCompleteCallbackHandle(struct SYS_client* client,
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode SendDirectCommandResponseCore(struct SYS_client* evp_handle, SYS_response_id cmd_id,
-                                             const char* response, SYS_response_cb response_cb,
+static RetCode SendDirectCommandResponseCore(struct SYS_client *evp_handle, SYS_response_id cmd_id,
+                                             const char *response, SYS_response_cb response_cb,
                                              bool is_sync)
 {
     RetCode ret = kRetOk;
     enum SYS_result sys_ret = SYS_RESULT_OK;
-    DcResponseContext* dcres_ctx = NULL;
+    DcResponseContext *dcres_ctx = NULL;
     bool send_complete = false;
 
     // Set context parameter to give send-complete-callback.
 
-    dcres_ctx = (DcResponseContext*)malloc(sizeof(DcResponseContext));
+    dcres_ctx = (DcResponseContext *)malloc(sizeof(DcResponseContext));
 
     if (dcres_ctx == NULL) {
         return kRetMemoryError;
     }
 
     dcres_ctx->cmd_id = cmd_id;
-    dcres_ctx->response = (void*)response;
+    dcres_ctx->response = (void *)response;
     dcres_ctx->status_code = 0;
     dcres_ctx->retry_count = 0;
     dcres_ctx->send_complete = &send_complete;
@@ -208,11 +208,11 @@ evp_api_failed:
 }
 
 /*----------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     RetCode ret = kRetOk;
 
-    ResInfoContext* res_info = (ResInfoContext*)ctx;
+    ResInfoContext *res_info = (ResInfoContext *)ctx;
 
     ret = SysAppCmnMakeJsonResInfo(handle, root,
 #ifdef DISABLE_REQ_INFO
@@ -226,7 +226,7 @@ STATIC RetCode MakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, void* ct
 }
 
 /*----------------------------------------------------------------------*/
-STATIC void Response2CodeAndDetailmsg(DcResult res, int* code, char* desc, uint32_t desc_len)
+STATIC void Response2CodeAndDetailmsg(DcResult res, int *code, char *desc, uint32_t desc_len)
 {
     switch (res) {
         case DcOk:
@@ -289,8 +289,8 @@ STATIC void Response2CodeAndDetailmsg(DcResult res, int* code, char* desc, uint3
 
 /*----------------------------------------------------------------------*/
 STATIC RetCode SendDirectCommandResponse(
-    struct SYS_client* evp_handle, SYS_response_id cmd_id, const char* req_id, DcResult dc_result,
-    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void*, size_t), void* additional_param,
+    struct SYS_client *evp_handle, SYS_response_id cmd_id, const char *req_id, DcResult dc_result,
+    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void *, size_t), void *additional_param,
     size_t additional_param_size, bool is_additional_param_file_io, bool is_sync)
 {
     RetCode ret = kRetOk;
@@ -331,11 +331,11 @@ STATIC RetCode SendDirectCommandResponse(
         // Copy serialized string to heap.
         // This memory will be freed when response send complete.
 
-        const char* response_org = NULL;
+        const char *response_org = NULL;
         esfj_ret = EsfJsonSerialize(esfj_handle, val, &response_org);
 
         if ((esfj_ret == kEsfJsonSuccess) && (response_org != NULL)) {
-            char* response = strdup(response_org);
+            char *response = strdup(response_org);
 
             if (response != NULL) {
                 ret = SendDirectCommandResponseCore(evp_handle, cmd_id, response,
@@ -367,7 +367,7 @@ STATIC RetCode SendDirectCommandResponse(
 
             if ((esfj_ret == kEsfJsonSuccess) && (json_buf_handle != 0)) {
                 ret = SendDirectCommandResponseCore(evp_handle, cmd_id,
-                                                    (void*)(uintptr_t)json_buf_handle,
+                                                    (void *)(uintptr_t)json_buf_handle,
                                                     ResponseSendCompleteCallbackHandle, is_sync);
 
                 if (ret != kRetOk) {
@@ -406,8 +406,8 @@ STATIC RetCode SendDirectCommandResponse(
 
 /*----------------------------------------------------------------------*/
 static RetCode SendDirectCommandResponseSync(
-    struct SYS_client* evp_handle, SYS_response_id cmd_id, const char* req_id, DcResult dc_result,
-    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void*, size_t), void* additional_param,
+    struct SYS_client *evp_handle, SYS_response_id cmd_id, const char *req_id, DcResult dc_result,
+    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void *, size_t), void *additional_param,
     size_t additional_param_size, bool is_additional_param_file_io)
 {
     return SendDirectCommandResponse(evp_handle, cmd_id, req_id, dc_result, additional,
@@ -417,8 +417,8 @@ static RetCode SendDirectCommandResponseSync(
 
 /*----------------------------------------------------------------------*/
 static RetCode SendDirectCommandResponseAsync(
-    struct SYS_client* evp_handle, SYS_response_id cmd_id, const char* req_id, DcResult dc_result,
-    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void*, size_t), void* additional_param,
+    struct SYS_client *evp_handle, SYS_response_id cmd_id, const char *req_id, DcResult dc_result,
+    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void *, size_t), void *additional_param,
     size_t additional_param_size, bool is_additional_param_file_io)
 {
     return SendDirectCommandResponse(evp_handle, cmd_id, req_id, dc_result, additional,
@@ -428,12 +428,12 @@ static RetCode SendDirectCommandResponseAsync(
 
 /*----------------------------------------------------------------------*/
 #ifdef DISABLE_REQ_INFO
-static RetCode GetReqId(const char*, char*, uint32_t)
+static RetCode GetReqId(const char *, char *, uint32_t)
 {
     return kRetOk;
 }
 #else
-static RetCode GetReqId(const char* param, char* req_id_buf, uint32_t buf_len)
+static RetCode GetReqId(const char *param, char *req_id_buf, uint32_t buf_len)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -458,7 +458,7 @@ static RetCode GetReqId(const char* param, char* req_id_buf, uint32_t buf_len)
 
     // Get req_id.
 
-    const char* req_id_ptr = NULL;
+    const char *req_id_ptr = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id_ptr);
 
     if (ret == kRetOk) {
@@ -487,7 +487,7 @@ clean_up_exit:
 #endif
 
 /*----------------------------------------------------------------------*/
-static DcResult GetDirectGetImageParams(const char* param, DirectGetImageParam* out)
+static DcResult GetDirectGetImageParams(const char *param, DirectGetImageParam *out)
 {
     DcResult ret = DcOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -527,14 +527,14 @@ static DcResult GetDirectGetImageParams(const char* param, DirectGetImageParam* 
     out->sensor_name[0] = '\0'; // Means "not specified".
   }
 #else
-    const char* sensor_name = "sensor_chip";
+    const char *sensor_name = "sensor_chip";
     snprintf(out->sensor_name, sizeof(out->sensor_name), "%s", sensor_name);
     int extret;
 #endif
 
     // Get network_id property.
 
-    const char* network_id = NULL;
+    const char *network_id = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "network_id", &network_id);
 
     if (extret >= 0) {
@@ -571,10 +571,10 @@ direct_get_image_param_exit:
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode GetFormatOfImage(char* scord_format, EsfCodecJpegInputFormat* jpg_format)
+static RetCode GetFormatOfImage(char *scord_format, EsfCodecJpegInputFormat *jpg_format)
 {
     const struct {
-        const char* scord_format;
+        const char *scord_format;
         EsfCodecJpegInputFormat jpg_format;
     } formats[] = {{SENSCORD_PIXEL_FORMAT_RGB8_PLANAR, kJpegInputRgbPlanar_8},
                    {SENSCORD_PIXEL_FORMAT_GREY, kJpegInputGray_8},
@@ -594,7 +594,7 @@ static RetCode GetFormatOfImage(char* scord_format, EsfCodecJpegInputFormat* jpg
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode GetOneFrame(DirectGetImageParam* dgi, FrameInfo* out)
+static RetCode GetOneFrame(DirectGetImageParam *dgi, FrameInfo *out)
 {
     RetCode ret = kRetOk;
 
@@ -623,7 +623,7 @@ static RetCode GetOneFrame(DirectGetImageParam* dgi, FrameInfo* out)
 
     int32_t sc_ret = senscord_stream_set_property(out->scstream,
                                                   SENSCORD_AI_MODEL_BUNDLE_ID_PROPERTY_KEY,
-                                                  (const void*)&ai_model, sizeof(ai_model));
+                                                  (const void *)&ai_model, sizeof(ai_model));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_set_property(AIMODEL) ret=%d", sc_ret);
@@ -639,7 +639,7 @@ static RetCode GetOneFrame(DirectGetImageParam* dgi, FrameInfo* out)
     };
 
     sc_ret = senscord_stream_set_property(out->scstream, SENSCORD_INPUT_DATA_TYPE_PROPERTY_KEY,
-                                          (const void*)&input_data, sizeof(input_data));
+                                          (const void *)&input_data, sizeof(input_data));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_set_property(INPUT_DATA_TYPE) ret=%d", sc_ret);
@@ -686,7 +686,7 @@ static RetCode GetOneFrame(DirectGetImageParam* dgi, FrameInfo* out)
     struct senscord_image_property_t img_prop = {0};
 
     sc_ret = senscord_stream_get_property(out->scstream, SENSCORD_IMAGE_PROPERTY_KEY,
-                                          (void*)&img_prop, sizeof(img_prop));
+                                          (void *)&img_prop, sizeof(img_prop));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("ssenscord_stream_get_property() ret=%d", sc_ret);
@@ -769,7 +769,7 @@ open_stream_failed:
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode ReleaseOneFrame(FrameInfo* frame)
+static RetCode ReleaseOneFrame(FrameInfo *frame)
 {
     RetCode ret = kRetOk;
 
@@ -795,7 +795,7 @@ static RetCode ReleaseOneFrame(FrameInfo* frame)
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode AllocateEncodeBuffer(encode_buf_t* buf, size_t buf_size, bool use_handle)
+static RetCode AllocateEncodeBuffer(encode_buf_t *buf, size_t buf_size, bool use_handle)
 {
     RetCode ret = kRetOk;
 
@@ -813,7 +813,7 @@ static RetCode AllocateEncodeBuffer(encode_buf_t* buf, size_t buf_size, bool use
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode FreeEncodeBuffer(encode_buf_t* buf, bool use_handle)
+static RetCode FreeEncodeBuffer(encode_buf_t *buf, bool use_handle)
 {
     RetCode ret = kRetOk;
 
@@ -828,8 +828,8 @@ static RetCode FreeEncodeBuffer(encode_buf_t* buf, bool use_handle)
 }
 
 /*----------------------------------------------------------------------*/
-static void SetupJpegEncParam(jpeg_encode_param_t* param, encode_buf_t* buf, uint32_t buf_size,
-                              FrameInfo* frame, bool use_handle)
+static void SetupJpegEncParam(jpeg_encode_param_t *param, encode_buf_t *buf, uint32_t buf_size,
+                              FrameInfo *frame, bool use_handle)
 {
     const int32_t quality = 80; /*T.B.D.*/
 
@@ -854,15 +854,15 @@ static void SetupJpegEncParam(jpeg_encode_param_t* param, encode_buf_t* buf, uin
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode EncodeToJpeg(FrameInfo* frame, encode_buf_t* jpeg_out_buf,
-                            uint32_t jpeg_out_buf_size, uint32_t* jpeg_out_size, bool use_handle)
+static RetCode EncodeToJpeg(FrameInfo *frame, encode_buf_t *jpeg_out_buf,
+                            uint32_t jpeg_out_buf_size, uint32_t *jpeg_out_size, bool use_handle)
 {
     RetCode ret = kRetOk;
     EsfCodecJpegError esfj_ret = kJpegSuccess;
 
     jpeg_encode_param_t enc_param = {0};
     int32_t jpeg_size = 0;
-    int32_t* quality = use_handle ? &enc_param.handle.quality : &enc_param.raw.quality;
+    int32_t *quality = use_handle ? &enc_param.handle.quality : &enc_param.raw.quality;
 
     SetupJpegEncParam(&enc_param, jpeg_out_buf, jpeg_out_buf_size, frame, use_handle);
 
@@ -921,8 +921,8 @@ static RetCode EncodeToJpeg(FrameInfo* frame, encode_buf_t* jpeg_out_buf,
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode EncodeToBase64(encode_buf_t* in_buf, const uint32_t in_size, encode_buf_t* out_buf,
-                              const uint32_t out_buf_size, size_t* out_size, bool use_handle)
+static RetCode EncodeToBase64(encode_buf_t *in_buf, const uint32_t in_size, encode_buf_t *out_buf,
+                              const uint32_t out_buf_size, size_t *out_size, bool use_handle)
 {
     RetCode ret = kRetOk;
     EsfCodecBase64ResultEnum esfb_ret = kEsfCodecBase64ResultSuccess;
@@ -948,12 +948,12 @@ static RetCode EncodeToBase64(encode_buf_t* in_buf, const uint32_t in_size, enco
 }
 
 /*----------------------------------------------------------------------*/
-STATIC RetCode SetImageProperty(EsfJsonHandle handle, EsfJsonValue val, void* param,
+STATIC RetCode SetImageProperty(EsfJsonHandle handle, EsfJsonValue val, void *param,
                                 size_t param_size)
 {
     (void)param_size;
     RetCode ret = kRetOk;
-    const char* image_b64 = (param != NULL) ? param : "";
+    const char *image_b64 = (param != NULL) ? param : "";
 
     ret = SysAppCmnSetStringValue(handle, val, "image", image_b64);
 
@@ -965,7 +965,7 @@ STATIC RetCode SetImageProperty(EsfJsonHandle handle, EsfJsonValue val, void* pa
 }
 
 /*----------------------------------------------------------------------*/
-STATIC RetCode SetImagePropertyHandle(EsfJsonHandle handle, EsfJsonValue val, void* param,
+STATIC RetCode SetImagePropertyHandle(EsfJsonHandle handle, EsfJsonValue val, void *param,
                                       size_t param_size)
 {
     RetCode ret = kRetOk;
@@ -989,7 +989,7 @@ STATIC RetCode SetImagePropertyHandle(EsfJsonHandle handle, EsfJsonValue val, vo
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC DcResult GetSensorRegisterArrayParam(EsfJsonHandle esfj_handle, EsfJsonValue val,
-                                            SensorRegisterParam* sensor_register_param,
+                                            SensorRegisterParam *sensor_register_param,
                                             bool is_get_value_property)
 {
     DcResult dc_ret = DcOk;
@@ -1024,7 +1024,7 @@ STATIC DcResult GetSensorRegisterArrayParam(EsfJsonHandle esfj_handle, EsfJsonVa
         // Get size property.
 
         extret = SysAppCmnExtractNumberValue(esfj_handle, cval, "size",
-                                             (int*)&sensor_register_param->info[idx].size);
+                                             (int *)&sensor_register_param->info[idx].size);
 
         if (extret < 1) {
             SYSAPP_ERR("Invalid size idx %d", idx);
@@ -1076,7 +1076,7 @@ STATIC DcResult GetSensorRegisterArrayParam(EsfJsonHandle esfj_handle, EsfJsonVa
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC DcResult GetSensorRegisterParam(EsfJsonHandle esfj_handle, EsfJsonValue val,
-                                       SensorRegisterParam* sensor_register_param,
+                                       SensorRegisterParam *sensor_register_param,
                                        bool is_get_value_property)
 {
     DcResult dc_ret = DcOk;
@@ -1123,7 +1123,7 @@ STATIC DcResult GetSensorRegisterParam(EsfJsonHandle esfj_handle, EsfJsonValue v
     // Allocate for saving array data.
 
     sensor_register_param->info =
-        (SensorRegisterInfo*)malloc(sizeof(SensorRegisterInfo) * sensor_register_param->num);
+        (SensorRegisterInfo *)malloc(sizeof(SensorRegisterInfo) * sensor_register_param->num);
 
     if (sensor_register_param->info == NULL) {
         SYSAPP_ERR("malloc");
@@ -1144,8 +1144,8 @@ exit:
 
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
-STATIC DcResult GetReadSensorRegisterParam(const char* param,
-                                           SensorRegisterParam* sensor_register_param)
+STATIC DcResult GetReadSensorRegisterParam(const char *param,
+                                           SensorRegisterParam *sensor_register_param)
 {
     DcResult dc_ret = DcOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1188,8 +1188,8 @@ read_sensor_register_param_exit:
 
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
-STATIC DcResult GetWriteSensorRegisterParam(const char* param,
-                                            SensorRegisterParam* sensor_register_param)
+STATIC DcResult GetWriteSensorRegisterParam(const char *param,
+                                            SensorRegisterParam *sensor_register_param)
 {
     DcResult dc_ret = DcOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1232,7 +1232,7 @@ write_sensor_register_param_exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecReadSensorRegister8bit(senscord_stream_t scstream,
-                                          SensorRegisterInfo* sensor_register_info)
+                                          SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_8_property_t sc_data;
@@ -1260,7 +1260,7 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecReadSensorRegister16bit(senscord_stream_t scstream,
-                                           SensorRegisterInfo* sensor_register_info)
+                                           SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_16_property_t sc_data;
@@ -1288,7 +1288,7 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecReadSensorRegister32bit(senscord_stream_t scstream,
-                                           SensorRegisterInfo* sensor_register_info)
+                                           SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_32_property_t sc_data;
@@ -1315,7 +1315,7 @@ exit:
 
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
-STATIC DcResult ExecReadSensorRegister(SensorRegisterParam* sensor_register_param)
+STATIC DcResult ExecReadSensorRegister(SensorRegisterParam *sensor_register_param)
 {
     DcResult dc_ret = DcOk;
     int idx;
@@ -1324,7 +1324,7 @@ STATIC DcResult ExecReadSensorRegister(SensorRegisterParam* sensor_register_para
 
     // Get handle of SensCord.
 
-    ret = SysAppStateGetSensCordStream((void*)&scstream);
+    ret = SysAppStateGetSensCordStream((void *)&scstream);
 
     if (ret != kRetOk) {
         SYSAPP_ERR("SysAppStateGetSensCordStream ret=%d", ret);
@@ -1362,7 +1362,7 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecWriteSensorRegister8bit(senscord_stream_t scstream,
-                                           SensorRegisterInfo* sensor_register_info)
+                                           SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_8_property_t sc_data;
@@ -1389,7 +1389,7 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecWriteSensorRegister16bit(senscord_stream_t scstream,
-                                            SensorRegisterInfo* sensor_register_info)
+                                            SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_16_property_t sc_data;
@@ -1416,7 +1416,7 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode ExecWriteSensorRegister32bit(senscord_stream_t scstream,
-                                            SensorRegisterInfo* sensor_register_info)
+                                            SensorRegisterInfo *sensor_register_info)
 {
     RetCode ret = kRetOk;
     struct senscord_register_access_32_property_t sc_data;
@@ -1442,7 +1442,7 @@ exit:
 
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
-STATIC DcResult ExecWriteSensorRegister(SensorRegisterParam* sensor_register_param)
+STATIC DcResult ExecWriteSensorRegister(SensorRegisterParam *sensor_register_param)
 {
     DcResult dc_ret = DcOk;
     int idx;
@@ -1451,7 +1451,7 @@ STATIC DcResult ExecWriteSensorRegister(SensorRegisterParam* sensor_register_par
 
     // Get handle of SensCord.
 
-    ret = SysAppStateGetSensCordStream((void*)&scstream);
+    ret = SysAppStateGetSensCordStream((void *)&scstream);
 
     if (ret != kRetOk) {
         SYSAPP_ERR("SysAppStateGetSensCordStream ret=%d", ret);
@@ -1489,9 +1489,9 @@ exit:
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
 STATIC RetCode MakeJsonRegisterParams(EsfJsonHandle handle, EsfJsonValue root, uint32_t no,
-                                      void* ctx)
+                                      void *ctx)
 {
-    SensorRegisterParam* sensor_register_param = (SensorRegisterParam*)ctx;
+    SensorRegisterParam *sensor_register_param = (SensorRegisterParam *)ctx;
 
     // Set address.
     SysAppCmnSetRealNumberValue(handle, root, "address", sensor_register_param->info[no].address);
@@ -1508,12 +1508,12 @@ STATIC RetCode MakeJsonRegisterParams(EsfJsonHandle handle, EsfJsonValue root, u
 
 /*----------------------------------------------------------------------*/
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
-STATIC RetCode SetRegisterProperty(EsfJsonHandle handle, EsfJsonValue val, void* param,
+STATIC RetCode SetRegisterProperty(EsfJsonHandle handle, EsfJsonValue val, void *param,
                                    size_t param_size)
 {
     (void)param_size;
     RetCode ret = kRetOk;
-    SensorRegisterParam* sensor_register_param = (SensorRegisterParam*)param;
+    SensorRegisterParam *sensor_register_param = (SensorRegisterParam *)param;
 
     ret = SysAppCmnSetArrayValue(handle, val, "register", sensor_register_param->num,
                                  MakeJsonRegisterParams, param);
@@ -1560,8 +1560,8 @@ static bool CheckDirectCommandExecutable(void)
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode DirectCommandCallbackCommon(SYS_response_id cmd_id, const char* params,
-                                           char* req_id_buf, uint32_t buf_len)
+static RetCode DirectCommandCallbackCommon(SYS_response_id cmd_id, const char *params,
+                                           char *req_id_buf, uint32_t buf_len)
 {
     // Get req_info.
 
@@ -1581,8 +1581,8 @@ static RetCode DirectCommandCallbackCommon(SYS_response_id cmd_id, const char* p
     return kRetOk;
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandRebootCallback(struct SYS_client* client, SYS_response_id cmd_id,
-                                        const char* params, void* user_context)
+STATIC void DirectCommandRebootCallback(struct SYS_client *client, SYS_response_id cmd_id,
+                                        const char *params, void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandRebootCallback(%d, %p, %p)", (int)cmd_id, params, user_context);
@@ -1600,8 +1600,8 @@ STATIC void DirectCommandRebootCallback(struct SYS_client* client, SYS_response_
     SysAppDcmdReboot(cmd_id, req_id, params);
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandShutdownCallback(struct SYS_client* client, SYS_response_id cmd_id,
-                                          const char* params, void* user_context)
+STATIC void DirectCommandShutdownCallback(struct SYS_client *client, SYS_response_id cmd_id,
+                                          const char *params, void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandShutdownCallback(%d, %p, %p)", (int)cmd_id, params, user_context);
@@ -1617,8 +1617,8 @@ STATIC void DirectCommandShutdownCallback(struct SYS_client* client, SYS_respons
     SysAppDcmdShutdown(cmd_id, req_id, params);
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandFactoryResetCallback(struct SYS_client* client, SYS_response_id cmd_id,
-                                              const char* params, void* user_context)
+STATIC void DirectCommandFactoryResetCallback(struct SYS_client *client, SYS_response_id cmd_id,
+                                              const char *params, void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandFactoryResetCallback(%d, %p, %p)", (int)cmd_id, params,
@@ -1635,8 +1635,8 @@ STATIC void DirectCommandFactoryResetCallback(struct SYS_client* client, SYS_res
     SysAppDcmdFactoryReset(cmd_id, req_id, params);
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandDirectGetImageCallback(struct SYS_client* client, SYS_response_id cmd_id,
-                                                const char* params, void* user_context)
+STATIC void DirectCommandDirectGetImageCallback(struct SYS_client *client, SYS_response_id cmd_id,
+                                                const char *params, void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandDirectGetImageCallback(%d, %p, %p)", (int)cmd_id, params,
@@ -1653,9 +1653,9 @@ STATIC void DirectCommandDirectGetImageCallback(struct SYS_client* client, SYS_r
     SysAppDcmdDirectGetImage(cmd_id, req_id, params);
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandReadSensorRegisterCallback(struct SYS_client* client,
-                                                    SYS_response_id cmd_id, const char* params,
-                                                    void* user_context)
+STATIC void DirectCommandReadSensorRegisterCallback(struct SYS_client *client,
+                                                    SYS_response_id cmd_id, const char *params,
+                                                    void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandReadSensorRegisterCallback(%d, %p, %p)", (int)cmd_id, params,
@@ -1673,9 +1673,9 @@ STATIC void DirectCommandReadSensorRegisterCallback(struct SYS_client* client,
     SysAppDcmdReadSensorRegister(cmd_id, req_id, params);
 }
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandWriteSensorRegisterCallback(struct SYS_client* client,
-                                                     SYS_response_id cmd_id, const char* params,
-                                                     void* user_context)
+STATIC void DirectCommandWriteSensorRegisterCallback(struct SYS_client *client,
+                                                     SYS_response_id cmd_id, const char *params,
+                                                     void *user_context)
 {
     if ((params == NULL)) {
         SYSAPP_ERR("DirectCommandWriteSensorRegisterCallback(%d, %p, %p)", (int)cmd_id, params,
@@ -1694,13 +1694,13 @@ STATIC void DirectCommandWriteSensorRegisterCallback(struct SYS_client* client,
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------*/
-STATIC void DirectCommandUnimplementedCallback(struct SYS_client* client, SYS_response_id cmd_id,
-                                               const char* params, void* user_context)
+STATIC void DirectCommandUnimplementedCallback(struct SYS_client *client, SYS_response_id cmd_id,
+                                               const char *params, void *user_context)
 {
     if (params == NULL) {
         SYSAPP_ERR("DirectCommandUnimplementedCallback(%ju, %p, %p)", cmd_id, params, user_context);
     }
-    SYSAPP_INFO("DirectCommand callback (cmd_id %ju, %s)", cmd_id, (const char*)user_context);
+    SYSAPP_INFO("DirectCommand callback (cmd_id %ju, %s)", cmd_id, (const char *)user_context);
     SYSAPP_DBG("Params %s", params);
     // Execute all command common process
     char req_id[CFG_RES_ID_LEN + 1] = "0";
@@ -1717,9 +1717,9 @@ STATIC void DirectCommandUnimplementedCallback(struct SYS_client* client, SYS_re
 }
 
 /*----------------------------------------------------------------------*/
-STATIC bool IsUnimplementedMethod(const char* method)
+STATIC bool IsUnimplementedMethod(const char *method)
 {
-    static const char* unimplemented_methods[] = {
+    static const char *unimplemented_methods[] = {
         "shutdown",
         "factory_reset",
         "read_sensor_register",
@@ -1743,7 +1743,7 @@ STATIC bool IsUnimplementedMethod(const char* method)
 static RetCode RegisterDirectCommandCallback(void)
 {
     static const struct {
-        const char* method;
+        const char *method;
         SYS_command_cb cb;
     } table[] = {
         {.method = "reboot", .cb = DirectCommandRebootCallback},
@@ -1757,7 +1757,7 @@ static RetCode RegisterDirectCommandCallback(void)
     RetCode ret = kRetOk;
     enum SYS_result sys_ret;
     SYS_command_cb cb;
-    void* user_context;
+    void *user_context;
 
     for (size_t i = 0; i < ARRAY_SIZE(table); i++) {
         cb = table[i].cb;
@@ -1766,7 +1766,7 @@ static RetCode RegisterDirectCommandCallback(void)
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
         if (IsUnimplementedMethod(table[i].method)) {
             cb = DirectCommandUnimplementedCallback;
-            user_context = (void*)table[i].method;
+            user_context = (void *)table[i].method;
         }
 #endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 
@@ -1788,7 +1788,7 @@ static RetCode RegisterDirectCommandCallback(void)
 //
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdInitialize(struct SYS_client* sys_client)
+RetCode SysAppDcmdInitialize(struct SYS_client *sys_client)
 {
     SYSAPP_INFO("Initialize DirectCommand block.");
     RetCode ret = kRetOk;
@@ -1865,7 +1865,7 @@ RetCode SysAppDcmdFinalize(void)
 }
 
 /*----------------------------------------------------------------------*/
-bool SysAppDcmdCheckSelfTerminate(TerminationReason* reason)
+bool SysAppDcmdCheckSelfTerminate(TerminationReason *reason)
 {
     *reason = s_terminate_request;
 
@@ -1889,7 +1889,7 @@ void SysAppDcmdRebootCore(void)
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdReboot(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdReboot(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     (void)param;
     RetCode ret = kRetOk;
@@ -1914,7 +1914,7 @@ RetCode SysAppDcmdReboot(SYS_response_id cmd_id, const char* req_id, const char*
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdShutdown(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdShutdown(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     (void)param;
     RetCode ret = kRetOk;
@@ -1948,7 +1948,7 @@ void SysAppDcmdFactoryResetCore(void)
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdFactoryReset(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdFactoryReset(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     (void)param;
     RetCode ret = kRetOk;
@@ -1987,7 +1987,7 @@ RetCode SysAppDcmdFactoryReset(SYS_response_id cmd_id, const char* req_id, const
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdDirectGetImage(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdDirectGetImage(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     RetCode ret = kRetOk;
     size_t b64_size = 0;
@@ -2084,14 +2084,14 @@ get_param_failed:
 
     // Send response.
 
-    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void*, size_t);
-    void* additional_param;
+    RetCode (*additional)(EsfJsonHandle, EsfJsonValue, void *, size_t);
+    void *additional_param;
     size_t additional_param_size;
     bool is_additional_param_file_io;
     if (dc_ret == DcOk) {
         if (use_handle) {
             additional = SetImagePropertyHandle;
-            additional_param = (void*)(uintptr_t)b64_buf.handle;
+            additional_param = (void *)(uintptr_t)b64_buf.handle;
         }
         else {
             additional = SetImageProperty;
@@ -2119,7 +2119,7 @@ get_param_failed:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdReadSensorRegister(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdReadSensorRegister(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     RetCode ret = kRetOk;
 
@@ -2186,7 +2186,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppDcmdWriteSensorRegister(SYS_response_id cmd_id, const char* req_id, const char* param)
+RetCode SysAppDcmdWriteSensorRegister(SYS_response_id cmd_id, const char *req_id, const char *param)
 {
     RetCode ret = kRetOk;
 

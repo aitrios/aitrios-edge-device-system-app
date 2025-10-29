@@ -89,6 +89,10 @@ static const char *const s_p_result_desc_str_unavailable = "unavailable";
 
 #define HTTP_STATUS_403_FORBIDDEN (403)
 
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SYSTEM_UPDATE_SUPPORT
+#define SYSTEM_UPDATE_SUPPORT_INVALID_SIZE (-1)
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SYSTEM_UPDATE_SUPPORT
+
 /****************************************************************************
  * Public Type Definitions
  ****************************************************************************/
@@ -2545,8 +2549,139 @@ static RetCode GetState(SysAppDeployHandle handle, int id, char **state, uint32_
 }
 
 #ifdef CONFIG_EXTERNAL_SYSTEMAPP_SYSTEM_UPDATE_SUPPORT
+STATIC RetCode GetSystemUpdateConfigurationTarget(EsfJsonHandle handle, EsfJsonValue target_val,
+                                                  DeployTarget_t *deploy_targets)
+{
+    /* Get system update configuration target */
+
+    RetCode ret = kRetFailed;
+
+    /* Get component property and validate value */
+
+    int extract_ret = SysAppCmnExtractNumberValue(handle, target_val, "component",
+                                                  (int *)&deploy_targets->component);
+    if (extract_ret <= 0 || deploy_targets->component != DeployComponentSensorFirmware) {
+        SYSAPP_ERR("Invalid or missing component value. Expected: 1, Got: %d",
+                   deploy_targets->component);
+        goto errout;
+    }
+
+    /* Get chip property and validate value */
+
+    extract_ret = ExtractStringValue(handle, target_val, "chip", deploy_targets->chip,
+                                     sizeof(deploy_targets->chip), DEPLOY_STR_CHIP_LEN);
+    if (extract_ret <= 0 || strcmp(deploy_targets->chip, "main_chip") != 0) {
+        SYSAPP_ERR("Invalid or missing chip value. Expected: main_chip, Got: %s",
+                   deploy_targets->chip);
+        goto errout;
+    }
+
+    /* Get target version property */
+
+    extract_ret = ExtractStringValue(handle, target_val, "version", deploy_targets->version,
+                                     sizeof(deploy_targets->version), DEPLOY_STR_VERSION_LEN);
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("target version not found or invalid. skip it. ret=%d", extract_ret);
+    }
+
+    /* Get package_url property */
+
+    extract_ret = ExtractStringValue(handle, target_val, "package_url", deploy_targets->package_url,
+                                     sizeof(deploy_targets->package_url),
+                                     DEPLOY_STR_PACKAGE_URL_LEN);
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("package_url not found or invalid. skip it. ret=%d", extract_ret);
+    }
+
+    /* Get hash property */
+
+    extract_ret = ExtractStringValue(handle, target_val, "hash", deploy_targets->hash,
+                                     sizeof(deploy_targets->hash), DEPLOY_STR_HASH_LEN);
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("hash not found or invalid. skip it. ret=%d", extract_ret);
+    }
+
+    /* Get size property */
+
+    extract_ret = SysAppCmnExtractNumberValue(handle, target_val, "size", &deploy_targets->size);
+    if (extract_ret <= 0 || deploy_targets->size < 0) {
+        /* Set a invalid value to skip the response of size property */
+
+        deploy_targets->size = SYSTEM_UPDATE_SUPPORT_INVALID_SIZE;
+        SYSAPP_INFO("size not found or invalid. skip it. ret=%d", extract_ret);
+    }
+
+    ret = kRetOk;
+
+errout:
+    return ret;
+}
+
 /*--------------------------------------------------------------------------*/
-STATIC RetCode ParseSystemUpdateConfiguration(const char *param)
+STATIC RetCode GetSystemUpdateConfiguration(EsfJsonHandle handle, EsfJsonValue parent_val,
+                                            Deploy_t *p_deploy)
+{
+    /* Get system update configuration */
+
+    RetCode ret = kRetFailed;
+    DeployTarget_t *deploy_targets = p_deploy->deploy_targets;
+
+    /* Get req_info property */
+
+    if (!GetConfigurationReqInfoProperty(p_deploy->id, sizeof(p_deploy->id), handle, parent_val)) {
+        SYSAPP_ERR("Get req_info failed. Invalid type or over than max length.");
+        goto errout;
+    }
+
+    /* Get firmware version property */
+
+    int extract_ret = ExtractStringValue(handle, parent_val, "version", p_deploy->version,
+                                         sizeof(p_deploy->version),
+                                         DEPLOY_STR_FIRMWARE_VERSION_LEN);
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("firmware version not found or invalid. skip it. ret=%d", extract_ret);
+    }
+
+    /* Get targets array */
+
+    EsfJsonValue targets_array_val = ESF_JSON_VALUE_INVALID;
+    if (EsfJsonObjectGet(handle, parent_val, "targets", &targets_array_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("Missing targets array in system update configuration");
+        goto errout;
+    }
+
+    /* Get first target from array */
+
+    EsfJsonValue target_val = ESF_JSON_VALUE_INVALID;
+    if (EsfJsonArrayGet(handle, targets_array_val, 0, &target_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("No target found in targets array");
+        goto errout;
+    }
+
+    /* Get properties of target */
+
+    if (GetSystemUpdateConfigurationTarget(handle, target_val, deploy_targets) != kRetOk) {
+        SYSAPP_ERR("GetSystemUpdateConfigurationTarget failed");
+        goto errout;
+    }
+
+    ret = kRetOk;
+
+    SYSAPP_INFO("System Update configuration validation successful:");
+    SYSAPP_DBG("  req_id: %s", p_deploy->id);
+    SYSAPP_DBG("  version: %s", p_deploy->version);
+    SYSAPP_DBG("  component: %d", deploy_targets->component);
+    SYSAPP_DBG("  chip: %s", deploy_targets->chip);
+    SYSAPP_DBG("  target version: %s", deploy_targets->version);
+    SYSAPP_DBG("  package_url: %s", deploy_targets->package_url);
+    SYSAPP_DBG("  hash: %s", deploy_targets->hash);
+    SYSAPP_DBG("  size: %zu", deploy_targets->size);
+
+errout:
+    return ret;
+}
+
+STATIC RetCode ParseSystemUpdateConfiguration(const char *param, Deploy_t *p_deploy)
 {
     /* Parse and validate system update configuration */
 
@@ -2557,58 +2692,29 @@ STATIC RetCode ParseSystemUpdateConfiguration(const char *param)
     EsfJsonValue val = ESF_JSON_VALUE_INVALID;
 
     /* Get handle to JSON module */
+
     if (EsfJsonOpen(&handle) != kEsfJsonSuccess) {
         SYSAPP_ERR("ParseSystemUpdateConfiguration JsonOpen failed");
         goto errout;
     }
 
     /* Convert string to JSON Value */
+
     if (EsfJsonDeserialize(handle, param, &val) != kEsfJsonSuccess) {
         SYSAPP_ERR("ParseSystemUpdateConfiguration JsonDeserialize failed");
         goto errout;
     }
 
-    /* Parse and validate system update specific configuration */
-    /* Get targets array */
-    EsfJsonValue targets_val;
-    if (EsfJsonObjectGet(handle, val, "targets", &targets_val) != kEsfJsonSuccess) {
-        SYSAPP_ERR("Missing targets array in system update configuration");
-        goto errout;
+    /* Get properties */
+
+    ret = GetSystemUpdateConfiguration(handle, val, p_deploy);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("GetSystemUpdateConfiguration failed");
     }
-
-    /* Get first target from array */
-    EsfJsonValue target_val;
-    if (EsfJsonArrayGet(handle, targets_val, 0, &target_val) != kEsfJsonSuccess) {
-        SYSAPP_ERR("No target found in targets array");
-        goto errout;
-    }
-
-    /* Extract and validate component from first target */
-    int component_value = 0;
-    int extract_ret = SysAppCmnExtractNumberValue(handle, target_val, "component",
-                                                  &component_value);
-    if (extract_ret <= 0 || component_value != 1) {
-        SYSAPP_ERR("Invalid or missing component value. Expected: 1, Got: %d", component_value);
-        goto errout;
-    }
-
-    /* Extract and validate chip from first target */
-    const char *chip_value = NULL;
-    extract_ret = SysAppCmnExtractStringValue(handle, target_val, "chip", &chip_value);
-    if (extract_ret <= 0 || !chip_value || strcmp(chip_value, "main_chip") != 0) {
-        SYSAPP_ERR("Invalid or missing chip value. Expected: main_chip, Got: %s",
-                   chip_value ? chip_value : "NULL");
-        goto errout;
-    }
-
-    SYSAPP_INFO("System Update configuration validation successful:");
-    SYSAPP_DBG("  component: %d", component_value);
-    SYSAPP_DBG("  chip: %s", chip_value);
-
-    ret = kRetOk;
 
 errout:
     /* Close handle */
+
     if (handle != ESF_JSON_HANDLE_INITIALIZER) {
         EsfJsonClose(handle);
     }
@@ -2626,26 +2732,31 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
     SYSAPP_INFO("Starting system update script: %s", script_path);
 
     /* Check if script exists */
+
     if (access(script_path, F_OK) != 0) {
         SYSAPP_ERR("System update script not found: %s", script_path);
         return DeployStateFailed;
     }
 
     /* Check if script is executable */
+
     if (access(script_path, X_OK) != 0) {
         SYSAPP_ERR("System update script is not executable: %s", script_path);
         return DeployStateFailed;
     }
 
     /* Set up environment with proper PATH for script execution */
+
     const char *current_path = getenv("PATH");
     const char *standard_path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
     char *full_command = NULL;
     int ret = -1;
 
     /* Create command with proper PATH environment */
+
     if (current_path != NULL) {
         /* Prepend standard paths to existing PATH */
+
         size_t cmd_len = strlen("PATH=") + strlen(standard_path) + strlen(":") +
                          strlen(current_path) + strlen(" ") + strlen(script_path) + 1;
         full_command = malloc(cmd_len);
@@ -2656,6 +2767,7 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
     }
     else {
         /* Use only standard paths */
+
         size_t cmd_len = strlen("PATH=") + strlen(standard_path) + strlen(" ") +
                          strlen(script_path) + 1;
         full_command = malloc(cmd_len);
@@ -2672,6 +2784,7 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
     SYSAPP_INFO("Executing command: %s", full_command);
 
     /* Execute the script with proper environment */
+
     ret = system(full_command);
 
     free(full_command);
@@ -2682,6 +2795,7 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
     }
 
     /* Get the actual exit status */
+
     if (WIFEXITED(ret)) {
         int exit_status = WEXITSTATUS(ret);
         SYSAPP_INFO("System update script completed with exit status: %d", exit_status);
@@ -2694,47 +2808,158 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
 }
 
 /*--------------------------------------------------------------------------*/
-STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_e state)
+STATIC void MakeJsonStateDeployTargetForSystemUpdate(DeployTarget_t *p_target, EsfJsonHandle handle,
+                                                     EsfJsonValue parent_val)
 {
-    /* Send system update status report to cloud using existing state management */
+    /* Set fixed value 1 to component property */
 
-    SYSAPP_INFO("Sending system update status report: state=%d", state);
-
-    EsfJsonHandle handle = ESF_JSON_HANDLE_INITIALIZER;
-    EsfJsonValue parent = ESF_JSON_VALUE_INVALID;
-
-    /* Get handle to JSON module */
-    if (EsfJsonOpen(&handle) != kEsfJsonSuccess) {
-        SYSAPP_ERR("SendReportSystemUpdateStatus JsonOpen failed");
-        return;
+    RetCode ret = SysAppCmnSetNumberValue(handle, parent_val, "component", 1);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetNumberValue(%p, %" PRId32 ", component, 1) ret=%d",
+                   handle, parent_val, ret);
     }
 
-    /* Create parent object */
-    if (EsfJsonObjectInit(handle, &parent) != kEsfJsonSuccess) {
-        SYSAPP_ERR("SendReportSystemUpdateStatus JsonObjectInit failed");
+    /* Set fixed value "main_chip" to chip property */
+
+    ret = SysAppCmnSetStringValue(handle, parent_val, "chip", "main_chip");
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", chip, main_chip) ret=%d",
+                   handle, parent_val, ret);
+    }
+
+    /* Set package_url property */
+
+    if (p_target->package_url[0] != '\0') {
+        ret = SysAppCmnSetStringValue(handle, parent_val, "package_url", p_target->package_url);
+        if (ret != kRetOk) {
+            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", package_url, %s) ret=%d",
+                       handle, parent_val, p_target->package_url, ret);
+        }
+    }
+
+    /* Set version property */
+
+    if (p_target->version[0] != '\0') {
+        ret = SysAppCmnSetStringValue(handle, parent_val, "version", p_target->version);
+        if (ret != kRetOk) {
+            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", version, %s) ret=%d",
+                       handle, parent_val, p_target->version, ret);
+        }
+    }
+
+    /* Set hash property */
+
+    if (p_target->hash[0] != '\0') {
+        ret = SysAppCmnSetStringValue(handle, parent_val, "hash", p_target->hash);
+        if (ret != kRetOk) {
+            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", hash, %s) ret=%d",
+                       handle, parent_val, p_target->hash, ret);
+        }
+    }
+
+    /* Set size property */
+
+    if (p_target->size > SYSTEM_UPDATE_SUPPORT_INVALID_SIZE) {
+        ret = SysAppCmnSetNumberValue(handle, parent_val, "size", p_target->size);
+        if (ret != kRetOk) {
+            SYSAPP_ERR("Failed to SysAppCmnSetNumberValue(%p, %" PRId32 ", size, %zu) ret=%d",
+                       handle, parent_val, p_target->size, ret);
+        }
+    }
+
+    /* Set progress property */
+
+    ret = SysAppCmnSetNumberValue(handle, parent_val, "progress", p_target->progress);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetNumberValue(%p, %" PRId32 ", progress, %d) ret=%d",
+                   handle, parent_val, p_target->progress, ret);
+    }
+
+    /* Set process_state property */
+
+    ret = SysAppCmnSetStringValue(handle, parent_val, "process_state",
+                                  sc_str_deploy_state[p_target->process_state]);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", process_state, %d) ret=%d",
+                   handle, parent_val, p_target->process_state, ret);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+STATIC RetCode SetTargetsForSystemUpdate(EsfJsonHandle handle, EsfJsonValue parent,
+                                         Deploy_t *p_deploy)
+{
+    RetCode ret = kRetFailed;
+
+    /* Create targets array */
+
+    EsfJsonValue targets_array_val = ESF_JSON_VALUE_INVALID;
+    if (EsfJsonArrayInit(handle, &targets_array_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("Failed to EsfJsonArrayInit(%p, %" PRId32 ")", handle, targets_array_val);
         goto errout;
     }
 
-    /* Set component (fixed value: 1) */
-    if (SysAppCmnSetNumberValue(handle, parent, "component", 1) != kRetOk) {
-        SYSAPP_ERR("Failed to set component");
+    EsfJsonValue target_val = ESF_JSON_VALUE_INVALID;
+    if (EsfJsonObjectInit(handle, &target_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("Failed to EsfJsonObjectInit(%p, %" PRId32 ")", handle, target_val);
         goto errout;
     }
 
-    /* Set chip (fixed value: "main_chip") */
-    if (SysAppCmnSetStringValue(handle, parent, "chip", "main_chip") != kRetOk) {
-        SYSAPP_ERR("Failed to set chip");
+    /* Set targets property */
+
+    MakeJsonStateDeployTargetForSystemUpdate(p_deploy->deploy_targets, handle, target_val);
+
+    /* Append targets array */
+
+    if (EsfJsonArrayAppend(handle, targets_array_val, target_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("Failed to EsfJsonArrayAppend(%p, %" PRId32 ", %" PRId32 ")", handle,
+                   targets_array_val, target_val);
         goto errout;
     }
 
-    /* Set process_state based on script result */
-    const char *process_state_str = (state == DeployStateDone) ? "done" : "failed";
-    if (SysAppCmnSetStringValue(handle, parent, "process_state", process_state_str) != kRetOk) {
-        SYSAPP_ERR("Failed to set process_state");
+    if (EsfJsonObjectSet(handle, parent, "targets", targets_array_val) != kEsfJsonSuccess) {
+        SYSAPP_ERR("Failed to EsfJsonObjectSet(%p, %" PRId32 ", targets, %" PRId32 ")", handle,
+                   parent, targets_array_val);
         goto errout;
     }
+
+    ret = kRetOk;
+
+errout:
+    return ret;
+}
+
+/*--------------------------------------------------------------------------*/
+STATIC RetCode SetResInfoForSystemUpdate(EsfJsonHandle handle, EsfJsonValue parent,
+                                         DeployState_e state, Deploy_t *p_deploy)
+{
+    /* Setup res_info values */
+
+    ResInfo_t *res_info = &p_deploy->res_info;
+    SetResInfo(res_info, state);
+    snprintf(res_info->res_id, sizeof(p_deploy->res_info.res_id), "%s", p_deploy->id);
+
+    /* Set res_info property */
+
+    RetCode ret = SysAppCmnSetObjectValue(handle, parent, "res_info",
+                                          MakeJsonResInfoDeployConfiguration, res_info);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetObjectValue(%p, %" PRId32
+                   ", res_info, MakeJsonResInfoDeployConfiguration, %p) ret=%d",
+                   handle, parent, res_info, ret);
+    }
+
+    return ret;
+}
+
+/*--------------------------------------------------------------------------*/
+STATIC RetCode ReportSystemUpdateStatus(DeployInitParams_t *initp, EsfJsonHandle handle,
+                                        EsfJsonValue parent)
+{
+    RetCode ret = kRetFailed;
 
     /* Serialize JSON to string */
+
     const char *json_str = NULL;
     if (EsfJsonSerialize(handle, parent, &json_str) != kEsfJsonSuccess || json_str == NULL) {
         SYSAPP_ERR("JsonSerialize failed");
@@ -2742,6 +2967,7 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
     }
 
     /* Calculate string length */
+
     size_t json_len = strnlen(json_str, MAX_NUMBER_OF_CHARACTERS_IN_CONFIGURATION);
 
     SYSAPP_DBG("System update status JSON: %s", json_str);
@@ -2749,8 +2975,10 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
     int topic_id = DeployTopicFirmware; // Use firmware topic for system update
 
     /* Lock state mutex */
+
     if (pthread_mutex_lock(&initp->state_mutex) == 0) {
         /* Free existing state string */
+
         if (initp->state_str[topic_id]) {
             free(initp->state_str[topic_id]);
             initp->state_str[topic_id] = NULL;
@@ -2758,6 +2986,7 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
         }
 
         /* Allocate and store new state string */
+
         initp->state_str[topic_id] = (char *)malloc(json_len + 1);
         if (initp->state_str[topic_id]) {
             snprintf(initp->state_str[topic_id], json_len + 1, "%s", json_str);
@@ -2768,7 +2997,9 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
         else {
             SYSAPP_ERR("Failed to allocate memory for state string");
         }
+
         /* Unlock state mutex */
+
         pthread_mutex_unlock(&initp->state_mutex);
     }
     else {
@@ -2776,6 +3007,7 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
     }
 
     /* Send state using the existing state management system */
+
     if (SysAppStateSendState(ST_TOPIC_DEPLOY_FIRMWARE) != kRetOk) {
         SYSAPP_ERR("Failed to send system update status via SysAppStateSendState");
     }
@@ -2784,10 +3016,84 @@ STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_
     }
 
     /* Free serialized string */
+
     EsfJsonSerializeFree(handle);
+
+    ret = kRetOk;
+
+errout:
+    return ret;
+}
+
+/*--------------------------------------------------------------------------*/
+STATIC void SendReportSystemUpdateStatus(DeployInitParams_t *initp, DeployState_e state,
+                                         Deploy_t *p_deploy)
+{
+    /* Send system update status report to cloud using existing state management */
+
+    SYSAPP_INFO("Sending system update status report: state=%d", state);
+
+    EsfJsonHandle handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue parent = ESF_JSON_VALUE_INVALID;
+
+    /* Set process_state and progress */
+
+    p_deploy->deploy_targets->process_state = state;
+    if (state == DeployStateDone) {
+        p_deploy->deploy_targets->progress = 100;
+    }
+
+    /* Get handle to JSON module */
+
+    if (EsfJsonOpen(&handle) != kEsfJsonSuccess) {
+        SYSAPP_ERR("SendReportSystemUpdateStatus JsonOpen failed");
+        return;
+    }
+
+    /* Create parent object */
+
+    if (EsfJsonObjectInit(handle, &parent) != kEsfJsonSuccess) {
+        SYSAPP_ERR("SendReportSystemUpdateStatus JsonObjectInit failed");
+        goto errout;
+    }
+
+    /* Set req_info property */
+
+    MakeJsonStateReqInfo(p_deploy->id, handle, parent);
+
+    /* Set version property */
+
+    if (p_deploy->version[0] != '\0') {
+        RetCode ret = SysAppCmnSetStringValue(handle, parent, "version", p_deploy->version);
+        if (ret != kRetOk) {
+            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", version, %s) ret=%d",
+                       handle, parent, p_deploy->version, ret);
+        }
+    }
+
+    /* Set targets property */
+
+    if (SetTargetsForSystemUpdate(handle, parent, p_deploy) != kRetOk) {
+        SYSAPP_ERR("SetTargetsForSystemUpdate failed");
+        goto errout;
+    }
+
+    /* Set res_info property */
+
+    if (SetResInfoForSystemUpdate(handle, parent, state, p_deploy) != kRetOk) {
+        SYSAPP_ERR("SetResInfoForSystemUpdate failed");
+        goto errout;
+    }
+
+    /* Report status */
+
+    if (ReportSystemUpdateStatus(initp, handle, parent) != kRetOk) {
+        SYSAPP_ERR("ReportSystemUpdateStatus failed");
+    }
 
 errout:
     /* Close JSON handle */
+
     if (handle != ESF_JSON_HANDLE_INITIALIZER) {
         EsfJsonClose(handle);
     }
@@ -2809,12 +3115,32 @@ STATIC RetCode UpdateSystemFirmware(SysAppDeployHandle handle, const char *confi
 
     SYSAPP_INFO("Starting system update");
 
+    /* 
+     * The Deploy_t deploy inside initp is not used. This is because if deploy_ai_model is
+     * in progress before this process, using the Deploy_t deploy inside initp could
+     * potentially overwrite it.
+     */
+
+    Deploy_t deploy = {0};
+
+    /* Allocate deploy target (The Update system firmware supports only one target) */
+
+    DeployTarget_t *deploy_targets = (DeployTarget_t *)calloc(1, sizeof(DeployTarget_t));
+    if (deploy_targets == NULL) {
+        SYSAPP_ERR("Calloc failed to deploy_targets");
+        return kRetMemoryError;
+    }
+
+    deploy.deploy_targets = deploy_targets;
+
     /* Parse and validate configuration */
-    RetCode parse_ret = ParseSystemUpdateConfiguration(config);
+
+    RetCode parse_ret = ParseSystemUpdateConfiguration(config, &deploy);
     SYSAPP_INFO("Configuration validation result: %d", parse_ret);
 
     if (parse_ret == kRetOk) {
         /* Execute system update script */
+
         state = ExecuteSystemUpdateScript();
         SYSAPP_INFO("System update script execution returned: %d", state);
         ret = kRetOk;
@@ -2824,7 +3150,8 @@ STATIC RetCode UpdateSystemFirmware(SysAppDeployHandle handle, const char *confi
     }
 
     /* Send state report */
-    SendReportSystemUpdateStatus(initp, state);
+
+    SendReportSystemUpdateStatus(initp, state, &deploy);
 
     if (ret == kRetOk) {
         SYSAPP_INFO("System update process completed successfully");
@@ -2832,6 +3159,8 @@ STATIC RetCode UpdateSystemFirmware(SysAppDeployHandle handle, const char *confi
     else {
         SYSAPP_ERR("System update process failed");
     }
+
+    free(deploy_targets);
 
     return ret;
 }

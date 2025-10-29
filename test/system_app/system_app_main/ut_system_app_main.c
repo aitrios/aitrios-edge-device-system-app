@@ -36,16 +36,16 @@ extern RetCode CheckProjectIdAndRegisterToken(void);
 extern ToOperation ToOperatingStatus(void);
 extern RetCode ExecInitialSettingApp(void);
 extern void NetworkManagerCallback(EsfNetworkManagerMode mode, EsfNetworkManagerNotifyInfo info,
-                                   void* private_data);
+                                   void *private_data);
 extern void NtpSyncCallback(bool is_sync_success);
-extern RetCode ConnectNetwork(TerminationReason* abort_reason);
+extern RetCode ConnectNetwork(TerminationReason *abort_reason);
 extern RetCode DisconnectNetwork(void);
-extern RetCode StartSyncNtp(TerminationReason* abort_reason);
+extern RetCode StartSyncNtp(TerminationReason *abort_reason);
 extern RetCode StopSyncNtp(void);
 extern bool SetupDirMount(void);
 #if defined(__NuttX__)
-extern void* SysAppMain(void* ptr);
-extern int system_app_main_for_test(int argc, FAR char* argv[]);
+extern void *SysAppMain(void *ptr);
+extern int system_app_main_for_test(int argc, FAR char *argv[]);
 #elif defined(__linux__)
 extern TerminationReason SysAppMain(void);
 #endif
@@ -75,8 +75,8 @@ static void task_create_Success(void)
 // For EsfNetworkManager API
 //
 /*----------------------------------------------------------------------------*/
-static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameterMask* mask,
-                                                const EsfNetworkManagerParameter* parameter,
+static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameterMask *mask,
+                                                const EsfNetworkManagerParameter *parameter,
                                                 EsfNetworkManagerResult esfnm_result)
 {
     // Check mask
@@ -248,8 +248,8 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
 // For EsfClockManager API
 //
 /*----------------------------------------------------------------------------*/
-static void CheckEsfClockManagerSetParams(const EsfClockManagerParams* data,
-                                          const EsfClockManagerParamsMask* mask,
+static void CheckEsfClockManagerSetParams(const EsfClockManagerParams *data,
+                                          const EsfClockManagerParamsMask *mask,
                                           EsfClockManagerReturnValue esfcm_result)
 {
     // Check mask
@@ -392,7 +392,7 @@ static void CheckProjectIdAndRegisterToken_EmptyProjectIdAndRegisterToken(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_FullySuccess(void** state)
+static void test_CheckProjectIdAndRegisterToken_FullySuccess(void **state)
 {
     RetCode ret;
 
@@ -410,7 +410,7 @@ static void test_CheckProjectIdAndRegisterToken_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_ProjectIdAllocError(void** state)
+static void test_CheckProjectIdAndRegisterToken_ProjectIdAllocError(void **state)
 {
     RetCode ret;
 
@@ -440,7 +440,7 @@ static void test_CheckProjectIdAndRegisterToken_ProjectIdAllocError(void** state
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_RegisterTokenAllocError(void** state)
+static void test_CheckProjectIdAndRegisterToken_RegisterTokenAllocError(void **state)
 {
     RetCode ret;
 
@@ -470,7 +470,7 @@ static void test_CheckProjectIdAndRegisterToken_RegisterTokenAllocError(void** s
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_GetProjectIdError(void** state)
+static void test_CheckProjectIdAndRegisterToken_GetProjectIdError(void **state)
 {
     RetCode ret;
 
@@ -511,7 +511,7 @@ static void test_CheckProjectIdAndRegisterToken_GetProjectIdError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_GetRegisterTokenError(void** state)
+static void test_CheckProjectIdAndRegisterToken_GetRegisterTokenError(void **state)
 {
     RetCode ret;
 
@@ -557,7 +557,7 @@ static void test_CheckProjectIdAndRegisterToken_GetRegisterTokenError(void** sta
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_CheckProjectIdAndRegisterToken_EmptyProjectIdAndRegisterToken(void** state)
+static void test_CheckProjectIdAndRegisterToken_EmptyProjectIdAndRegisterToken(void **state)
 {
     RetCode ret;
 
@@ -673,7 +673,7 @@ static void ToOperatingStatus_FullySuccess_ToOperation(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_FullySuccess_ToInitialSetting(void** state)
+static void test_ToOperatingStatus_FullySuccess_ToInitialSetting(void **state)
 {
     ToOperation to_ope;
 
@@ -689,7 +689,7 @@ static void test_ToOperatingStatus_FullySuccess_ToInitialSetting(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_FullySuccess_ToOperation(void** state)
+static void test_ToOperatingStatus_FullySuccess_ToOperation(void **state)
 {
     ToOperation to_ope;
 
@@ -705,7 +705,7 @@ static void test_ToOperatingStatus_FullySuccess_ToOperation(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_FullySuccess_EmptyMqttHostAndMqttPort(void** state)
+static void test_ToOperatingStatus_FullySuccess_EmptyMqttHostAndMqttPort(void **state)
 {
     ToOperation to_ope;
 
@@ -764,7 +764,7 @@ static void test_ToOperatingStatus_FullySuccess_EmptyMqttHostAndMqttPort(void** 
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_GetMqttPortError(void** state)
+static void test_ToOperatingStatus_GetMqttPortError(void **state)
 {
     ToOperation to_ope;
 
@@ -823,7 +823,7 @@ static void test_ToOperatingStatus_GetMqttPortError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_GetMqttHostError(void** state)
+static void test_ToOperatingStatus_GetMqttHostError(void **state)
 {
     ToOperation to_ope;
 
@@ -882,7 +882,7 @@ static void test_ToOperatingStatus_GetMqttHostError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_MqttHostAndMqttPortAllocError(void** state)
+static void test_ToOperatingStatus_MqttHostAndMqttPortAllocError(void **state)
 {
     ToOperation to_ope;
 
@@ -916,7 +916,7 @@ static void test_ToOperatingStatus_MqttHostAndMqttPortAllocError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_FullySuccess_ToInitialSettingQrTimerValid(void** state)
+static void test_ToOperatingStatus_FullySuccess_ToInitialSettingQrTimerValid(void **state)
 {
     ToOperation to_ope;
 
@@ -938,7 +938,7 @@ static void test_ToOperatingStatus_FullySuccess_ToInitialSettingQrTimerValid(voi
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ToOperatingStatus_FullySuccess_QrTimeoutValueGetError(void** state)
+static void test_ToOperatingStatus_FullySuccess_QrTimeoutValueGetError(void **state)
 {
     ToOperation to_ope;
 
@@ -1018,7 +1018,7 @@ static void ExecInitialSettingApp_FullySuccess(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ExecInitialSettingApp_FullySuccess(void** state)
+static void test_ExecInitialSettingApp_FullySuccess(void **state)
 {
     RetCode ret = kRetOk;
 
@@ -1034,7 +1034,7 @@ static void test_ExecInitialSettingApp_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ExecInitialSettingApp_TaskCreateError(void** state)
+static void test_ExecInitialSettingApp_TaskCreateError(void **state)
 {
     RetCode ret = kRetOk;
 
@@ -1052,7 +1052,7 @@ static void test_ExecInitialSettingApp_TaskCreateError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ExecInitialSettingApp_WaitpidError(void** state)
+static void test_ExecInitialSettingApp_WaitpidError(void **state)
 {
     RetCode ret = kRetOk;
 
@@ -1074,7 +1074,7 @@ static void test_ExecInitialSettingApp_WaitpidError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ExecInitialSettingApp_Waitpid0(void** state)
+static void test_ExecInitialSettingApp_Waitpid0(void **state)
 {
     RetCode ret = kRetOk;
 
@@ -1106,7 +1106,7 @@ static void test_ExecInitialSettingApp_Waitpid0(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_NetworkManagerCallback_FullySuccess(void** state)
+static void test_NetworkManagerCallback_FullySuccess(void **state)
 {
     int data = -1;
 
@@ -1121,7 +1121,7 @@ static void test_NetworkManagerCallback_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_NetworkManagerCallback_NullData(void** state)
+static void test_NetworkManagerCallback_NullData(void **state)
 {
     int data = -1;
 
@@ -1142,7 +1142,7 @@ static void test_NetworkManagerCallback_NullData(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_NtpSyncCallback_FullySuccessSync(void** state)
+static void test_NtpSyncCallback_FullySuccessSync(void **state)
 {
     s_ntp_sync_notify = false;
     s_ntp_sync_done = false;
@@ -1158,7 +1158,7 @@ static void test_NtpSyncCallback_FullySuccessSync(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_NtpSyncCallback_FullySuccessCannotSync(void** state)
+static void test_NtpSyncCallback_FullySuccessCannotSync(void **state)
 {
     s_ntp_sync_notify = false;
     s_ntp_sync_done = false;
@@ -1283,7 +1283,7 @@ static void ConnectNetwork_NetworkOpenError(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_FullySuccess_WiFiConnected(void** state)
+static void test_ConnectNetwork_FullySuccess_WiFiConnected(void **state)
 {
     RetCode ret;
     TerminationReason reason;
@@ -1298,7 +1298,7 @@ static void test_ConnectNetwork_FullySuccess_WiFiConnected(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_FullySuceess_EtherConnected(void** state)
+static void test_ConnectNetwork_FullySuceess_EtherConnected(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1347,7 +1347,7 @@ static void test_ConnectNetwork_FullySuceess_EtherConnected(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_WiFiAbortedByFactoryResetRequest(void** state)
+static void test_ConnectNetwork_WiFiAbortedByFactoryResetRequest(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1365,7 +1365,7 @@ static void test_ConnectNetwork_WiFiAbortedByFactoryResetRequest(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_WiFiAbortedByRebootRequest(void** state)
+static void test_ConnectNetwork_WiFiAbortedByRebootRequest(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1432,7 +1432,7 @@ static void test_ConnectNetwork_WiFiAbortedByRebootRequest(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_EtherAbortedByFactoryResetRequest(void** state)
+static void test_ConnectNetwork_EtherAbortedByFactoryResetRequest(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1499,7 +1499,7 @@ static void test_ConnectNetwork_EtherAbortedByFactoryResetRequest(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_EtherAbortedByRebootRequest(void** state)
+static void test_ConnectNetwork_EtherAbortedByRebootRequest(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1566,7 +1566,7 @@ static void test_ConnectNetwork_EtherAbortedByRebootRequest(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_WiFiStartErrorEtherStartError(void** state)
+static void test_ConnectNetwork_WiFiStartErrorEtherStartError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1635,7 +1635,7 @@ static void test_ConnectNetwork_WiFiStartErrorEtherStartError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_NetworkCallbackRegisterError(void** state)
+static void test_ConnectNetwork_NetworkCallbackRegisterError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1663,7 +1663,7 @@ static void test_ConnectNetwork_NetworkCallbackRegisterError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_NetworkOpenError(void** state)
+static void test_ConnectNetwork_NetworkOpenError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1680,7 +1680,7 @@ static void test_ConnectNetwork_NetworkOpenError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_WiFiConnected_EsfNetworkManagerSaveParameter_Error(void** state)
+static void test_ConnectNetwork_WiFiConnected_EsfNetworkManagerSaveParameter_Error(void **state)
 {
     RetCode ret;
     TerminationReason reason;
@@ -1695,7 +1695,7 @@ static void test_ConnectNetwork_WiFiConnected_EsfNetworkManagerSaveParameter_Err
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_RetryOverStop(void** state)
+static void test_ConnectNetwork_RetryOverStop(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1805,7 +1805,7 @@ static void test_ConnectNetwork_RetryOverStop(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_ConnectNetwork_RetryOverStopLedHold(void** state)
+static void test_ConnectNetwork_RetryOverStopLedHold(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -1945,7 +1945,7 @@ static void DisconnectNetwork_FullySuccess(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_DisconnectNetwork_FullySuccess(void** state)
+static void test_DisconnectNetwork_FullySuccess(void **state)
 {
     RetCode ret;
 
@@ -1961,7 +1961,7 @@ static void test_DisconnectNetwork_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_DisconnectNetwork_NetworkCloseError(void** state)
+static void test_DisconnectNetwork_NetworkCloseError(void **state)
 {
     RetCode ret;
 
@@ -1987,7 +1987,7 @@ static void test_DisconnectNetwork_NetworkCloseError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_DisconnectNetwork_NetworkCallbackUnregisterError(void** state)
+static void test_DisconnectNetwork_NetworkCallbackUnregisterError(void **state)
 {
     RetCode ret;
 
@@ -2013,7 +2013,7 @@ static void test_DisconnectNetwork_NetworkCallbackUnregisterError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_DisconnectNetwork_NetworkStopError(void** state)
+static void test_DisconnectNetwork_NetworkStopError(void **state)
 {
     RetCode ret;
 
@@ -2128,7 +2128,7 @@ static void StartSyncNtp_AbortByFactoryReset(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_FullySuccess(void** state)
+static void test_StartSyncNtp_FullySuccess(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2145,7 +2145,7 @@ static void test_StartSyncNtp_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_AbortByFactoryReset(void** state)
+static void test_StartSyncNtp_AbortByFactoryReset(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2163,7 +2163,7 @@ static void test_StartSyncNtp_AbortByFactoryReset(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_s_ntp_sync_done(void** state)
+static void test_StartSyncNtp_s_ntp_sync_done(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2226,7 +2226,7 @@ static void test_StartSyncNtp_s_ntp_sync_done(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_AbortByReboot(void** state)
+static void test_StartSyncNtp_AbortByReboot(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2294,7 +2294,7 @@ static void test_StartSyncNtp_AbortByReboot(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_NtpSetParamError(void** state)
+static void test_StartSyncNtp_NtpSetParamError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2325,7 +2325,7 @@ static void test_StartSyncNtp_NtpSetParamError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_NtpRegisterCallbackError(void** state)
+static void test_StartSyncNtp_NtpRegisterCallbackError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2360,7 +2360,7 @@ static void test_StartSyncNtp_NtpRegisterCallbackError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StartSyncNtp_NtpStartError(void** state)
+static void test_StartSyncNtp_NtpStartError(void **state)
 {
     RetCode ret;
     TerminationReason reason = UnDefined;
@@ -2418,7 +2418,7 @@ static void StopSyncNtp_FullySuccess(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StopSyncNtp_FullySuccess(void** state)
+static void test_StopSyncNtp_FullySuccess(void **state)
 {
     RetCode ret;
 
@@ -2434,7 +2434,7 @@ static void test_StopSyncNtp_FullySuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_StopSyncNtp_NtpStopError(void** state)
+static void test_StopSyncNtp_NtpStopError(void **state)
 {
     RetCode ret;
 
@@ -2485,7 +2485,7 @@ static void SetupDirMount_MountFailedAndExecuteFormatFailed(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetupDirMount_AlreadyExists(void** state)
+static void test_SetupDirMount_AlreadyExists(void **state)
 {
     bool ret;
 
@@ -2501,7 +2501,7 @@ static void test_SetupDirMount_AlreadyExists(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetupDirMount_MountSuccess(void** state)
+static void test_SetupDirMount_MountSuccess(void **state)
 {
     bool ret;
 
@@ -2524,7 +2524,7 @@ static void test_SetupDirMount_MountSuccess(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetupDirMount_MountFailedAndExecuteFormat(void** state)
+static void test_SetupDirMount_MountFailedAndExecuteFormat(void **state)
 {
     bool ret;
 
@@ -2551,7 +2551,7 @@ static void test_SetupDirMount_MountFailedAndExecuteFormat(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetupDirMount_MountFailedAndExecuteFormatFailed(void** state)
+static void test_SetupDirMount_MountFailedAndExecuteFormatFailed(void **state)
 {
     bool ret;
 
@@ -2573,7 +2573,7 @@ static void test_SetupDirMount_MountFailedAndExecuteFormatFailed(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysProcessEventError(void** state)
+static void test_SysAppMain_SysProcessEventError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -2711,7 +2711,7 @@ static void test_SysAppMain_SysProcessEventError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SelfTerminateRequested(void** state)
+static void test_SysAppMain_SelfTerminateRequested(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -2857,7 +2857,7 @@ static void test_SysAppMain_SelfTerminateRequested(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
+static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3007,7 +3007,7 @@ static void test_SysAppMain_SelfTerminateRequestedFactoryReset(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_RebootRequested(void** state)
+static void test_SysAppMain_RebootRequested(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3157,7 +3157,7 @@ static void test_SysAppMain_RebootRequested(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_FactoryResetRequested(void** state)
+static void test_SysAppMain_FactoryResetRequested(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3315,7 +3315,7 @@ static void test_SysAppMain_FactoryResetRequested(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_DeployResetRequested(void** state)
+static void test_SysAppMain_DeployResetRequested(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3484,7 +3484,7 @@ static void test_SysAppMain_DeployResetRequested(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_DeployFactoryResetRequested(void** state)
+static void test_SysAppMain_DeployFactoryResetRequested(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3658,7 +3658,7 @@ static void test_SysAppMain_DeployFactoryResetRequested(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
+static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -3861,7 +3861,7 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmpty(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void** state)
+static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4069,7 +4069,7 @@ static void test_SysAppMain_DeployResetRequestedStateQueueEmptyFactoryReset(void
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SensorInitError(void** state)
+static void test_SysAppMain_SensorInitError(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4092,7 +4092,7 @@ static void test_SysAppMain_SensorInitError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_ConnectNetworkAborted(void** state)
+static void test_SysAppMain_ConnectNetworkAborted(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4121,7 +4121,7 @@ static void test_SysAppMain_ConnectNetworkAborted(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_ConnectNetworkRetry(void** state)
+static void test_SysAppMain_ConnectNetworkRetry(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4272,7 +4272,7 @@ static void test_SysAppMain_ConnectNetworkRetry(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_ConnectNetworkError_RebootRequest(void** state)
+static void test_SysAppMain_ConnectNetworkError_RebootRequest(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4311,7 +4311,7 @@ static void test_SysAppMain_ConnectNetworkError_RebootRequest(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_ConnectNetworkError_FactoryResetRequest(void** state)
+static void test_SysAppMain_ConnectNetworkError_FactoryResetRequest(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4354,7 +4354,7 @@ static void test_SysAppMain_ConnectNetworkError_FactoryResetRequest(void** state
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_NtpSyncError(void** state)
+static void test_SysAppMain_NtpSyncError(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4407,7 +4407,7 @@ static void test_SysAppMain_NtpSyncError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_EvpAgentTaskCreateError(void** state)
+static void test_SysAppMain_EvpAgentTaskCreateError(void **state)
 {
     TerminationReason reason = UnDefined;
 
@@ -4461,7 +4461,7 @@ static void test_SysAppMain_EvpAgentTaskCreateError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppTimerInitializeError(void** state)
+static void test_SysAppMain_SysAppTimerInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4538,7 +4538,7 @@ static void test_SysAppMain_SysAppTimerInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppDcmdInitializeError(void** state)
+static void test_SysAppMain_SysAppDcmdInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4623,7 +4623,7 @@ static void test_SysAppMain_SysAppDcmdInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppCfgInitializeError(void** state)
+static void test_SysAppMain_SysAppCfgInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4716,7 +4716,7 @@ static void test_SysAppMain_SysAppCfgInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppStaInitializeError(void** state)
+static void test_SysAppMain_SysAppStaInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4817,7 +4817,7 @@ static void test_SysAppMain_SysAppStaInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppUdInitializeError(void** state)
+static void test_SysAppMain_SysAppUdInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -4924,7 +4924,7 @@ static void test_SysAppMain_SysAppUdInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_SysAppDeployInitializeError(void** state)
+static void test_SysAppMain_SysAppDeployInitializeError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -5041,7 +5041,7 @@ static void test_SysAppMain_SysAppDeployInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void** state)
+static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -5168,7 +5168,7 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStartError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void** state)
+static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -5312,7 +5312,7 @@ static void test_SysAppMain_EsfPwrMgrSwWdtKeepaliveError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void** state)
+static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void **state)
 {
     TerminationReason reason = UnDefined;
     struct SYS_client sys_client;
@@ -5462,7 +5462,7 @@ static void test_SysAppMain_EsfPwrMgrSwWdtStopError(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_SetupMountDirError(void** state)
+static void test_system_app_main_for_test_SetupMountDirError(void **state)
 {
     int ret;
 
@@ -5494,7 +5494,7 @@ static void test_system_app_main_for_test_SetupMountDirError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_BootInitialSettingApp(void** state)
+static void test_system_app_main_for_test_BootInitialSettingApp(void **state)
 {
     int ret;
 
@@ -5517,7 +5517,7 @@ static void test_system_app_main_for_test_BootInitialSettingApp(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_ExecInitialSettingAppFailed(void** state)
+static void test_system_app_main_for_test_ExecInitialSettingAppFailed(void **state)
 {
     int ret;
 
@@ -5572,7 +5572,7 @@ static void test_system_app_main_for_test_ExecInitialSettingAppFailed(void** sta
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_SysAppBtnInitializeError(void** state)
+static void test_system_app_main_for_test_SysAppBtnInitializeError(void **state)
 {
     int ret;
 
@@ -5606,7 +5606,7 @@ static void test_system_app_main_for_test_SysAppBtnInitializeError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_PthreadAttrInitError(void** state)
+static void test_system_app_main_for_test_PthreadAttrInitError(void **state)
 {
     int ret;
 
@@ -5646,7 +5646,7 @@ static void test_system_app_main_for_test_PthreadAttrInitError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_PthreadAttrSetStackSizeError(void** state)
+static void test_system_app_main_for_test_PthreadAttrSetStackSizeError(void **state)
 {
     int ret;
 
@@ -5692,7 +5692,7 @@ static void test_system_app_main_for_test_PthreadAttrSetStackSizeError(void** st
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_PthreadCreateError(void** state)
+static void test_system_app_main_for_test_PthreadCreateError(void **state)
 {
     int ret;
 
@@ -5743,7 +5743,7 @@ static void test_system_app_main_for_test_PthreadCreateError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_PthreadJoinError(void** state)
+static void test_system_app_main_for_test_PthreadJoinError(void **state)
 {
     int ret;
 
@@ -5798,7 +5798,7 @@ static void test_system_app_main_for_test_PthreadJoinError(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_FullySuccess_RebootRequested(void** state)
+static void test_system_app_main_for_test_FullySuccess_RebootRequested(void **state)
 {
     int ret;
 
@@ -5849,7 +5849,7 @@ static void test_system_app_main_for_test_FullySuccess_RebootRequested(void** st
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_FullySuccess_FactoryResetByDcmdRequested(void** state)
+static void test_system_app_main_for_test_FullySuccess_FactoryResetByDcmdRequested(void **state)
 {
     int ret;
 
@@ -5900,7 +5900,7 @@ static void test_system_app_main_for_test_FullySuccess_FactoryResetByDcmdRequest
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_FullySuccess_FactoryResetByButtonRequested(void** state)
+static void test_system_app_main_for_test_FullySuccess_FactoryResetByButtonRequested(void **state)
 {
     int ret;
 
@@ -5951,7 +5951,7 @@ static void test_system_app_main_for_test_FullySuccess_FactoryResetByButtonReque
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_system_app_main_for_test_FullySuccess_FactoryResetByDeployRequested(void** state)
+static void test_system_app_main_for_test_FullySuccess_FactoryResetByDeployRequested(void **state)
 {
     int ret;
 

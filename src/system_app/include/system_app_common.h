@@ -15,6 +15,7 @@
 #define RESULT_CODE_OK (0)
 #define RESULT_CODE_UNKNOWN (2)
 #define RESULT_CODE_INVALID_ARGUMENT (3)
+#define RESULT_CODE_ALREADY_EXISTS (6)
 #define RESULT_CODE_RESOURCE_EXHAUSTED (8)
 #define RESULT_CODE_FAILED_PRECONDITION (9)
 #define RESULT_CODE_ABORTED (10)
@@ -97,6 +98,19 @@
 #define CFGST_ENDPOINT_PORT_MAX (65535)
 #define CFGST_ENDPOINT_PROTOCOL_VERSION_LEN (32)
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+// String length for streaming_settings.
+
+#define CFGST_STREAMING_RTSP_SERVER_IP_LEN (15)
+#define CFGST_STREAMING_RTSP_STREAM_NAME_LEN (64)
+#define CFGST_STREAMING_RTSP_USER_NAME_LEN (64)
+#define CFGST_STREAMING_RTSP_PASSWORD_LEN (128)
+#define CFGST_STREAMING_NFS_SERVER_IP_LEN (256)
+#define CFGST_STREAMING_NFS_MOUNT_PATH_LEN (256)
+#define CFGST_STREAMING_NFS_RECORD_FILENAME_LEN (1024)
+#define CFGST_STREAMING_NFS_FILE_RECORDING_TIME_LEN (8)
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 // Topics.
 
 #define ST_TOPIC_DEVICE_INFO (1 << 0)
@@ -113,6 +127,9 @@
 #define ST_TOPIC_DEPLOY_SENSOR_CALIBRATION_PARAM (1 << 11)
 #define ST_TOPIC_RESERVED (1 << 12)
 #define ST_TOPIC_UPDATE_DEVICE_INFO (1 << 13)
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+#define ST_TOPIC_STREAMING_SETTINGS (1 << 14)
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 // Data type group.
 
@@ -209,6 +226,25 @@ typedef enum {
 
 typedef enum { EndpointPort = 1, EndpointUrl, ProtocolVersion } EndpointSettingsProperty;
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+typedef enum {
+    StreamingProcessState = 1,
+    OperatingMode,
+    ServerIp,
+    StreamName,
+    UserName,
+    Password,
+    IsRtspServerRunning,
+    NfsServerIp,
+    MountPath,
+    NfsVersion,
+    UseTcp,
+    MaxRecordTime,
+    RecordFilename,
+    FileRecordingTime
+} StreamingSettingsProperty;
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 // Log filter.
 
 typedef enum {
@@ -280,6 +316,36 @@ typedef enum {
     RecoveryMethodNum
 } CfgStRecoveryMethod;
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+// Streaming process state.
+
+typedef enum {
+    StreamOff = 0,
+    StreamOn,
+
+    StreamProcessStateNum
+} CfgStStreamProcessState;
+
+// Streaming operating mode.
+
+typedef enum {
+    StreamOnly = 0,
+    RecordOnly,
+    StreamRecord,
+
+    StreamOperatingModeNum
+} CfgStStreamOperatingMode;
+
+// NFS version.
+
+typedef enum {
+    NfsVersion3 = 3,
+    NfsVersion4 = 4,
+
+    CfgStNfsVersionMax
+} CfgStNfsVersion;
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 // Power supply type.
 
 typedef enum {
@@ -299,7 +365,7 @@ typedef enum {
 typedef union {
     int number;
     bool boolean;
-    const char* string;
+    const char *string;
 } CfgStData;
 
 // Struct for device_info.
@@ -516,36 +582,36 @@ typedef struct {
     CfgStUpdateInfo update;
 } CfgStEndpointSettingsParam;
 
-int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                const char** string);
-int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                int* number);
+int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                const char **string);
+int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                int *number);
 int SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                    const char* jsonkey, double* number);
-int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                 bool* boolean);
-int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                EsfJsonValue* object);
-RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char** req_id);
-RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                const char* string);
-RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+                                    const char *jsonkey, double *number);
+int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                 bool *boolean);
+int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                EsfJsonValue *object);
+RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char **req_id);
+RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                const char *string);
+RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                       EsfMemoryManagerHandle mm_handle, size_t size);
-RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                 int number);
-RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                     double number);
-RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                  bool boolean);
-RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void*),
-                                void* ctx);
-RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void *),
+                                void *ctx);
+RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                uint32_t array_num,
-                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void*),
-                               void* ctx);
-RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char* res_id,
-                                 int code, const char* detail_msg);
+                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void *),
+                               void *ctx);
+RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
+                                 int code, const char *detail_msg);
 
 #if 1 /* TENTATIVE_STUB : These functions are stub for avoid build error. Must be deleted after API replace. */
 #include "network_manager.h"

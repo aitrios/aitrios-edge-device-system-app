@@ -26,7 +26,7 @@ SSFStatus __wrap_SsfDeviceSettingDeinit(void)
 }
 
 /*----------------------------------------------------------------------------*/
-SSFStatus __wrap_SsfDeviceSettingOpen(SsfDeviceSettingHandle* handle)
+SSFStatus __wrap_SsfDeviceSettingOpen(SsfDeviceSettingHandle *handle)
 {
     return mock_type(SSFStatus);
 }

@@ -13,7 +13,7 @@
 #include "system_app_direct_command.h"
 
 /*----------------------------------------------------------------------------*/
-bool __wrap_SysAppDcmdCheckSelfTerminate(TerminationReason* reason)
+bool __wrap_SysAppDcmdCheckSelfTerminate(TerminationReason *reason)
 {
     *reason = mock_type(TerminationReason);
 
@@ -21,7 +21,7 @@ bool __wrap_SysAppDcmdCheckSelfTerminate(TerminationReason* reason)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppDcmdInitialize(struct SYS_client* sys_client)
+RetCode __wrap_SysAppDcmdInitialize(struct SYS_client *sys_client)
 {
     return mock_type(RetCode);
 }

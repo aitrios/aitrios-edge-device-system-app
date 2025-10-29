@@ -33,6 +33,7 @@ PenaltyBreakAssignment: 21
 PenaltyBreakBeforeFirstCallParameter: 19
 
 # Pointer and reference alignment
+DerivePointerAlignment: false
 PointerAlignment: Right
 
 # Comment formatting

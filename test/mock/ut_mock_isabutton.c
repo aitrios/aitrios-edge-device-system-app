@@ -15,7 +15,7 @@
 
 // For executing NetworkManager Callback
 static EsfNetworkManagerNotifyInfoCallback s_isa_btn_nw_callback;
-static void* s_isa_btn_nw_callback_private_data;
+static void *s_isa_btn_nw_callback_private_data;
 static EsfNetworkManagerNotifyInfo s_isa_btn_nw_notify_info;
 static int s_isa_btn_connect_wait_retry_count;
 
@@ -86,7 +86,7 @@ RetCode __wrap_IsaBtnExecuteFactoryResetCore(void)
 
 /*----------------------------------------------------------------------------*/
 void IsaBtnSetNetworkManagerNotifyCallback(EsfNetworkManagerNotifyInfoCallback nw_callback,
-                                           void* nw_callback_private_data,
+                                           void *nw_callback_private_data,
                                            EsfNetworkManagerNotifyInfo nw_notify_info,
                                            int connect_wait_retry_count)
 {

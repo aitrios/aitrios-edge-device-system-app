@@ -40,10 +40,10 @@ typedef enum {
 
 typedef struct {
     SYS_response_id cmd_id;
-    void* response;
+    void *response;
     int status_code;
     uint32_t retry_count;
-    bool* send_complete;
+    bool *send_complete;
 } DcResponseContext;
 
 // DirectCommand res_info.
@@ -64,7 +64,7 @@ typedef struct {
 // Image frame information.
 
 typedef struct {
-    void* addr;
+    void *addr;
     uint32_t size;
     uint64_t time_stamp;
     uint32_t width;
@@ -89,7 +89,7 @@ typedef struct {
 
 typedef struct {
     int32_t num;
-    SensorRegisterInfo* info;
+    SensorRegisterInfo *info;
 } SensorRegisterParam;
 
 #endif // _SYSTEM_APP_DIRECT_COMMAND_PRVIVATE_H_

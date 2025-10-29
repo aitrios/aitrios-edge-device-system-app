@@ -15,3 +15,8 @@ system_app_sources += files([
 	'system_app_timer.c',
 	'system_app_ud_main.c'
 ])
+
+# Add video stream interface manager only when the feature is enabled
+if systemapps_config_h.has('CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING') and systemapps_config_h.get('CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING')
+	system_app_sources += files(['system_app_vsc_manager.c'])
+endif

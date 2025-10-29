@@ -92,7 +92,7 @@ RetCode SysAppLedSetEnable(bool led_enable)
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppLedGetEnable(bool* led_enable)
+RetCode SysAppLedGetEnable(bool *led_enable)
 {
     RetCode ret = kRetOk;
     EsfLedManagerResult esflm_ret = kEsfLedManagerSuccess;

@@ -15,7 +15,7 @@
 #include "senscord/c_api/senscord_c_types.h"
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
+RetCode __wrap_SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string)
 {
     check_expected(topic);
     check_expected(type);
@@ -33,7 +33,7 @@ RetCode __wrap_SysAppStateSendState(uint32_t req)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStaInitialize(struct SYS_client* sys_client)
+RetCode __wrap_SysAppStaInitialize(struct SYS_client *sys_client)
 {
     return mock_type(RetCode);
 }
@@ -77,7 +77,7 @@ RetCode __wrap_SysAppStateSetInvalidArgErrorWithIdx(uint32_t topic, uint32_t pro
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char* string,
+RetCode __wrap_SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char *string,
                                               uint32_t idx)
 {
     check_expected(topic);
@@ -139,35 +139,35 @@ RetCode __wrap_SysAppStaReopenIfClose(void)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStateGetSensCordId(void* core_id)
+RetCode __wrap_SysAppStateGetSensCordId(void *core_id)
 {
-    *(senscord_core_t*)core_id = mock_type(senscord_core_t);
+    *(senscord_core_t *)core_id = mock_type(senscord_core_t);
     return mock_type(RetCode);
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStateGetSensCordStream(void* stream)
+RetCode __wrap_SysAppStateGetSensCordStream(void *stream)
 {
-    *(senscord_stream_t*)stream = mock_type(senscord_stream_t);
+    *(senscord_stream_t *)stream = mock_type(senscord_stream_t);
     return mock_type(RetCode);
 }
 
 /*----------------------------------------------------------------------------*/
-char* __wrap_SysAppStateGetReqId(uint32_t topic)
+char *__wrap_SysAppStateGetReqId(uint32_t topic)
 {
     check_expected(topic);
 
-    return mock_type(char*);
+    return mock_type(char *);
 }
 
 /*----------------------------------------------------------------------------*/
-char* __wrap_SysAppStateGetProtocolVersion(void)
+char *__wrap_SysAppStateGetProtocolVersion(void)
 {
-    return mock_type(char*);
+    return mock_type(char *);
 }
 
 /*----------------------------------------------------------------------------*/
-void __wrap_SysAppStateGetTemperatureUpdateInterval(int* temperature_update_interval)
+void __wrap_SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval)
 {
     *temperature_update_interval = mock_type(int);
     return;
@@ -181,13 +181,13 @@ bool __wrap_SysAppStaIsStateQueueEmpty(void)
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------------*/
-bool __wrap_SysAppStateIsUnimplementedTopic(const char* topic)
+bool __wrap_SysAppStateIsUnimplementedTopic(const char *topic)
 {
     return mock_type(bool);
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppStateSendUnimplementedState(const char* topic, const char* id)
+RetCode __wrap_SysAppStateSendUnimplementedState(const char *topic, const char *id)
 {
     return mock_type(RetCode);
 }

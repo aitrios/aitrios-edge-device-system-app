@@ -13,6 +13,10 @@
 #include <nuttx/config.h>
 #endif
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+#include "system_app_vsc_manager.h"
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 #include "evp/sdk_sys.h"
 #include "sensor_main.h"
 #include "senscord/c_api/senscord_c_api.h"
@@ -49,6 +53,7 @@
 #define TEMPERATURE_INVALID_VAL (-300) /*T.B.D*/
 #define TRUNCATION_SUFFIX "..."
 #define TRUNCATION_SUFFIX_LEN (sizeof(TRUNCATION_SUFFIX) - 1)
+#define DEFAULT_UPDATE_INTERVAL_SEC (10)
 
 // TODO:
 // Temporary solution for not being able to get name from FirmwareManager
@@ -71,14 +76,14 @@
 
 typedef struct {
     int flag_value;
-    const char* message;
+    const char *message;
 } ErrorFlag;
 
 //
 // File static variables.
 //
 
-STATIC struct SYS_client* s_sys_client = NULL;
+STATIC struct SYS_client *s_sys_client = NULL;
 
 STATIC StDeviceInfoParams s_device_info;
 STATIC StDeviceCapabilitiesParams s_device_capabilities;
@@ -97,6 +102,9 @@ STATIC CfgStWirelessStaModeParam s_sta_mode_setting;
 STATIC CfgStIntervalSettingParam s_interval_setting[2];
 STATIC CfgStPeriodicSettingParam s_periodic_setting;
 STATIC CfgStEndpointSettingsParam s_endpoint_settings;
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+STATIC CfgStStreamingSettingsParam s_streaming_settings;
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 STATIC senscord_core_t s_sccore = 0;
 STATIC senscord_stream_t s_scstream = 0;
@@ -106,7 +114,7 @@ static pthread_mutex_t s_senscord_access_mutex = PTHREAD_MUTEX_INITIALIZER;
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 STATIC struct {
     uint32_t topic;
-    const char* topic_str;
+    const char *topic_str;
     char id[CFG_RES_ID_LEN + 1];
 } s_unimplemented_list[] = {
     {.topic = ST_TOPIC_SYSTEM_SETTINGS, .topic_str = "system_settings"},
@@ -133,24 +141,33 @@ STATIC RetCode SendPeriodicSetting(void);
 #else
 #endif
 STATIC RetCode SendEndpointSettings(void);
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+STATIC RetCode SendStreamingSettings(void);
+STATIC void UpdateStreamingStatusFromVsc(void);
+STATIC void UpdateInternalStateFromVscStatus(const vsclient_server_status_t *vsc_status);
+STATIC void UpdateRtspConfigFromVsc(const vsclient_server_status_t *vsc_status);
+STATIC void UpdateNfsConfigFromVsc(const vsclient_server_status_t *vsc_status);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 STATIC RetCode SendDeploy(uint32_t topic_bits);
 
 STATIC void RequestConfigStateUpdate(uint32_t topic);
 
-STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg,
+STATIC bool AppendErrorDetail(const char *msg, char *error_detail_msg,
                               size_t error_detail_msg_size);
 
-STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t flag_count,
-                                           char* error_detail_msg, size_t error_detail_msg_size,
-                                           bool* error_exist);
+STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag *error_flags, size_t flag_count,
+                                           char *error_detail_msg, size_t error_detail_msg_size,
+                                           bool *error_exist);
 
-STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, const char* field_name,
-                                                    size_t index, char* error_detail_msg,
+STATIC void CheckErrorFlagAndAppendMessageWithField(const char *base_prefix, const char *field_name,
+                                                    size_t index, char *error_detail_msg,
                                                     size_t error_detail_msg_size,
-                                                    bool* error_exist);
+                                                    bool *error_exist);
 
 /*----------------------------------------------------------------------------*/
-STATIC char* ConvertFilterValueToString(CfgStLogFilter filter, char* filter_name)
+STATIC char *ConvertFilterValueToString(CfgStLogFilter filter, char *filter_name)
 {
     if (filter == AllLog) {
     }
@@ -186,7 +203,7 @@ STATIC RetCode ReadOutLogByFilterNo(CfgStLogFilter filter)
 
         /* Get information for level */
         CfgStLogLevel level;
-        stat = SysAppLogGetParameterNumber(filter, LogLevel, (int*)&level);
+        stat = SysAppLogGetParameterNumber(filter, LogLevel, (int *)&level);
 
         if (stat == kRetOk) {
             /* Save readed parameters. */
@@ -202,7 +219,7 @@ STATIC RetCode ReadOutLogByFilterNo(CfgStLogFilter filter)
 
         /* Get information for destination */
         CfgStLogDestination destination;
-        stat = SysAppLogGetParameterNumber(filter, LogDestination, (int*)&destination);
+        stat = SysAppLogGetParameterNumber(filter, LogDestination, (int *)&destination);
 
         if (stat == kRetOk) {
             /* Save readed parameters. */
@@ -284,7 +301,7 @@ STATIC RetCode ReadOutLogCompanionApp(void)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, const char* req_id)
+STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, const char *req_id)
 {
     RetCode ret = kRetOk;
 
@@ -296,21 +313,21 @@ STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, cons
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_system_settings.id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_network_settings.id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_wireless_setting.id);
@@ -318,7 +335,7 @@ STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue
 
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, "");
@@ -327,14 +344,23 @@ STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue
 #endif
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_endpoint_settings.id);
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetErrorInfo(CfgStUpdateInfo* update, int* code, char* detail_msg, int len)
+STATIC RetCode MakeJsonReqInfoStreamingSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
+{
+    (void)ctx;
+    return MakeJsonReqInfoCore(handle, root, s_streaming_settings.id);
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode GetErrorInfo(CfgStUpdateInfo *update, int *code, char *detail_msg, int len)
 {
     RetCode ret = kRetOk;
 
@@ -358,7 +384,7 @@ STATIC RetCode GetErrorInfo(CfgStUpdateInfo* update, int* code, char* detail_msg
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -435,7 +461,7 @@ call_core:
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -533,7 +559,7 @@ call_core:
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -588,7 +614,7 @@ call_core:
 
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -600,7 +626,7 @@ STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue
 #endif
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -611,8 +637,33 @@ STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValu
     return SysAppCmnMakeJsonResInfo(handle, root, s_endpoint_settings.id, code, detail_msg);
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonResInfoStreamingSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
+{
+    (void)ctx;
+    int code = 0;
+    char detail_msg[256] = "ok";
+
+    // Check if there is error information from VSC Manager
+
+    bool vsc_has_error = SysAppVscManagerHasError();
+
+    if (vsc_has_error) {
+        int vsc_code = SysAppVscManagerGetErrorResponseCode();
+        const char *vsc_error_msg = SysAppVscManagerGetErrorMessage();
+        code = vsc_code;
+        strncpy(detail_msg, vsc_error_msg, sizeof(detail_msg) - 1);
+        detail_msg[sizeof(detail_msg) - 1] = '\0';
+        SysAppVscManagerClearError();
+    }
+
+    return SysAppCmnMakeJsonResInfo(handle, root, s_streaming_settings.id, code, detail_msg);
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -632,7 +683,7 @@ STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -743,7 +794,7 @@ STATIC RetCode MakeJsonDeviceCapabilities(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -759,7 +810,7 @@ STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonPowerStates(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonPowerStates(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -818,7 +869,7 @@ STATIC RetCode MakeJsonReserved(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonLog(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx, void* ctx)
+STATIC RetCode MakeJsonLog(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -885,7 +936,7 @@ STATIC RetCode MakeJsonSystemSettings(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -911,7 +962,7 @@ STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -937,7 +988,7 @@ STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonProxySettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonProxySettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -998,7 +1049,7 @@ STATIC RetCode MakeJsonNetworkSettings(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaModeSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaModeSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -1041,7 +1092,7 @@ STATIC RetCode MakeJsonWirelessSetting(EsfJsonHandle handle, EsfJsonValue root)
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
 STATIC RetCode MakeJsonIntervalSettings(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx,
-                                        void* ctx)
+                                        void *ctx)
 {
     (void)idx;
     (void)ctx;
@@ -1124,8 +1175,112 @@ STATIC RetCode MakeJsonEndpointSettings(EsfJsonHandle handle, EsfJsonValue root)
     return ret;
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SendStateCore(const char* topic, const char* state_org, uint32_t state_len)
+STATIC RetCode MakeJsonRtspConfig(EsfJsonHandle handle, EsfJsonValue root)
+{
+    RetCode ret = kRetOk;
+
+    // Set server_ip.
+
+    SysAppCmnSetStringValue(handle, root, "server_ip", s_streaming_settings.rtsp_config.server_ip);
+
+    // Set stream_name.
+
+    SysAppCmnSetStringValue(handle, root, "stream_name",
+                            s_streaming_settings.rtsp_config.stream_name);
+
+    // Set user_name.
+
+    SysAppCmnSetStringValue(handle, root, "user_name", s_streaming_settings.rtsp_config.user_name);
+
+    // Set password.
+
+    SysAppCmnSetStringValue(handle, root, "password", s_streaming_settings.rtsp_config.password);
+
+    // Set is_rtsp_server_running.
+
+    SysAppCmnSetBooleanValue(handle, root, "is_rtsp_server_running",
+                             s_streaming_settings.rtsp_config.is_rtsp_server_running);
+
+    return ret;
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode MakeJsonNfsConfig(EsfJsonHandle handle, EsfJsonValue root)
+{
+    RetCode ret = kRetOk;
+
+    // Set server_ip.
+
+    SysAppCmnSetStringValue(handle, root, "server_ip", s_streaming_settings.nfs_config.server_ip);
+
+    // Set mount_path.
+
+    SysAppCmnSetStringValue(handle, root, "mount_path", s_streaming_settings.nfs_config.mount_path);
+
+    // Set nfs_version.
+
+    SysAppCmnSetNumberValue(handle, root, "nfs_version",
+                            s_streaming_settings.nfs_config.nfs_version);
+
+    // Set use_tcp.
+
+    SysAppCmnSetBooleanValue(handle, root, "use_tcp", s_streaming_settings.nfs_config.use_tcp);
+
+    // Set max_record_time.
+
+    SysAppCmnSetNumberValue(handle, root, "max_record_time",
+                            s_streaming_settings.nfs_config.max_record_time);
+
+    // Set record_filename.
+
+    SysAppCmnSetStringValue(handle, root, "record_filename",
+                            s_streaming_settings.nfs_config.record_filename);
+
+    // Set file_recording_time.
+
+    SysAppCmnSetStringValue(handle, root, "file_recording_time",
+                            s_streaming_settings.nfs_config.file_recording_time);
+
+    return ret;
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode MakeJsonStreamingSettings(EsfJsonHandle handle, EsfJsonValue root)
+{
+    RetCode ret = kRetOk;
+
+    // Set req_info.
+
+    SysAppCmnSetObjectValue(handle, root, "req_info", MakeJsonReqInfoStreamingSettings, NULL);
+
+    // Set process_state.
+
+    SysAppCmnSetNumberValue(handle, root, "process_state", s_streaming_settings.process_state);
+
+    // Set operating_mode.
+
+    SysAppCmnSetNumberValue(handle, root, "operating_mode", s_streaming_settings.operating_mode);
+
+    // Set rtsp_config.
+
+    SysAppCmnSetObjectValue(handle, root, "rtsp_config", MakeJsonRtspConfig, NULL);
+
+    // Set nfs_config.
+
+    SysAppCmnSetObjectValue(handle, root, "nfs_config", MakeJsonNfsConfig, NULL);
+
+    // Set res_info.
+
+    SysAppCmnSetObjectValue(handle, root, "res_info", MakeJsonResInfoStreamingSettings, NULL);
+
+    return ret;
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode SendStateCore(const char *topic, const char *state_org, uint32_t state_len)
 {
     (void)state_len;
     RetCode ret = kRetOk;
@@ -1151,21 +1306,21 @@ STATIC RetCode SendStateCore(const char* topic, const char* state_org, uint32_t 
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
-    const char* req_id = (const char*)ctx;
+    const char *req_id = (const char *)ctx;
     return MakeJsonReqInfoCore(handle, root, req_id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
-    const char* res_id = (const char*)ctx;
+    const char *res_id = (const char *)ctx;
     return SysAppCmnMakeJsonResInfo(handle, root, res_id, 12, "unimplemented");
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char* id)
+STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char *id)
 {
     // Set req_info.
 
@@ -1177,7 +1332,7 @@ STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char*
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SendUnimplementedState(const char* topic, char* id)
+STATIC RetCode SendUnimplementedState(const char *topic, char *id)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1205,7 +1360,7 @@ STATIC RetCode SendUnimplementedState(const char* topic, char* id)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1272,6 +1427,11 @@ STATIC RetCode SendState(uint32_t next_req)
     else if (next_req & ST_TOPIC_ENDPOINT_SETTINGS) {
         ret = SendEndpointSettings();
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (next_req & ST_TOPIC_STREAMING_SETTINGS) {
+        ret = SendStreamingSettings();
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else if (next_req & ST_TOPIC_DEPLOY_FIRMWARE) {
         ret = SendDeploy(ST_TOPIC_DEPLOY_FIRMWARE);
     }
@@ -1319,7 +1479,7 @@ STATIC RetCode SendDeviceInfo(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1365,7 +1525,7 @@ STATIC RetCode SendDeviceCapabilities(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1411,7 +1571,7 @@ STATIC RetCode SendDeviceStates(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1457,7 +1617,7 @@ STATIC RetCode SendReserved(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1503,7 +1663,7 @@ STATIC RetCode SendSystemSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1566,7 +1726,7 @@ STATIC RetCode SendNetworkSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1637,7 +1797,7 @@ STATIC RetCode SendWirelessSetting(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1694,7 +1854,7 @@ STATIC RetCode SendPeriodicSetting(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1752,7 +1912,7 @@ STATIC RetCode SendEndpointSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1777,14 +1937,197 @@ STATIC RetCode SendEndpointSettings(void)
     return ret;
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+/*----------------------------------------------------------------------------*/
+STATIC RetCode SendStreamingSettings(void)
+{
+    RetCode ret = kRetOk;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    EsfJsonErrorCode esfj_ret = kEsfJsonSuccess;
+
+    // Update streaming status before sending state
+
+    UpdateStreamingStatusFromVsc();
+
+    // Make json string for state::streaming_settings.
+
+    esfj_ret = EsfJsonOpen(&esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonOpen(%p) ret %d", &esfj_handle, esfj_ret);
+    }
+
+    esfj_ret = EsfJsonObjectInit(esfj_handle, &val);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonObjectInit(%p) ret %d", esfj_handle, esfj_ret);
+    }
+
+    MakeJsonStreamingSettings(esfj_handle, val);
+
+    // Send state.
+
+    const char *state_org = NULL;
+    esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
+
+    if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
+        uint32_t state_len = strlen(state_org);
+        ret = SendStateCore("streaming_settings", state_org, state_len);
+    }
+
+    // Clean up.
+
+    esfj_ret = EsfJsonClose(esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_WARN("EsfJsonClose(%p) ret %d", esfj_handle, esfj_ret);
+    }
+
+    // Clear streaming settings error flags.
+
+    s_streaming_settings.update.invalid_arg_flag = 0;
+    s_streaming_settings.update.internal_error_flag = 0;
+
+    return ret;
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC void UpdateRtspConfigFromVsc(const vsclient_server_status_t *vsc_status)
+{
+    // RTSP configuration update
+
+    if (strlen(vsc_status->rtsp_config.server_ip) > 0) {
+        strncpy(s_streaming_settings.rtsp_config.server_ip, vsc_status->rtsp_config.server_ip,
+                sizeof(s_streaming_settings.rtsp_config.server_ip) - 1);
+        s_streaming_settings.rtsp_config
+            .server_ip[sizeof(s_streaming_settings.rtsp_config.server_ip) - 1] = '\0';
+    }
+    if (strlen(vsc_status->rtsp_config.stream_name) > 0) {
+        strncpy(s_streaming_settings.rtsp_config.stream_name, vsc_status->rtsp_config.stream_name,
+                sizeof(s_streaming_settings.rtsp_config.stream_name) - 1);
+        s_streaming_settings.rtsp_config
+            .stream_name[sizeof(s_streaming_settings.rtsp_config.stream_name) - 1] = '\0';
+    }
+    if (strlen(vsc_status->rtsp_config.username) > 0) {
+        strncpy(s_streaming_settings.rtsp_config.user_name, vsc_status->rtsp_config.username,
+                sizeof(s_streaming_settings.rtsp_config.user_name) - 1);
+        s_streaming_settings.rtsp_config
+            .user_name[sizeof(s_streaming_settings.rtsp_config.user_name) - 1] = '\0';
+    }
+    s_streaming_settings.rtsp_config.is_rtsp_server_running =
+        (vsc_status->rtsp_config.server_running == 1);
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC void UpdateNfsConfigFromVsc(const vsclient_server_status_t *vsc_status)
+{
+    // NFS configuration update
+
+    if (strlen(vsc_status->nfs_config.server_ip) > 0) {
+        strncpy(s_streaming_settings.nfs_config.server_ip, vsc_status->nfs_config.server_ip,
+                sizeof(s_streaming_settings.nfs_config.server_ip) - 1);
+        s_streaming_settings.nfs_config
+            .server_ip[sizeof(s_streaming_settings.nfs_config.server_ip) - 1] = '\0';
+    }
+    if (strlen(vsc_status->nfs_config.mount_point) > 0) {
+        strncpy(s_streaming_settings.nfs_config.mount_path, vsc_status->nfs_config.mount_point,
+                sizeof(s_streaming_settings.nfs_config.mount_path) - 1);
+        s_streaming_settings.nfs_config
+            .mount_path[sizeof(s_streaming_settings.nfs_config.mount_path) - 1] = '\0';
+    }
+    s_streaming_settings.nfs_config.nfs_version = vsc_status->nfs_config.nfs_version;
+    s_streaming_settings.nfs_config.use_tcp = vsc_status->nfs_config.use_tcp;
+    s_streaming_settings.nfs_config.max_record_time = vsc_status->nfs_config.file_duration_minutes;
+    if (strlen(vsc_status->nfs_config.record_filename) > 0) {
+        strncpy(s_streaming_settings.nfs_config.record_filename,
+                vsc_status->nfs_config.record_filename,
+                sizeof(s_streaming_settings.nfs_config.record_filename) - 1);
+        s_streaming_settings.nfs_config
+            .record_filename[sizeof(s_streaming_settings.nfs_config.record_filename) - 1] = '\0';
+    }
+    uint32_t total_seconds = vsc_status->nfs_config.record_time;
+    uint32_t hours = total_seconds / 3600;
+    uint32_t minutes = (total_seconds % 3600) / 60;
+    uint32_t seconds = total_seconds % 60;
+    snprintf(s_streaming_settings.nfs_config.file_recording_time,
+             sizeof(s_streaming_settings.nfs_config.file_recording_time), "%02u:%02u:%02u", hours,
+             minutes, seconds);
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC void UpdateStreamingStatusFromVsc(void)
+{
+    // Skip VSC status update if VSC errors already exist
+
+    if (SysAppVscManagerHasError()) {
+        SYSAPP_INFO(
+            "VSC error detected - skipping status update to avoid additional VSC operations");
+        return;
+    }
+
+    // Get status from VSC using VSC Manager
+
+    vsclient_result_t vsc_ret;
+    vsclient_server_status_t vsc_status = {0};
+
+    // Get status
+
+    vsc_ret = SysAppVscGetServerStatus(&vsc_status);
+
+    if (vsc_ret == VSCLIENT_SUCCESS) {
+        // reflect status information to internal state
+
+        UpdateInternalStateFromVscStatus(&vsc_status);
+        SYSAPP_INFO("VSC status updated successfully");
+    }
+    else {
+        // log error information only
+
+        SYSAPP_WARN("VSC get_status failed: %s", SysAppVscGetErrorString(vsc_ret));
+        SysAppVscHandleCreateError(vsc_ret, "VSC status update", ST_TOPIC_STREAMING_SETTINGS);
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC void UpdateInternalStateFromVscStatus(const vsclient_server_status_t *vsc_status)
+{
+    // Process state mapping
+
+    switch (vsc_status->stream_status) {
+        case 0: // VSC stopped
+            s_streaming_settings.process_state = StreamOff;
+            break;
+        case 1: // VSC streaming
+            s_streaming_settings.process_state = StreamOn;
+            break;
+        default:
+            SYSAPP_WARN("Unknown VSC stream_status: %d", vsc_status->stream_status);
+            break;
+    }
+
+    // Operating mode update
+
+    s_streaming_settings.operating_mode = (CfgStStreamOperatingMode)vsc_status->operating_mode;
+
+    // Update RTSP configuration
+
+    UpdateRtspConfigFromVsc(vsc_status);
+
+    // Update NFS configuration
+
+    UpdateNfsConfigFromVsc(vsc_status);
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 /*----------------------------------------------------------------------------*/
 STATIC RetCode SendDeploy(uint32_t topic_bits)
 {
     // Send deploy state.
 
     RetCode ret = kRetOk;
-    char* state = NULL;
-    const char* topic;
+    char *state = NULL;
+    const char *topic;
     uint32_t state_len;
 
     /* Get state json string by topic */
@@ -1821,7 +2164,7 @@ STATIC RetCode SendDeploy(uint32_t topic_bits)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorInfo(SensorInfoCategory target, char* buf, int bufsize)
+STATIC RetCode GetSensorInfo(SensorInfoCategory target, char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
     const uint32_t category_table[SensorInfoCategoryNum] = {
@@ -1840,7 +2183,7 @@ STATIC RetCode GetSensorInfo(SensorInfoCategory target, char* buf, int bufsize)
     strinfo.category = category_table[target];
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(INFO_STRING=%d) ret %d", category_table[target],
@@ -1879,7 +2222,7 @@ STATIC bool GetSensorPostProcessSupported(void)
 
     int sc_ret = senscord_stream_get_property(s_scstream,
                                               SENSCORD_POST_PROCESS_AVAILABLE_PROPERTY_KEY,
-                                              (void*)&postproc, sizeof(postproc));
+                                              (void *)&postproc, sizeof(postproc));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(POST_PROCESS_AVAILABLE) ret %d", sc_ret);
@@ -1919,7 +2262,7 @@ STATIC int GetSensorTemperature(int prev_temperature)
     struct senscord_temperature_property_t temperature_prop = {0};
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_TEMPERATURE_PROPERTY_KEY,
-                                              (void*)&temperature_prop, sizeof(temperature_prop));
+                                              (void *)&temperature_prop, sizeof(temperature_prop));
 
     if (sc_ret < 0) {
         SYSAPP_ELOG_ERR(SYSAPP_EVT_FAILED_TO_RETRIEVE_TEMP);
@@ -1987,7 +2330,7 @@ STATIC int GetAiIspTemperature(int prev_temperature)
     struct senscord_temperature_property_t temperature_prop = {0};
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_TEMPERATURE_PROPERTY_KEY,
-                                              (void*)&temperature_prop, sizeof(temperature_prop));
+                                              (void *)&temperature_prop, sizeof(temperature_prop));
 
     if (sc_ret < 0) {
         SYSAPP_ELOG_ERR(SYSAPP_EVT_FAILED_TO_RETRIEVE_TEMP);
@@ -2080,10 +2423,24 @@ STATIC void HoursMeterUpdateIntervalCallback(void)
     return;
 }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 /*----------------------------------------------------------------------------*/
-STATIC CfgStUpdateInfo* GetConfigStateUpdateInfo(uint32_t topic)
+STATIC void StreamingSettingsUpdateIntervalCallback(void)
 {
-    CfgStUpdateInfo* ret = NULL;
+    SYSAPP_DBG("StreamingSettingsUpdateIntervalCallback()");
+
+    // Send streaming_settings.
+
+    SysAppStateSendState(ST_TOPIC_STREAMING_SETTINGS);
+
+    return;
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
+/*----------------------------------------------------------------------------*/
+STATIC CfgStUpdateInfo *GetConfigStateUpdateInfo(uint32_t topic)
+{
+    CfgStUpdateInfo *ret = NULL;
 
     if (topic == ST_TOPIC_DEVICE_STATES) {
     }
@@ -2102,6 +2459,11 @@ STATIC CfgStUpdateInfo* GetConfigStateUpdateInfo(uint32_t topic)
     else if (topic == ST_TOPIC_ENDPOINT_SETTINGS) {
         ret = &(s_endpoint_settings.update);
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (topic == ST_TOPIC_STREAMING_SETTINGS) {
+        ret = &(s_streaming_settings.update);
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else if (topic == ST_TOPIC_UPLOAD_SENSOR_CALIBRATION_PARAM) {
     }
     else if (topic == ST_TOPIC_DEPLOY_FIRMWARE) {
@@ -2119,7 +2481,7 @@ STATIC CfgStUpdateInfo* GetConfigStateUpdateInfo(uint32_t topic)
 /*----------------------------------------------------------------------------*/
 STATIC void RequestConfigStateUpdate(uint32_t topic)
 {
-    CfgStUpdateInfo* info = GetConfigStateUpdateInfo(topic);
+    CfgStUpdateInfo *info = GetConfigStateUpdateInfo(topic);
 
     if (info == NULL) {
         SYSAPP_ERR("RequestConfigStateUpdate(%u) Unknown topic.", topic);
@@ -2137,7 +2499,7 @@ STATIC void RequestConfigStateUpdate(uint32_t topic)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg, size_t error_detail_msg_size)
+STATIC bool AppendErrorDetail(const char *msg, char *error_detail_msg, size_t error_detail_msg_size)
 {
     if (strstr(error_detail_msg, TRUNCATION_SUFFIX) != NULL) {
         return false;
@@ -2165,9 +2527,9 @@ STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg, size_t er
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t flag_count,
-                                           char* error_detail_msg, size_t error_detail_msg_size,
-                                           bool* error_exist)
+STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag *error_flags, size_t flag_count,
+                                           char *error_detail_msg, size_t error_detail_msg_size,
+                                           bool *error_exist)
 {
     for (size_t i = 0; i < flag_count; i++) {
         if (error_flags[i].flag_value != 0) {
@@ -2183,9 +2545,9 @@ STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t 
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, const char* field_name,
-                                                    size_t index, char* error_detail_msg,
-                                                    size_t error_detail_msg_size, bool* error_exist)
+STATIC void CheckErrorFlagAndAppendMessageWithField(const char *base_prefix, const char *field_name,
+                                                    size_t index, char *error_detail_msg,
+                                                    size_t error_detail_msg_size, bool *error_exist)
 {
     char buf[32];
     if (field_name == NULL) {
@@ -2201,7 +2563,7 @@ STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, con
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC char* ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
+STATIC char *ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
 {
     if (err_code == kEsfCodecBase64ResultNullParam) {
         return "Parameter is NULL";
@@ -2233,7 +2595,7 @@ STATIC char* ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size_t* out_size)
+STATIC RetCode SetHashWithB64Encode(uint8_t *in, size_t in_size, char *out, size_t *out_size)
 {
     /* Checks whether all data is 0 */
 
@@ -2252,7 +2614,7 @@ STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size
     }
 
     /* Encode the hash value into Base64 */
-    EsfCodecBase64ResultEnum ret_b64encode = EsfCodecBase64Encode((const uint8_t*)in, in_size, out,
+    EsfCodecBase64ResultEnum ret_b64encode = EsfCodecBase64Encode((const uint8_t *)in, in_size, out,
                                                                   out_size);
 
     if (ret_b64encode != kEsfCodecBase64ResultSuccess) {
@@ -2265,7 +2627,7 @@ STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
+STATIC RetCode GetSensorLoaderVersion(char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
 
@@ -2286,7 +2648,7 @@ STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
     // Get loader version
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(Loader Version) ret %d", sc_ret);
@@ -2312,7 +2674,7 @@ STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorFirmwareVersion(char* buf, int bufsize)
+STATIC RetCode GetSensorFirmwareVersion(char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
 
@@ -2333,7 +2695,7 @@ STATIC RetCode GetSensorFirmwareVersion(char* buf, int bufsize)
     // Get firmware version
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(Firmware Version) ret %d", sc_ret);
@@ -2413,7 +2775,7 @@ STATIC CfgStPowerSupplyType GetPowerSupplyType(void)
 //
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStaInitialize(struct SYS_client* sys_client)
+RetCode SysAppStaInitialize(struct SYS_client *sys_client)
 {
     SYSAPP_INFO("Initialize State block.");
     RetCode ret = kRetOk;
@@ -2507,6 +2869,13 @@ RetCode SysAppStaInitialize(struct SYS_client* sys_client)
     SysAppStateReadoutEndpointSettings();
     SysAppStateSendState(ST_TOPIC_ENDPOINT_SETTINGS);
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Readout and send streaming_settings.
+
+    SysAppStateReadoutStreamingSettings();
+    SysAppStateSendState(ST_TOPIC_STREAMING_SETTINGS);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 mtx_init_failed:
 ssfds_open_failed:
 
@@ -2514,25 +2883,25 @@ ssfds_open_failed:
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateGetSensCordId(void* core_id)
+RetCode SysAppStateGetSensCordId(void *core_id)
 {
     if (s_sccore == 0) {
         return kRetFailed;
     }
 
-    *(senscord_core_t*)core_id = s_sccore;
+    *(senscord_core_t *)core_id = s_sccore;
 
     return kRetOk;
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateGetSensCordStream(void* stream)
+RetCode SysAppStateGetSensCordStream(void *stream)
 {
     if (s_scstream == 0) {
         return kRetFailed;
     }
 
-    *(senscord_stream_t*)stream = s_scstream;
+    *(senscord_stream_t *)stream = s_scstream;
 
     return kRetOk;
 }
@@ -2622,6 +2991,27 @@ RetCode SysAppStateUpdateNumber(uint32_t topic, uint32_t type, int number)
         else {
         }
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (topic == ST_TOPIC_STREAMING_SETTINGS) {
+        if (type == StreamingProcessState) {
+            s_streaming_settings.process_state = (CfgStStreamProcessState)number;
+        }
+        else if (type == OperatingMode) {
+            s_streaming_settings.operating_mode = (CfgStStreamOperatingMode)number;
+        }
+        else if (type == NfsVersion) {
+            s_streaming_settings.nfs_config.nfs_version = (CfgStNfsVersion)number;
+        }
+        else if (type == UseTcp) {
+            s_streaming_settings.nfs_config.use_tcp = number;
+        }
+        else if (type == MaxRecordTime) {
+            s_streaming_settings.nfs_config.max_record_time = number;
+        }
+        else {
+        }
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else if (topic == ST_TOPIC_UPLOAD_SENSOR_CALIBRATION_PARAM) {
     }
     else if (topic == ST_TOPIC_DEPLOY_FIRMWARE) {
@@ -2710,7 +3100,7 @@ RetCode SysAppStateUpdateBoolean(uint32_t topic, uint32_t type, bool boolean)
 }
 
 /*----------------------------------------------------------------------------*/
-void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
+void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string)
 {
     SYSAPP_INFO("SysAppStateUpdateString topic:%u  prop:%d.", topic, type);
 
@@ -2815,6 +3205,41 @@ void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
         else {
         }
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (topic == ST_TOPIC_STREAMING_SETTINGS) {
+        if (type == Id) {
+            snprintf(s_streaming_settings.id, sizeof(s_streaming_settings.id), "%s", string);
+        }
+        else if (type == ServerIp) {
+            snprintf(s_streaming_settings.rtsp_config.server_ip,
+                     sizeof(s_streaming_settings.rtsp_config.server_ip), "%s", string);
+        }
+        else if (type == StreamName) {
+            snprintf(s_streaming_settings.rtsp_config.stream_name,
+                     sizeof(s_streaming_settings.rtsp_config.stream_name), "%s",
+                     string ? string : DEFAULT_STREAM_NAME);
+        }
+        else if (type == UserName) {
+            snprintf(s_streaming_settings.rtsp_config.user_name,
+                     sizeof(s_streaming_settings.rtsp_config.user_name), "%s",
+                     string ? string : "");
+        }
+        else if (type == Password) {
+            snprintf(s_streaming_settings.rtsp_config.password,
+                     sizeof(s_streaming_settings.rtsp_config.password), "%s", string ? string : "");
+        }
+        else if (type == NfsServerIp) {
+            snprintf(s_streaming_settings.nfs_config.server_ip,
+                     sizeof(s_streaming_settings.nfs_config.server_ip), "%s", string);
+        }
+        else if (type == MountPath) {
+            snprintf(s_streaming_settings.nfs_config.mount_path,
+                     sizeof(s_streaming_settings.nfs_config.mount_path), "%s", string);
+        }
+        else {
+        }
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else if (topic == ST_TOPIC_UPLOAD_SENSOR_CALIBRATION_PARAM) {
     }
     else if (topic == ST_TOPIC_DEPLOY_FIRMWARE) {
@@ -2832,7 +3257,7 @@ void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char* string,
+RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char *string,
                                        uint32_t idx)
 {
     RetCode ret = kRetOk;
@@ -3011,6 +3436,11 @@ RetCode SysAppStateSetInvalidArgError(uint32_t topic, uint32_t property)
     else if (topic == ST_TOPIC_ENDPOINT_SETTINGS) {
         s_endpoint_settings.update.invalid_arg_flag = (1 << property);
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (topic == ST_TOPIC_STREAMING_SETTINGS) {
+        s_streaming_settings.update.invalid_arg_flag = (1 << property);
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else {
     }
 
@@ -3101,6 +3531,11 @@ RetCode SysAppStateSetInternalError(uint32_t topic, uint32_t property)
     else if (topic == ST_TOPIC_ENDPOINT_SETTINGS) {
         s_endpoint_settings.update.internal_error_flag = (1 << property);
     }
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    else if (topic == ST_TOPIC_STREAMING_SETTINGS) {
+        s_streaming_settings.update.internal_error_flag = (1 << property);
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
     else {
     }
 
@@ -3513,12 +3948,12 @@ RetCode SysAppStateReadoutAiModels(void)
     // Get information for sensor.
 
     EsfFwMgrGetInfoData info;
-    EsfFwMgrGetInfoResponse* response = NULL;
+    EsfFwMgrGetInfoResponse *response = NULL;
     EsfFwMgrResult res;
 
     size_t bsize = sizeof(EsfFwMgrGetInfoResponse) * ST_AIMODELS_NUM;
 
-    response = (EsfFwMgrGetInfoResponse*)malloc(bsize);
+    response = (EsfFwMgrGetInfoResponse *)malloc(bsize);
 
     if (response == NULL) {
         SYSAPP_ERR("malloc");
@@ -3838,7 +4273,7 @@ RetCode SysAppStateReadoutSystemSettings(void)
 
     // Get information for temperature_update_interval.
 
-    s_system_settings.temperature_update_interval = 10;
+    s_system_settings.temperature_update_interval = DEFAULT_UPDATE_INTERVAL_SEC;
 
     ret = SysAppTimerStartTimer(SensorTempIntervalTimer,
                                 s_system_settings.temperature_update_interval,
@@ -4336,8 +4771,8 @@ RetCode SysAppStateReadoutEndpointSettings(void)
     size_t endp_host_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE;
     size_t endp_port_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE;
 
-    char* endpoint_url = (char*)malloc(endp_host_buf_size);
-    char* endpoint_port = (char*)malloc(endp_port_buf_size);
+    char *endpoint_url = (char *)malloc(endp_host_buf_size);
+    char *endpoint_port = (char *)malloc(endp_port_buf_size);
 
     if ((endpoint_url == NULL) || (endpoint_port == NULL)) {
         SYSAPP_ERR("malloc");
@@ -4395,10 +4830,33 @@ RetCode SysAppStateReadoutEndpointSettings(void)
     return ret;
 }
 
-/*----------------------------------------------------------------------*/
-char* SysAppStateGetReqId(uint32_t topic)
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+/*----------------------------------------------------------------------------*/
+RetCode SysAppStateReadoutStreamingSettings(void)
 {
-    char* ret = NULL;
+    RetCode ret = kRetOk;
+
+    // Start streaming settings update interval timer
+
+    ret = SysAppTimerStartTimer(StreamingSettingsIntervalTimer, DEFAULT_UPDATE_INTERVAL_SEC,
+                                StreamingSettingsUpdateIntervalCallback);
+
+    if (ret != kRetOk) {
+        SYSAPP_WARN("SysAppTimerStartTimer() failed %d", ret);
+    }
+
+    // Set send request.
+
+    RequestConfigStateUpdate(ST_TOPIC_STREAMING_SETTINGS);
+
+    return ret;
+}
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
+/*----------------------------------------------------------------------*/
+char *SysAppStateGetReqId(uint32_t topic)
+{
+    char *ret = NULL;
 
     if (topic == ST_TOPIC_DEVICE_STATES) {
     }
@@ -4432,13 +4890,13 @@ char* SysAppStateGetReqId(uint32_t topic)
 }
 
 /*----------------------------------------------------------------------*/
-void SysAppStateGetTemperatureUpdateInterval(int* temperature_update_interval)
+void SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval)
 {
     *temperature_update_interval = s_system_settings.temperature_update_interval;
 }
 
 /*----------------------------------------------------------------------*/
-char* SysAppStateGetProtocolVersion(void)
+char *SysAppStateGetProtocolVersion(void)
 {
     return &(s_endpoint_settings.protocol_version[0]);
 }
@@ -4536,7 +4994,7 @@ bool SysAppStaIsStateQueueEmpty(void)
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------------*/
-bool SysAppStateIsUnimplementedTopic(const char* topic)
+bool SysAppStateIsUnimplementedTopic(const char *topic)
 {
     bool ret = false;
 
@@ -4551,7 +5009,7 @@ bool SysAppStateIsUnimplementedTopic(const char* topic)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateSendUnimplementedState(const char* topic, const char* id)
+RetCode SysAppStateSendUnimplementedState(const char *topic, const char *id)
 {
     RetCode ret = kRetOk;
 

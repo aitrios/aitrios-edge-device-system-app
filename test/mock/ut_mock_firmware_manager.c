@@ -14,16 +14,16 @@
 #include "firmware_manager.h"
 
 /*----------------------------------------------------------------------------*/
-EsfFwMgrResult __wrap_EsfFwMgrGetFactoryResetFlag(bool* factory_reset_flag)
+EsfFwMgrResult __wrap_EsfFwMgrGetFactoryResetFlag(bool *factory_reset_flag)
 {
     *factory_reset_flag = mock_type(bool);
     return mock_type(EsfFwMgrResult);
 }
 
 /*----------------------------------------------------------------------------*/
-EsfFwMgrResult __wrap_EsfFwMgrGetInfo(EsfFwMgrGetInfoData* data)
+EsfFwMgrResult __wrap_EsfFwMgrGetInfo(EsfFwMgrGetInfoData *data)
 {
-    memcpy(data->response, mock_type(EsfFwMgrGetInfoResponse*),
+    memcpy(data->response, mock_type(EsfFwMgrGetInfoResponse *),
            sizeof(EsfFwMgrGetInfoResponse) * data->in_length);
     data->out_length = data->in_length;
     return mock_type(EsfFwMgrResult);
@@ -48,9 +48,9 @@ EsfFwMgrResult __wrap_EsfFwMgrSetFactoryResetFlag(bool factory_reset_flag)
 }
 
 /*----------------------------------------------------------------------------*/
-EsfFwMgrResult __wrap_EsfFwMgrOpen(const EsfFwMgrOpenRequest* request,
-                                   const EsfFwMgrPrepareWriteRequest* prepare_write,
-                                   EsfFwMgrOpenResponse* response)
+EsfFwMgrResult __wrap_EsfFwMgrOpen(const EsfFwMgrOpenRequest *request,
+                                   const EsfFwMgrPrepareWriteRequest *prepare_write,
+                                   EsfFwMgrOpenResponse *response)
 {
     response->handle = mock_type(EsfFwMgrHandle);
     response->prepare_write.memory_size = mock_type(int32_t);
@@ -60,7 +60,7 @@ EsfFwMgrResult __wrap_EsfFwMgrOpen(const EsfFwMgrOpenRequest* request,
 }
 
 /*----------------------------------------------------------------------------*/
-EsfFwMgrResult __wrap_EsfFwMgrWrite(EsfFwMgrHandle handle, const EsfFwMgrWriteRequest* request)
+EsfFwMgrResult __wrap_EsfFwMgrWrite(EsfFwMgrHandle handle, const EsfFwMgrWriteRequest *request)
 {
     return mock_type(EsfFwMgrResult);
 }
@@ -85,7 +85,7 @@ EsfFwMgrResult __wrap_EsfFwMgrPostProcess(EsfFwMgrHandle handle)
 
 /*----------------------------------------------------------------------------*/
 EsfFwMgrResult __wrap_EsfFwMgrCopyToInternalBuffer(
-    EsfFwMgrHandle handle, const EsfFwMgrCopyToInternalBufferRequest* request)
+    EsfFwMgrHandle handle, const EsfFwMgrCopyToInternalBufferRequest *request)
 {
     check_expected(handle);
     check_expected(request->offset);
@@ -104,7 +104,7 @@ EsfFwMgrResult __wrap_EsfFwMgrStartFactoryReset(EsfFwMgrFactoryResetCause cause)
 
 /*----------------------------------------------------------------------------*/
 EsfFwMgrResult __wrap_EsfFwMgrGetBinaryHeaderInfo(EsfFwMgrHandle handle,
-                                                  EsfFwMgrBinaryHeaderInfo* info)
+                                                  EsfFwMgrBinaryHeaderInfo *info)
 {
     info->sw_arch_version = mock_type(EsfFwMgrSwArchVersion);
     return mock_type(EsfFwMgrResult);

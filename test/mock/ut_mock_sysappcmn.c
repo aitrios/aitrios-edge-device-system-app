@@ -28,18 +28,18 @@ static uint32_t set_real_number_set_val_num = 0;
 
 /*----------------------------------------------------------------------------*/
 int __wrap_SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                       const char* jsonkey, const char** string)
+                                       const char *jsonkey, const char **string)
 {
     check_expected(handle);
     check_expected(parent_val);
     check_expected_ptr(jsonkey);
-    *string = mock_type(const char*);
+    *string = mock_type(const char *);
     return mock_type(int);
 }
 
 /*----------------------------------------------------------------------------*/
 int __wrap_SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                       const char* jsonkey, int* number)
+                                       const char *jsonkey, int *number)
 {
     check_expected(handle);
     check_expected(parent_val);
@@ -64,7 +64,7 @@ void SetSysAppCmnExtractRealNumberValue(double value)
 
 /*----------------------------------------------------------------------------*/
 int __wrap_SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                           const char* jsonkey, double* number)
+                                           const char *jsonkey, double *number)
 {
     check_expected(handle);
     check_expected(parent_val);
@@ -95,7 +95,7 @@ int __wrap_SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue pa
 
 /*----------------------------------------------------------------------------*/
 int __wrap_SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                        const char* jsonkey, bool* boolean)
+                                        const char *jsonkey, bool *boolean)
 {
     check_expected(handle);
     check_expected(parent_val);
@@ -106,23 +106,23 @@ int __wrap_SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue paren
 
 /*----------------------------------------------------------------------------*/
 int __wrap_SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                       const char* jsonkey, EsfJsonValue* object)
+                                       const char *jsonkey, EsfJsonValue *object)
 {
     return mock_type(int);
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char** req_id)
+RetCode __wrap_SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char **req_id)
 {
     check_expected(handle);
     check_expected(parent_val);
-    *req_id = mock_type(const char*);
+    *req_id = mock_type(const char *);
     return mock_type(RetCode);
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                       const char* string)
+RetCode __wrap_SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                       const char *string)
 {
     check_expected(handle);
     check_expected(parent);
@@ -132,7 +132,7 @@ RetCode __wrap_SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode __wrap_SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                        int number)
 {
     check_expected(handle);
@@ -158,7 +158,7 @@ void SetSysAppCmnSetRealNumberValue(double value)
 
 /*----------------------------------------------------------------------------*/
 RetCode __wrap_SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent,
-                                           const char* key, double number)
+                                           const char *key, double number)
 {
     check_expected(handle);
     check_expected(parent);
@@ -195,16 +195,16 @@ RetCode __wrap_SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue pa
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode __wrap_SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                         bool boolean)
 {
     return mock_type(RetCode);
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                       RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void*),
-                                       void* ctx)
+RetCode __wrap_SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                       RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void *),
+                                       void *ctx)
 {
     bool exec_cb_flag;
 
@@ -227,8 +227,8 @@ RetCode __wrap_SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent
 
 /*----------------------------------------------------------------------------*/
 RetCode __wrap_SysAppCmnSetArrayValue(
-    EsfJsonHandle handle, EsfJsonValue parent, const char* key, uint32_t array_num,
-    RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void*), void* ctx)
+    EsfJsonHandle handle, EsfJsonValue parent, const char *key, uint32_t array_num,
+    RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void *), void *ctx)
 {
 #if defined(SYSTEM_APP_DIRECT_COMMAND)
     check_expected(handle);
@@ -251,8 +251,8 @@ RetCode __wrap_SysAppCmnSetArrayValue(
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char* res_id,
-                                        int code, const char* detail_msg)
+RetCode __wrap_SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
+                                        int code, const char *detail_msg)
 {
     check_expected(handle);
     check_expected(root);
@@ -265,7 +265,7 @@ RetCode __wrap_SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root,
 
 /*----------------------------------------------------------------------------*/
 RetCode __wrap_SysAppCmnSetStringValueFileIO(EsfJsonHandle handle, EsfJsonValue parent,
-                                             const char* key, EsfMemoryManagerHandle mm_handle,
+                                             const char *key, EsfMemoryManagerHandle mm_handle,
                                              size_t size)
 {
     check_expected(handle);
@@ -279,7 +279,7 @@ RetCode __wrap_SysAppCmnSetStringValueFileIO(EsfJsonHandle handle, EsfJsonValue 
 
 /*----------------------------------------------------------------------------*/
 RetCode __wrap_SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent,
-                                             const char* key, EsfMemoryManagerHandle mm_handle,
+                                             const char *key, EsfMemoryManagerHandle mm_handle,
                                              size_t size)
 {
     check_expected(handle);

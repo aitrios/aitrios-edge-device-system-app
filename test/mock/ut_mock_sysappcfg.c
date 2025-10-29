@@ -14,7 +14,7 @@
 #include "system_app_configuration.h"
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppCfgInitialize(struct SYS_client* sys_client)
+RetCode __wrap_SysAppCfgInitialize(struct SYS_client *sys_client)
 {
     return mock_type(RetCode);
 }

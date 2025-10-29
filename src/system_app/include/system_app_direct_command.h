@@ -57,17 +57,17 @@ typedef enum {
 // Public functions declaration.
 //
 
-RetCode SysAppDcmdInitialize(struct SYS_client* evp_client);
+RetCode SysAppDcmdInitialize(struct SYS_client *evp_client);
 RetCode SysAppDcmdFinalize(void);
-bool SysAppDcmdCheckSelfTerminate(TerminationReason* reason);
+bool SysAppDcmdCheckSelfTerminate(TerminationReason *reason);
 void SysAppDcmdRebootCore(void);       // This API can be called after SysAppDcmdFinalize().
 void SysAppDcmdFactoryResetCore(void); // This API can be called after SysAppDcmdFinalize().
-RetCode SysAppDcmdReboot(SYS_response_id cmd_id, const char* req_id, const char* param);
-RetCode SysAppDcmdShutdown(SYS_response_id cmd_id, const char* req_id, const char* param);
-RetCode SysAppDcmdFactoryReset(SYS_response_id cmd_id, const char* req_id, const char* param);
-RetCode SysAppDcmdDirectGetImage(SYS_response_id cmd_id, const char* req_id, const char* param);
-RetCode SysAppDcmdReadSensorRegister(SYS_response_id cmd_id, const char* req_id, const char* param);
-RetCode SysAppDcmdWriteSensorRegister(SYS_response_id cmd_id, const char* req_id,
-                                      const char* param);
+RetCode SysAppDcmdReboot(SYS_response_id cmd_id, const char *req_id, const char *param);
+RetCode SysAppDcmdShutdown(SYS_response_id cmd_id, const char *req_id, const char *param);
+RetCode SysAppDcmdFactoryReset(SYS_response_id cmd_id, const char *req_id, const char *param);
+RetCode SysAppDcmdDirectGetImage(SYS_response_id cmd_id, const char *req_id, const char *param);
+RetCode SysAppDcmdReadSensorRegister(SYS_response_id cmd_id, const char *req_id, const char *param);
+RetCode SysAppDcmdWriteSensorRegister(SYS_response_id cmd_id, const char *req_id,
+                                      const char *param);
 
 #endif // _SYSTEM_APP_DIRECT_COMMAND_H_

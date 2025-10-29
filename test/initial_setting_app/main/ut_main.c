@@ -29,7 +29,7 @@
 #include "initial_setting_app_timer.h"
 #include "system_app_common.h"
 
-extern bool InitializeApp(struct senscord_image_property_t* img_prop);
+extern bool InitializeApp(struct senscord_image_property_t *img_prop);
 extern void FinalizeApp(void);
 extern void SetLedStatusForQrCodeMode(void);
 extern void UnsetLedStatusOfWaitingInputToConnectConsole(void);
@@ -45,12 +45,12 @@ extern bool s_senscord_core_init_success;
 extern bool s_senscord_open_success;
 extern bool s_senscord_start_success;
 
-extern uint8_t* sp_qrcode_payload_buff;
+extern uint8_t *sp_qrcode_payload_buff;
 
 extern bool s_qr_mode_timeout_reboot_request;
 
 #if defined(INITIAL_SETTING_APP_UT) && defined(__NuttX__)
-int initial_setting_app_main_for_test(int argc, char* argv[]);
+int initial_setting_app_main_for_test(int argc, char *argv[]);
 #endif // INITIAL_SETTING_APP_UT
 
 /*----------------------------------------------------------------------------*/
@@ -111,7 +111,7 @@ static void SetSensCordInputDataProperty(int32_t ret)
 }
 
 /*----------------------------------------------------------------------------*/
-static void GetSensCordGetProperty(struct senscord_image_property_t** expected_img_prop,
+static void GetSensCordGetProperty(struct senscord_image_property_t **expected_img_prop,
                                    int32_t ret)
 {
     expect_value(__wrap_senscord_stream_get_property, stream, s_stream);
@@ -200,7 +200,7 @@ static void SensCordStreamReleaseFrame(senscord_frame_t frame, int32_t ret)
 /*----------------------------------------------------------------------------*/
 static void CallMainforTest(int expected_result)
 {
-    char* argv[] = {"ISA_main", "arg1"}; // dummy value
+    char *argv[] = {"ISA_main", "arg1"}; // dummy value
 #if defined(__NuttX__)
     int result = initial_setting_app_main_for_test(2, argv);
 #else
@@ -252,7 +252,7 @@ static void NotPSMode_Success()
 }
 
 /*----------------------------------------------------------------------------*/
-static void MapMemory_Success(struct senscord_raw_data_t* raw_data, char* map_address)
+static void MapMemory_Success(struct senscord_raw_data_t *raw_data, char *map_address)
 {
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_FILEIO
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 1);
@@ -295,7 +295,7 @@ static void MapMemory_Success(struct senscord_raw_data_t* raw_data, char* map_ad
 }
 
 /*----------------------------------------------------------------------------*/
-static void UnmapMemory_Success(char* map_address)
+static void UnmapMemory_Success(char *map_address)
 {
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_FILEIO
     expect_value(__wrap_IsaLargeHeapFree, memory_address, map_address);
@@ -308,7 +308,7 @@ static void UnmapMemory_Success(char* map_address)
 }
 
 /*----------------------------------------------------------------------------*/
-static void InitializeApp_Success(struct senscord_image_property_t* expected_img_prop)
+static void InitializeApp_Success(struct senscord_image_property_t *expected_img_prop)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -384,9 +384,9 @@ static void TerminationProcessAborted()
 }
 
 /*----------------------------------------------------------------------------*/
-static void* AllocateGrayBuff(size_t height, size_t width)
+static void *AllocateGrayBuff(size_t height, size_t width)
 {
-    void* ptr = malloc(height * width);
+    void *ptr = malloc(height * width);
     return ptr;
 }
 
@@ -400,7 +400,7 @@ static void CleanupQRPayloadBuff()
 }
 
 /*----------------------------------------------------------------------------*/
-static int setup(void** state)
+static int setup(void **state)
 {
     // initialize static variable
     s_core = 0;
@@ -418,7 +418,7 @@ static int setup(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static int teardown(void** state)
+static int teardown(void **state)
 {
     // free heap memory
     CleanupQRPayloadBuff();
@@ -434,7 +434,7 @@ static int teardown(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_SetLedStatusForQrCodeMode_Failed(void** state)
+static void test_SetLedStatusForQrCodeMode_Failed(void **state)
 {
     // SetLedStatusForQrCodeMode() Failed
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
@@ -447,7 +447,7 @@ static void test_SetLedStatusForQrCodeMode_Failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetLedStatusForQrCodeMode_fully_success(void** state)
+static void test_SetLedStatusForQrCodeMode_fully_success(void **state)
 {
     SetLedStatusForQrCodeMode_Success();
     SetLedStatusForQrCodeMode();
@@ -460,7 +460,7 @@ static void test_SetLedStatusForQrCodeMode_fully_success(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_UnsetLedStatusOfWaitingInputToConnectConsole_fully_success(void** state)
+static void test_UnsetLedStatusOfWaitingInputToConnectConsole_fully_success(void **state)
 {
     // Disable WaitingForInputsToConnectConsole.
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
@@ -480,7 +480,7 @@ static void test_UnsetLedStatusOfWaitingInputToConnectConsole_fully_success(void
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_qr_failed(void** state)
+static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_qr_failed(void **state)
 {
     // Disable WaitingForInputsToConnectConsole.
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
@@ -500,7 +500,7 @@ static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_qr_failed(vo
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_ps_failed(void** state)
+static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_ps_failed(void **state)
 {
     // Disable WaitingForInputsToConnectConsole.
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
@@ -524,7 +524,7 @@ static void test_UnsetLedStatusOfWaitingInputToConnectConsole_unset_ps_failed(vo
 // SetLedStatusForQrCodeError()
 //
 /*----------------------------------------------------------------------------*/
-static void test_SetLedStatusForQrCodeError_fully_success(void** state)
+static void test_SetLedStatusForQrCodeError_fully_success(void **state)
 {
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
     expect_value(__wrap_EsfLedManagerSetStatus, status->status,
@@ -536,7 +536,7 @@ static void test_SetLedStatusForQrCodeError_fully_success(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_SetLedStatusForQrCodeError_EsfLedManagerSetStatus_failed(void** state)
+static void test_SetLedStatusForQrCodeError_EsfLedManagerSetStatus_failed(void **state)
 {
     expect_value(__wrap_EsfLedManagerSetStatus, status->led, kEsfLedManagerTargetLedPower);
     expect_value(__wrap_EsfLedManagerSetStatus, status->status,
@@ -582,7 +582,7 @@ static void test_UnsetLedStatusForQrCodeError_EsfLedManagerSetStatus_failed()
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_main_BtnAborted(void** state)
+static void test_main_BtnAborted(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetFailed);
     expect_value(__wrap_EsfSystemManagerSetQrModeTimeoutValue, data, 0);
@@ -630,7 +630,7 @@ static void test_main_BtnAborted_EsfPwrMgrPrepareReboot_Failed()
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_TimerAborted(void** state)
+static void test_main_TimerAborted(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetFailed);
@@ -641,7 +641,7 @@ static void test_main_TimerAborted(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_TimerAborted_WaitFactoryReset(void** state)
+static void test_main_TimerAborted_WaitFactoryReset(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetFailed);
@@ -673,7 +673,7 @@ static void test_main_TimerAborted_WaitFactoryReset(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_SsfSensorInit_Failed(void** state)
+static void test_main_SsfSensorInit_Failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -718,7 +718,7 @@ static void test_main_SsfSensorInit_Failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_TimeoutValue_Failed_PSAborted(void** state)
+static void test_main_TimeoutValue_Failed_PSAborted(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -740,7 +740,7 @@ static void test_main_TimeoutValue_Failed_PSAborted(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_PSCompleted(void** state)
+static void test_main_PSCompleted(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -760,7 +760,7 @@ static void test_main_PSCompleted(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_PSCompleted_FR(void** state)
+static void test_main_PSCompleted_FR(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -780,7 +780,7 @@ static void test_main_PSCompleted_FR(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_PSSuccess_InitializeApp_malloc_failed(void** state)
+static void test_main_PSSuccess_InitializeApp_malloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -811,7 +811,7 @@ static void test_main_PSSuccess_InitializeApp_malloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void** state)
+static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -843,7 +843,7 @@ static void test_main_QRmode_with_tmo_InitializeApp_malloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void** state)
+static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -872,7 +872,7 @@ static void test_main_QRmode_with_minus_tmo_InitializeApp_malloc_failed(void** s
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_senscord_stream_get_property_ULog_gray_alloc_failed(void** state)
+static void test_main_NotPS_senscord_stream_get_property_ULog_gray_alloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -902,7 +902,7 @@ static void test_main_NotPS_senscord_stream_get_property_ULog_gray_alloc_failed(
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_senscord_stream_get_property_gray_alloc_failed(void** state)
+static void test_main_NotPS_senscord_stream_get_property_gray_alloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -931,7 +931,7 @@ static void test_main_NotPS_senscord_stream_get_property_gray_alloc_failed(void*
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_ULog_gray_alloc_failed(void** state)
+static void test_main_NotPS_ULog_gray_alloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -961,7 +961,7 @@ static void test_main_NotPS_ULog_gray_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_gray_alloc_failed(void** state)
+static void test_main_NotPS_gray_alloc_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -990,7 +990,7 @@ static void test_main_NotPS_gray_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
+static void test_main_NotPS_senscord_stream_get_frame_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -1009,7 +1009,7 @@ static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678); // ok, dummy ptr
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678); // ok, dummy ptr
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1017,7 +1017,7 @@ static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
     SensCordGetFrame(-1); // fail
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1027,7 +1027,7 @@ static void test_main_NotPS_senscord_stream_get_frame_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
+static void test_main_NotPS_senscord_frame_get_channel_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -1046,7 +1046,7 @@ static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1062,7 +1062,7 @@ static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1072,7 +1072,7 @@ static void test_main_NotPS_senscord_frame_get_channel_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_senscord_channel_get_raw_data_failed(void** state)
+static void test_main_NotPS_senscord_channel_get_raw_data_failed(void **state)
 {
     will_return(__wrap_IsaBtnInitialize, kRetOk);
     will_return(__wrap_IsaTimerInitialize, kRetOk);
@@ -1091,7 +1091,7 @@ static void test_main_NotPS_senscord_channel_get_raw_data_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1114,7 +1114,7 @@ static void test_main_NotPS_senscord_channel_get_raw_data_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1125,7 +1125,7 @@ static void test_main_NotPS_senscord_channel_get_raw_data_failed(void** state)
 
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_FILEIO
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
+static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1135,7 +1135,7 @@ static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1156,7 +1156,7 @@ static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
     // heap alloc (pool_no = 0)
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1182,7 +1182,7 @@ static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678); // free pool_no = 0
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678); // free pool_no = 0
 
     FinalizeApp_Success();
 
@@ -1192,7 +1192,7 @@ static void test_main_NotPS_IsaLargeHeapAlloc_pool1_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
+static void test_main_NotPS_EsfMemoryManagerFopen_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1202,7 +1202,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1223,7 +1223,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
     // heap alloc (pool_no = 0)
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1239,7 +1239,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // heap alloc (pool_no = 1)
-    char* dummy_map_address = "0x87654321"; // dummy ptr
+    char *dummy_map_address = "0x87654321"; // dummy ptr
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 1);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size,
                  (EsfMemoryManagerHandle)dummy_raw_data.size);
@@ -1254,7 +1254,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
     // heap free (pool_no = 1)
     expect_value(__wrap_IsaLargeHeapFree, memory_address, dummy_map_address);
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1264,7 +1264,7 @@ static void test_main_NotPS_EsfMemoryManagerFopen_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
+static void test_main_NotPS_EsfMemoryManagerFread_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1274,7 +1274,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1295,7 +1295,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
     // heap alloc (pool_no = 0)
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1311,7 +1311,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // heap alloc (pool_no = 1)
-    char* dummy_map_address = "0x87654321"; // dummy ptr
+    char *dummy_map_address = "0x87654321"; // dummy ptr
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 1);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size,
                  (EsfMemoryManagerHandle)dummy_raw_data.size);
@@ -1333,7 +1333,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
     // heap free (pool_no = 1)
     expect_value(__wrap_IsaLargeHeapFree, memory_address, dummy_map_address);
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     expect_value(__wrap_EsfMemoryManagerFclose, handle,
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
@@ -1349,7 +1349,7 @@ static void test_main_NotPS_EsfMemoryManagerFread_failed(void** state)
 #endif
 #ifdef CONFIG_EXTERNAL_LARGE_HEAP_MEMORY_MAP
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
+static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1360,7 +1360,7 @@ static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1381,7 +1381,7 @@ static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1410,7 +1410,7 @@ static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1420,7 +1420,7 @@ static void test_main_NotPS_EsfMemoryManagerGetHandleInfo_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
+static void test_main_NotPS_invalid_height_map_alloc_failed(void **state)
 {
     // define expected img_prop
     struct senscord_image_property_t expected_img_prop = {
@@ -1431,7 +1431,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1452,7 +1452,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1472,7 +1472,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
-    char* dummy_map_address = "0x87654321"; // dummy
+    char *dummy_map_address = "0x87654321"; // dummy
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, dummy_raw_data.size);
@@ -1483,7 +1483,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1493,7 +1493,7 @@ static void test_main_NotPS_invalid_height_map_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
+static void test_main_NotPS_invalid_width_map_alloc_failed(void **state)
 {
     // define expected img_prop
     struct senscord_image_property_t expected_img_prop = {
@@ -1504,7 +1504,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1525,7 +1525,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1545,7 +1545,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
-    char* dummy_map_address = "0x87654321";
+    char *dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, dummy_raw_data.size);
@@ -1556,7 +1556,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1566,7 +1566,7 @@ static void test_main_NotPS_invalid_width_map_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
+static void test_main_NotPS_invalid_stride_map_alloc_failed(void **state)
 {
     // define expected img_prop
     struct senscord_image_property_t expected_img_prop = {
@@ -1578,7 +1578,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1599,7 +1599,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1619,7 +1619,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
-    char* dummy_map_address = "0x87654321";
+    char *dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, dummy_raw_data.size);
@@ -1630,7 +1630,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1640,7 +1640,7 @@ static void test_main_NotPS_invalid_stride_map_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
+static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void **state)
 {
     // define expected img_prop
     struct senscord_image_property_t expected_img_prop = {
@@ -1653,7 +1653,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1674,7 +1674,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1694,7 +1694,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
-    char* dummy_map_address = "0x87654321";
+    char *dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, dummy_raw_data.size);
@@ -1705,7 +1705,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1715,7 +1715,7 @@ static void test_main_NotPS_invalid_pixel_format_map_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_map_alloc_failed(void** state)
+static void test_main_NotPS_map_alloc_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1726,7 +1726,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1747,7 +1747,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1767,7 +1767,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
                  (EsfMemoryManagerHandle)(uintptr_t)dummy_raw_data.address);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerTargetLargeHeap);
     will_return(__wrap_EsfMemoryManagerGetHandleInfo, kEsfMemoryManagerResultSuccess);
-    char* dummy_map_address = "0x87654321";
+    char *dummy_map_address = "0x87654321";
     expect_value(__wrap_EsfMemoryManagerMap, handle, dummy_raw_data.address);
     expect_value(__wrap_EsfMemoryManagerMap, exec_env, NULL);
     expect_value(__wrap_EsfMemoryManagerMap, size, dummy_raw_data.size);
@@ -1778,7 +1778,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1788,7 +1788,7 @@ static void test_main_NotPS_map_alloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
+static void test_main_NotPS_GrayScale_Unmap_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1799,7 +1799,7 @@ static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1820,7 +1820,7 @@ static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1836,11 +1836,11 @@ static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -1867,7 +1867,7 @@ static void test_main_NotPS_GrayScale_Unmap_failed(void** state)
     SensCordStreamReleaseFrame(frame, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -1885,7 +1885,7 @@ exit:
 #endif
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_success(void** state)
+static void test_main_NotPS_GrayScale_success(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -1896,7 +1896,7 @@ static void test_main_NotPS_GrayScale_success(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -1917,7 +1917,7 @@ static void test_main_NotPS_GrayScale_success(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -1933,11 +1933,11 @@ static void test_main_NotPS_GrayScale_success(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -1976,7 +1976,7 @@ static void test_main_NotPS_GrayScale_success(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk); // ok
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_AllRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -1994,7 +1994,7 @@ static void test_main_NotPS_GrayScale_success(void** state)
     will_return(__wrap_IsaWriteQrcodePayloadToFlash, kIsaQrcode_Success);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2017,7 +2017,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
+static void test_main_NotPS_GrayScale_width_not_equal_stride(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2032,12 +2032,12 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
     struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    char *map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
     if (map_address == NULL) {
         goto exit;
     }
 #else  // expect __linux__
-    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
+    void *raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
     if (raw_data_address == NULL) {
         goto exit;
     }
@@ -2045,7 +2045,7 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
                                            .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = "0x87654321"; // dummy ptr
+    char *map_address = "0x87654321"; // dummy ptr
 #endif // defined(__NuttX__)
 
     will_return(__wrap_IsaBtnInitialize, kRetOk);
@@ -2062,7 +2062,7 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
 
     // heap alloc
-    unsigned char* gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
+    unsigned char *gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
     will_return(__wrap_IsaLargeHeapAlloc, gray_buff); // for ConvertfromGrayToGray()
@@ -2084,7 +2084,7 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2118,7 +2118,7 @@ static void test_main_NotPS_GrayScale_width_not_equal_stride(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk); // ok
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_AllRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -2170,7 +2170,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
+static void test_main_NotPS_GrayScale_FactoryResetRequested(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2181,7 +2181,7 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2202,7 +2202,7 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2218,11 +2218,11 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2261,7 +2261,7 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk); // ok
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_Invalid);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -2273,7 +2273,7 @@ static void test_main_NotPS_GrayScale_FactoryResetRequested(void** state)
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, true); // FactoryReset requested
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2310,7 +2310,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_RebootRequested(void** state)
+static void test_main_NotPS_GrayScale_RebootRequested(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2321,7 +2321,7 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2352,7 +2352,7 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2368,11 +2368,11 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2411,7 +2411,7 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_Invalid);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -2423,7 +2423,7 @@ static void test_main_NotPS_GrayScale_RebootRequested(void** state)
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2446,7 +2446,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_failed(void** state)
+static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2457,7 +2457,7 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2478,7 +2478,7 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2494,11 +2494,11 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2537,7 +2537,7 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_Invalid);
     will_return(__wrap_IsaQrcodeDecodePayload, 1);
@@ -2555,7 +2555,7 @@ static void test_main_NotPS_GrayScale_IsaQrcodeDecodePayload_next_get_frame_fail
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2572,7 +2572,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void** state)
+static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2583,7 +2583,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2604,7 +2604,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2620,11 +2620,11 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2663,7 +2663,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_AllRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1);
@@ -2681,7 +2681,7 @@ static void test_main_NotPS_GrayScale_IsaWriteQrcodePayloadToFlash_failed(void**
     will_return(__wrap_IsaWriteQrcodePayloadToFlash, kIsaQrcode_Failed); // fail
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2704,7 +2704,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void** state)
+static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2715,7 +2715,7 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2736,7 +2736,7 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2752,11 +2752,11 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2795,7 +2795,7 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_PartRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1);
@@ -2810,7 +2810,7 @@ static void test_main_NotPS_GrayScale_PartRecognized_next_get_frame_failed(void*
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2827,7 +2827,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** state)
+static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2838,7 +2838,7 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2859,7 +2859,7 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -2875,11 +2875,11 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -2918,7 +2918,7 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_Invalid); // invalid
     will_return(__wrap_IsaQrcodeDecodePayload, 1);                        // dummy
@@ -2936,7 +2936,7 @@ static void test_main_NotPS_GrayScale_InvalidQR_next_get_frame_failed(void** sta
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -2953,7 +2953,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
+static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -2964,7 +2964,7 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -2985,7 +2985,7 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -3001,11 +3001,11 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3044,7 +3044,7 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_ResultNum); // qr_data malloc failed
 
@@ -3060,7 +3060,7 @@ static void test_main_NotPS_GrayScale_qr_data_malloc_failure(void** state)
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -3077,7 +3077,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
+static void test_main_NotPS_GrayScale_QrDecode_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -3088,7 +3088,7 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -3109,7 +3109,7 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -3125,11 +3125,11 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3168,7 +3168,7 @@ static void test_main_NotPS_GrayScale_QrDecode_failed(void** state)
 
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
     s_qr_mode_timeout_reboot_request = true; // simulate timeout
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     // FinalizeApp
     FinalizeApp_Success();
@@ -3192,7 +3192,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
+static void test_main_NotPS_GrayScale_OutSize_zero(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -3203,7 +3203,7 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -3224,7 +3224,7 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -3240,11 +3240,11 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3283,7 +3283,7 @@ static void test_main_NotPS_GrayScale_OutSize_zero(void** state)
 
     will_return(__wrap_IsaBtnCheckFactoryResetRequest, false);
     s_qr_mode_timeout_reboot_request = true; // simulate timeout
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     // FinalizeApp
     FinalizeApp_Success();
@@ -3307,7 +3307,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void** state)
+static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -3318,7 +3318,7 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -3339,7 +3339,7 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -3355,11 +3355,11 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3395,7 +3395,7 @@ static void test_main_NotPS_GrayScale_senscord_stream_release_frame_failed(void*
     SensCordStreamReleaseFrame(frame, -1); // fail
     will_return(__wrap_senscord_get_last_error_cause, 0);
 
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     FinalizeApp_Success();
 
@@ -3412,7 +3412,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_RGB_success(void** state)
+static void test_main_NotPS_RGB_success(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -3427,12 +3427,12 @@ static void test_main_NotPS_RGB_success(void** state)
     struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    char *map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
     if (map_address == NULL) {
         goto exit;
     }
 #else  // expect __linux__
-    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
+    void *raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
     if (raw_data_address == NULL) {
         goto exit;
     }
@@ -3440,7 +3440,7 @@ static void test_main_NotPS_RGB_success(void** state)
                                            .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = "0x87654321"; // dummy ptr
+    char *map_address = "0x87654321"; // dummy ptr
 #endif // defined(__NuttX__)
 
     will_return(__wrap_IsaBtnInitialize, kRetOk);
@@ -3457,7 +3457,7 @@ static void test_main_NotPS_RGB_success(void** state)
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
 
     // heap alloc
-    unsigned char* gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
+    unsigned char *gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
     will_return(__wrap_IsaLargeHeapAlloc, gray_buff); // ConvertfromRGB24ToGray()
@@ -3479,7 +3479,7 @@ static void test_main_NotPS_RGB_success(void** state)
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3513,7 +3513,7 @@ static void test_main_NotPS_RGB_success(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk); // ok
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_AllRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -3565,7 +3565,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_RGBPlanar_success(void** state)
+static void test_main_NotPS_RGBPlanar_success(void **state)
 {
     struct senscord_image_property_t expected_img_prop = {
         .height = QRCODE_IMAGE_HEIGHT,
@@ -3580,12 +3580,12 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
     struct senscord_raw_data_t raw_data = {.size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
+    char *map_address = malloc(raw_data.size); // for ConvertfromGrayToGray()
     if (map_address == NULL) {
         goto exit;
     }
 #else  // expect __linux__
-    void* raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
+    void *raw_data_address = malloc(QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT * 3);
     if (raw_data_address == NULL) {
         goto exit;
     }
@@ -3593,7 +3593,7 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
                                            .size = QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT,
                                            .type = "raw_data_type",
                                            .timestamp = 202501290900};
-    char* map_address = "0x87654321"; // dummy ptr
+    char *map_address = "0x87654321"; // dummy ptr
 #endif // defined(__NuttX__)
 
     will_return(__wrap_IsaBtnInitialize, kRetOk);
@@ -3610,7 +3610,7 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk);
 
     // heap alloc
-    unsigned char* gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
+    unsigned char *gray_buff = AllocateGrayBuff(QRCODE_IMAGE_WIDTH, QRCODE_IMAGE_HEIGHT);
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
     will_return(__wrap_IsaLargeHeapAlloc, gray_buff); // TODO: ConvertfromRGB8PlanarToGray()
@@ -3632,7 +3632,7 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
     MapMemory_Success(&raw_data, map_address); // ok
 
     // confirm IsaCodecQrInputParam parameter
-    uint8_t* output_buf = (uint8_t*)malloc(QRCODE_PAYLOAD_MAX_SIZE);
+    uint8_t *output_buf = (uint8_t *)malloc(QRCODE_PAYLOAD_MAX_SIZE);
     if (output_buf == NULL) {
         goto exit;
     }
@@ -3666,7 +3666,7 @@ static void test_main_NotPS_RGBPlanar_success(void** state)
 
     // decode QR payload
     will_return(__wrap_UtilityLogForcedOutputToUart, kUtilityLogStatusOk); // ok
-    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t*)output_buf);
+    expect_string(__wrap_IsaQrcodeDecodePayload, payload, (uint8_t *)output_buf);
     expect_value(__wrap_IsaQrcodeDecodePayload, payload_size, dummy_out_size);
     will_return(__wrap_IsaQrcodeDecodePayload, kIsaQrcodeDecode_AllRecognized);
     will_return(__wrap_IsaQrcodeDecodePayload, 1); // dummy
@@ -3718,7 +3718,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_main_NotPS_invalid_pixel_format(void** state)
+static void test_main_NotPS_invalid_pixel_format(void **state)
 {
     // define expected img_prop
     struct senscord_image_property_t expected_img_prop = {
@@ -3731,7 +3731,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
     senscord_frame_t frame = 0;
     senscord_channel_t channel = 0;
     EsfMemoryManagerHandle mem_mng_handle = 0x11223344; // dummy
-    struct senscord_raw_data_t dummy_raw_data = {.address = (void*)(uintptr_t)mem_mng_handle,
+    struct senscord_raw_data_t dummy_raw_data = {.address = (void *)(uintptr_t)mem_mng_handle,
                                                  .size = 123456,
                                                  .type = "dummy_raw_data_type",
                                                  .timestamp = 202501090500}; // dummy
@@ -3752,7 +3752,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
     // heap alloc
     expect_value(__wrap_IsaLargeHeapAlloc, pool_no, 0);
     expect_value(__wrap_IsaLargeHeapAlloc, request_size, QRCODE_IMAGE_WIDTH * QRCODE_IMAGE_HEIGHT);
-    will_return(__wrap_IsaLargeHeapAlloc, (void*)0x12345678);
+    will_return(__wrap_IsaLargeHeapAlloc, (void *)0x12345678);
 
     SetLedStatusForQrCodeMode_Success();
 
@@ -3768,7 +3768,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
     will_return(__wrap_senscord_channel_get_raw_data, 0);
 
     // call MemoryManager using expected img_prop (T5)
-    char* dummy_map_address = "0x87654321";                // dummy ptr
+    char *dummy_map_address = "0x87654321";                // dummy ptr
     MapMemory_Success(&dummy_raw_data, dummy_map_address); // ok
 
     will_return(__wrap_senscord_get_last_error_cause, 0);
@@ -3781,7 +3781,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
 #endif
 
     // heap free
-    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void*)0x12345678);
+    expect_value(__wrap_IsaLargeHeapFree, memory_address, (void *)0x12345678);
 
     // FinalizeApp
     FinalizeApp_Success();
@@ -3798,7 +3798,7 @@ static void test_main_NotPS_invalid_pixel_format(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_malloc_failed(void** state)
+static void test_InitializeApp_malloc_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3809,7 +3809,7 @@ static void test_InitializeApp_malloc_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_IsaQrcodeInit_failed(void** state)
+static void test_InitializeApp_IsaQrcodeInit_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3821,7 +3821,7 @@ static void test_InitializeApp_IsaQrcodeInit_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_core_init_failed(void** state)
+static void test_InitializeApp_senscord_core_init_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3837,7 +3837,7 @@ static void test_InitializeApp_senscord_core_init_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_core_open_stream_failed(void** state)
+static void test_InitializeApp_senscord_core_open_stream_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3854,7 +3854,7 @@ static void test_InitializeApp_senscord_core_open_stream_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_stream_set_property_aimodel_failed(void** state)
+static void test_InitializeApp_senscord_stream_set_property_aimodel_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3873,7 +3873,7 @@ static void test_InitializeApp_senscord_stream_set_property_aimodel_failed(void*
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_stream_set_property_inputdata_failed(void** state)
+static void test_InitializeApp_senscord_stream_set_property_inputdata_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3894,7 +3894,7 @@ static void test_InitializeApp_senscord_stream_set_property_inputdata_failed(voi
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_stream_start_failed(void** state)
+static void test_InitializeApp_senscord_stream_start_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3919,7 +3919,7 @@ static void test_InitializeApp_senscord_stream_start_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_InitializeApp_senscord_stream_get_property_failed(void** state)
+static void test_InitializeApp_senscord_stream_get_property_failed(void **state)
 {
     expect_value(mock_malloc, __size, QRCODE_PAYLOAD_MAX_SIZE);
     will_return(mock_malloc, true);
@@ -3957,7 +3957,7 @@ static void test_InitializeApp_senscord_stream_get_property_failed(void** state)
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_fully_success(void** state)
+static void test_FinalizeApp_fully_success(void **state)
 {
     s_senscord_core_init_success = true;
     s_senscord_open_success = true;
@@ -3978,7 +3978,7 @@ static void test_FinalizeApp_fully_success(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_senscord_stream_stop_failed(void** state)
+static void test_FinalizeApp_senscord_stream_stop_failed(void **state)
 {
     s_senscord_start_success = true;
 
@@ -3992,7 +3992,7 @@ static void test_FinalizeApp_senscord_stream_stop_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_senscord_core_close_failed(void** state)
+static void test_FinalizeApp_senscord_core_close_failed(void **state)
 {
     s_senscord_open_success = true;
 
@@ -4006,7 +4006,7 @@ static void test_FinalizeApp_senscord_core_close_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_senscord_core_exit_failed(void** state)
+static void test_FinalizeApp_senscord_core_exit_failed(void **state)
 {
     s_senscord_core_init_success = true;
 
@@ -4020,7 +4020,7 @@ static void test_FinalizeApp_senscord_core_exit_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_SsfSensorExit_failed(void** state)
+static void test_FinalizeApp_SsfSensorExit_failed(void **state)
 {
     will_return(__wrap_EsfSensorExit, kEsfSensorFail); // SsfSensorExit fail
     will_return(__wrap_IsaQrcodeExit, kIsaQrcode_Success);
@@ -4029,7 +4029,7 @@ static void test_FinalizeApp_SsfSensorExit_failed(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_FinalizeApp_IsaQrcodeExit_failed(void** state)
+static void test_FinalizeApp_IsaQrcodeExit_failed(void **state)
 {
     will_return(__wrap_EsfSensorExit, kEsfSensorOk);      // SsfSensorExit
     will_return(__wrap_IsaQrcodeExit, kIsaQrcode_Failed); // fail

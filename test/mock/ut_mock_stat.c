@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 /*----------------------------------------------------------------------------*/
-int __wrap_stat(const char* pathname, struct stat* buf)
+int __wrap_stat(const char *pathname, struct stat *buf)
 {
     buf->st_mode = mock_type(int);
     return mock_type(int);

@@ -43,13 +43,13 @@ STATIC bool s_factory_reset_requested = false;
 //
 
 /*----------------------------------------------------------------------------*/
-STATIC void ButtonPressedCallback(void* user_data)
+STATIC void ButtonPressedCallback(void *user_data)
 {
     ISA_INFO("Button pressed. %p", user_data);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void ButtonReleased5to29Callback(void* user_data)
+STATIC void ButtonReleased5to29Callback(void *user_data)
 {
     ISA_INFO("Button released after 5sec to 29 sec. %p", user_data);
 
@@ -67,7 +67,7 @@ STATIC void ButtonReleased5to29Callback(void* user_data)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void ButtonReleasedOver30Callback(void* user_data)
+STATIC void ButtonReleasedOver30Callback(void *user_data)
 {
     ISA_INFO("Button released after more than 30 sec. %p", user_data);
 
@@ -162,7 +162,7 @@ STATIC void SetLedStatusForButtonLongPressed30(void)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void ButtonLongPressed5Callback(void* user_data)
+STATIC void ButtonLongPressed5Callback(void *user_data)
 {
     ISA_INFO("Button pressed 5sec. %p", user_data);
 
@@ -170,7 +170,7 @@ STATIC void ButtonLongPressed5Callback(void* user_data)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void ButtonLongPressed30Callback(void* user_data)
+STATIC void ButtonLongPressed30Callback(void *user_data)
 {
     ISA_INFO("Button pressed 30sec. %p", user_data);
 

@@ -16,6 +16,9 @@
 typedef enum {
     SensorTempIntervalTimer = 0,
     HoursMeterIntervalTimer,
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    StreamingSettingsIntervalTimer,
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
     TimerTypeNum
 } TimerType;

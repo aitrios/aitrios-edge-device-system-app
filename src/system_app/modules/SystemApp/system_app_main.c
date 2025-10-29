@@ -25,6 +25,10 @@
 #include "evp/sdk_sys.h"
 #include "sdk_backdoor.h"
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+#include "system_app_vsc_manager.h"
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
 #include "system_app_log.h"
 
 #include "hal_i2c.h"
@@ -90,6 +94,11 @@ STATIC bool s_ntp_sync_notify = false;
 STATIC bool s_ntp_sync_done = false;
 static bool s_is_evp_connect_checked = false;
 static int s_connect_info = -1;
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+// VSC Manager socket path
+#define VSC_SOCKET_PATH "/tmp/video_streamer.sock"
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 #if !defined(__NuttX__)
 static pthread_t g_systemapp_main;
@@ -897,6 +906,17 @@ STATIC TerminationReason SysAppMain(void)
         }
     }
 
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Initialize VSC Manager
+
+    ret = SysAppVscManagerInitialize(VSC_SOCKET_PATH);
+
+    if (ret != kRetOk) {
+        SYSAPP_CRIT("SysAppVscManagerInitialize() ret %d", ret);
+        goto vsc_manager_initialize_failed;
+    }
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+
     // Initialize Timer block.
 
     ret = SysAppTimerInitialize();
@@ -1115,6 +1135,14 @@ direct_command_initialize_failed:
     SysAppTimerFinalize();
 
 timer_initialize_failed:
+
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+    // Finalize VSC Manager
+
+    ret = SysAppVscManagerFinalize();
+
+vsc_manager_initialize_failed:
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
     if (sys_client != NULL) {
         int evp_unreg_ret = EVP_Agent_unregister_sys_client(sys_client);

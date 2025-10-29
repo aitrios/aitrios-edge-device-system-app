@@ -39,7 +39,7 @@ RetCode __wrap_SysAppLedSetEnable(bool led_enable)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode __wrap_SysAppLedGetEnable(bool* led_enable)
+RetCode __wrap_SysAppLedGetEnable(bool *led_enable)
 {
     *led_enable = mock_type(bool);
     return mock_type(RetCode);
