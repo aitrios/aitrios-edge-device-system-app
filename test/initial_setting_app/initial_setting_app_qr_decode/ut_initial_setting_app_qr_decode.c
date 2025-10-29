@@ -26,7 +26,7 @@
 //
 
 /*----------------------------------------------------------------------------*/
-static void SetInputParam(IsaCodecQrInputParam* input, uint8_t** input_image, uint8_t** output_buf)
+static void SetInputParam(IsaCodecQrInputParam *input, uint8_t **input_image, uint8_t **output_buf)
 {
     input->width = 640;
     input->height = 480;
@@ -55,7 +55,7 @@ exit:
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void CreateQuircCode(struct quirc_code* code)
+static void CreateQuircCode(struct quirc_code *code)
 {
     int i;
 
@@ -80,7 +80,7 @@ static void CreateQuircCode(struct quirc_code* code)
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void CreateQuircData(struct quirc_data* data, int payload_len)
+static void CreateQuircData(struct quirc_data *data, int payload_len)
 {
     int i, j;
 
@@ -102,7 +102,7 @@ static void CreateQuircData(struct quirc_data* data, int payload_len)
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void CreateExpectOutputData(uint8_t* data, int payload_len)
+static void CreateExpectOutputData(uint8_t *data, int payload_len)
 {
     int i;
 
@@ -130,7 +130,7 @@ static void CheckCalloc(size_t __nmemb, size_t __size)
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void ForIsaCodecQrCreateInstance(struct quirc* quirc_instance, IsaCodecQrInputParam* input)
+static void ForIsaCodecQrCreateInstance(struct quirc *quirc_instance, IsaCodecQrInputParam *input)
 {
     will_return(__wrap_IsaCodecQrCreateInstance, quirc_instance);
 
@@ -143,8 +143,8 @@ static void ForIsaCodecQrCreateInstance(struct quirc* quirc_instance, IsaCodecQr
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void ForIsaCodecQrDetect(struct quirc_code* qr_code_info, IsaCodecQrError result,
-                                uint64_t image_addr, struct quirc* quirc_instance)
+static void ForIsaCodecQrDetect(struct quirc_code *qr_code_info, IsaCodecQrError result,
+                                uint64_t image_addr, struct quirc *quirc_instance)
 {
     will_return(__wrap_IsaCodecQrDetect, qr_code_info);
     will_return(__wrap_IsaCodecQrDetect, result);
@@ -158,8 +158,8 @@ static void ForIsaCodecQrDetect(struct quirc_code* qr_code_info, IsaCodecQrError
 
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
-static void ForIsaCodecQrDecodeQrCodeInfo(struct quirc_data* qr_code_data, IsaCodecQrError result,
-                                          struct quirc_code* qr_code_info)
+static void ForIsaCodecQrDecodeQrCodeInfo(struct quirc_data *qr_code_data, IsaCodecQrError result,
+                                          struct quirc_code *qr_code_info)
 {
     int i;
 
@@ -183,9 +183,9 @@ static void ForIsaCodecQrDecodeQrCodeInfo(struct quirc_data* qr_code_data, IsaCo
 /*----------------------------------------------------------------------------*/
 #ifdef CONFIG_EXTERNAL_QUIRC
 static void ForIsaCodecQrStoreDecodingResult(int payload_len, IsaCodecQrOutputType data_type,
-                                             uint8_t* output_data, IsaCodecQrError result,
-                                             IsaCodecQrInputParam* input,
-                                             struct quirc_data* qr_code_data)
+                                             uint8_t *output_data, IsaCodecQrError result,
+                                             IsaCodecQrInputParam *input,
+                                             struct quirc_data *qr_code_data)
 {
     will_return(__wrap_IsaCodecQrStoreDecodingResult, payload_len);
     will_return(__wrap_IsaCodecQrStoreDecodingResult, data_type);
@@ -220,21 +220,21 @@ static void ForIsaCodecQrStoreDecodingResult(int payload_len, IsaCodecQrOutputTy
 //
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
+static void test_IsaCodecQrDecodeQrCode_FullySuccess(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
 
 #ifdef CONFIG_ZXING_CPP_PORTING
 
     zxing_ImageView zx_iv;
     zxing_DecodeHints zx_hints;
     zxing_Result zx_result;
-    uint8_t* zx_bytes = malloc(11);
-    uint8_t* zx_result_text = malloc(11);
+    uint8_t *zx_bytes = malloc(11);
+    uint8_t *zx_result_text = malloc(11);
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -281,7 +281,7 @@ static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
     //will_return(__wrap_zxing_ImageView_delete, 0);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrSuccess);
@@ -290,11 +290,11 @@ static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
 
 #ifdef CONFIG_EXTERNAL_QUIRC
 
-    uint8_t* output_init_data = NULL;
-    uint8_t* output_expect_data = NULL;
+    uint8_t *output_init_data = NULL;
+    uint8_t *output_expect_data = NULL;
     int32_t quirc_instance;
-    struct quirc_code* qr_code_info = NULL;
-    struct quirc_data* qr_code_data = NULL;
+    struct quirc_code *qr_code_info = NULL;
+    struct quirc_data *qr_code_data = NULL;
     int payload_len;
     IsaCodecQrOutputType data_type = kDecodeQrOutputBinary;
 
@@ -312,7 +312,7 @@ static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
     memcpy(output_init_data, output_data, input.out_buf.output_max_size);
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_code));
@@ -325,10 +325,10 @@ static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
     }
     CreateQuircCode(qr_code_info);
     ForIsaCodecQrDetect(qr_code_info, kDecodeQrSuccess, input.input_adr_handle,
-                        (struct quirc*)&quirc_instance);
+                        (struct quirc *)&quirc_instance);
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // For calloc() of struct quirc_data
     CheckCalloc(1, sizeof(struct quirc_data));
@@ -360,15 +360,15 @@ static void test_IsaCodecQrDecodeQrCode_FullySuccess(void** state)
     will_return(mock_free, false); // Not check parameter
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return and output value
     assert_int_equal(ret, kDecodeQrSuccess);
     assert_int_equal(output.output_size, payload_len);
     assert_int_equal(output.output_type, data_type);
-    assert_memory_equal((uint8_t*)input.out_buf.output_adr_handle, output_expect_data,
+    assert_memory_equal((uint8_t *)input.out_buf.output_adr_handle, output_expect_data,
                         output.output_size);
-    assert_memory_equal((uint8_t*)input.out_buf.output_adr_handle + output.output_size,
+    assert_memory_equal((uint8_t *)input.out_buf.output_adr_handle + output.output_size,
                         output_init_data, input.out_buf.output_max_size - output.output_size);
 
 exit:
@@ -402,7 +402,7 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_InputNull(void** state)
+static void test_IsaCodecQrDecodeQrCode_InputNull(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrOutputInfo output;
@@ -417,12 +417,12 @@ static void test_IsaCodecQrDecodeQrCode_InputNull(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_OutputNull(void** state)
+static void test_IsaCodecQrDecodeQrCode_OutputNull(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -431,7 +431,7 @@ static void test_IsaCodecQrDecodeQrCode_OutputNull(void** state)
     }
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, NULL);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, NULL);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrParamError);
@@ -450,13 +450,13 @@ exit:
 
 #ifdef CONFIG_ZXING_CPP_PORTING
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_Error_zxing_ImageView_new(void** state)
+static void test_IsaCodecQrDecodeQrCode_Error_zxing_ImageView_new(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -465,7 +465,7 @@ static void test_IsaCodecQrDecodeQrCode_Error_zxing_ImageView_new(void** state)
     will_return(__wrap_zxing_ImageView_new, NULL);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOssInternalError);
@@ -474,13 +474,13 @@ static void test_IsaCodecQrDecodeQrCode_Error_zxing_ImageView_new(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_Error_zxing_DecodeHints_new(void** state)
+static void test_IsaCodecQrDecodeQrCode_Error_zxing_DecodeHints_new(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     zxing_ImageView zx_iv;
 
     // Set test target argument
@@ -496,7 +496,7 @@ static void test_IsaCodecQrDecodeQrCode_Error_zxing_DecodeHints_new(void** state
     //will_return(__wrap_zxing_ImageView_delete, 0);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOssInternalError);
@@ -505,13 +505,13 @@ static void test_IsaCodecQrDecodeQrCode_Error_zxing_DecodeHints_new(void** state
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_NotDetect_zxing_ReadBarcode(void** state)
+static void test_IsaCodecQrDecodeQrCode_NotDetect_zxing_ReadBarcode(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     zxing_ImageView zx_iv;
     zxing_DecodeHints zx_hints;
 
@@ -534,7 +534,7 @@ static void test_IsaCodecQrDecodeQrCode_NotDetect_zxing_ReadBarcode(void** state
     //will_return(__wrap_zxing_ImageView_delete, 0);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrSuccess);
@@ -543,13 +543,13 @@ static void test_IsaCodecQrDecodeQrCode_NotDetect_zxing_ReadBarcode(void** state
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_Error_InvalidQRCode(void** state)
+static void test_IsaCodecQrDecodeQrCode_Error_InvalidQRCode(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     zxing_ImageView zx_iv;
     zxing_DecodeHints zx_hints;
     zxing_Result zx_result;
@@ -588,7 +588,7 @@ static void test_IsaCodecQrDecodeQrCode_Error_InvalidQRCode(void** state)
     //will_return(__wrap_zxing_ImageView_delete, 0);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrSuccess);
@@ -597,17 +597,17 @@ static void test_IsaCodecQrDecodeQrCode_Error_InvalidQRCode(void** state)
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_Error_PayloadSizeOver(void** state)
+static void test_IsaCodecQrDecodeQrCode_Error_PayloadSizeOver(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     zxing_ImageView zx_iv;
     zxing_DecodeHints zx_hints;
     zxing_Result zx_result;
-    uint8_t* zx_bytes = malloc(11);
+    uint8_t *zx_bytes = malloc(11);
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -638,7 +638,7 @@ static void test_IsaCodecQrDecodeQrCode_Error_PayloadSizeOver(void** state)
     //will_return(__wrap_zxing_ImageView_delete, 0);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOutputSizeOver);
@@ -647,13 +647,13 @@ static void test_IsaCodecQrDecodeQrCode_Error_PayloadSizeOver(void** state)
 
 #ifdef CONFIG_EXTERNAL_QUIRC
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrCreateInstance(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrCreateInstance(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -665,7 +665,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrCreateInstance(void** sta
     ForIsaCodecQrCreateInstance(NULL, &input);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOssInternalError);
@@ -683,13 +683,13 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorCalloc1st(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorCalloc1st(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     int32_t quirc_instance;
 
     // Set test target argument
@@ -699,7 +699,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorCalloc1st(void** state)
     }
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     will_return(mock_calloc, true);  // Check parameter
@@ -709,10 +709,10 @@ static void test_IsaCodecQrDecodeQrCode_ErrorCalloc1st(void** state)
     expect_value(mock_calloc, __size, sizeof(struct quirc_code));
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOtherError);
@@ -730,15 +730,15 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDetect(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDetect(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     int32_t quirc_instance;
-    struct quirc_code* qr_code_info = NULL;
+    struct quirc_code *qr_code_info = NULL;
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -747,7 +747,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDetect(void** state)
     }
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_code));
@@ -760,16 +760,16 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDetect(void** state)
     }
     CreateQuircCode(qr_code_info);
     ForIsaCodecQrDetect(qr_code_info, kDecodeQrDecodeError, input.input_adr_handle,
-                        (struct quirc*)&quirc_instance);
+                        (struct quirc *)&quirc_instance);
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // For free() of struct quirc_code
     will_return(mock_free, false); // Not check parameter
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrDecodeError);
@@ -791,15 +791,15 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorCalloc2nd(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorCalloc2nd(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     int32_t quirc_instance;
-    struct quirc_code* qr_code_info = NULL;
+    struct quirc_code *qr_code_info = NULL;
 
     // Set test target argument
     SetInputParam(&input, &input_image, &output_data);
@@ -808,7 +808,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorCalloc2nd(void** state)
     }
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_code));
@@ -821,10 +821,10 @@ static void test_IsaCodecQrDecodeQrCode_ErrorCalloc2nd(void** state)
     }
     CreateQuircCode(qr_code_info);
     ForIsaCodecQrDetect(qr_code_info, kDecodeQrSuccess, input.input_adr_handle,
-                        (struct quirc*)&quirc_instance);
+                        (struct quirc *)&quirc_instance);
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // For calloc() of struct quirc_code
     will_return(mock_calloc, true);  // Check parameter
@@ -837,7 +837,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorCalloc2nd(void** state)
     will_return(mock_free, false); // Not check parameter
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrOtherError);
@@ -859,16 +859,16 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDecodeQrCodeInfo(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDecodeQrCodeInfo(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
     int32_t quirc_instance;
-    struct quirc_code* qr_code_info = NULL;
-    struct quirc_data* qr_code_data = NULL;
+    struct quirc_code *qr_code_info = NULL;
+    struct quirc_data *qr_code_data = NULL;
     int payload_len;
 
     // Set test target argument
@@ -878,7 +878,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDecodeQrCodeInfo(void** s
     }
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_code));
@@ -891,10 +891,10 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDecodeQrCodeInfo(void** s
     }
     CreateQuircCode(qr_code_info);
     ForIsaCodecQrDetect(qr_code_info, kDecodeQrSuccess, input.input_adr_handle,
-                        (struct quirc*)&quirc_instance);
+                        (struct quirc *)&quirc_instance);
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_data));
@@ -916,7 +916,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrDecodeQrCodeInfo(void** s
     will_return(mock_free, false); // Not check parameter
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrDecodeError);
@@ -942,17 +942,17 @@ exit:
 }
 
 /*----------------------------------------------------------------------------*/
-static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrStoreDecodingResult(void** state)
+static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrStoreDecodingResult(void **state)
 {
     IsaCodecQrError ret;
     IsaCodecQrInputParam input;
     IsaCodecQrOutputInfo output;
-    uint8_t* input_image = NULL;
-    uint8_t* output_data = NULL;
-    uint8_t* output_expect_data = NULL;
+    uint8_t *input_image = NULL;
+    uint8_t *output_data = NULL;
+    uint8_t *output_expect_data = NULL;
     int32_t quirc_instance;
-    struct quirc_code* qr_code_info = NULL;
-    struct quirc_data* qr_code_data = NULL;
+    struct quirc_code *qr_code_info = NULL;
+    struct quirc_data *qr_code_data = NULL;
     int payload_len;
     IsaCodecQrOutputType data_type = kDecodeQrOutputBinary;
 
@@ -963,7 +963,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrStoreDecodingResult(void*
     }
 
     // For IsaCodecQrCreateInstance()
-    ForIsaCodecQrCreateInstance((struct quirc*)&quirc_instance, &input);
+    ForIsaCodecQrCreateInstance((struct quirc *)&quirc_instance, &input);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_code));
@@ -976,10 +976,10 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrStoreDecodingResult(void*
     }
     CreateQuircCode(qr_code_info);
     ForIsaCodecQrDetect(qr_code_info, kDecodeQrSuccess, input.input_adr_handle,
-                        (struct quirc*)&quirc_instance);
+                        (struct quirc *)&quirc_instance);
 
     // For quirc_destroy()
-    expect_value(__wrap_quirc_destroy, q, (struct quirc*)&quirc_instance);
+    expect_value(__wrap_quirc_destroy, q, (struct quirc *)&quirc_instance);
 
     // For calloc() of struct quirc_code
     CheckCalloc(1, sizeof(struct quirc_data));
@@ -1011,7 +1011,7 @@ static void test_IsaCodecQrDecodeQrCode_ErrorIsaCodecQrStoreDecodingResult(void*
     will_return(mock_free, false); // Not check parameter
 
     // Exec test target
-    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam*)&input, &output);
+    ret = IsaCodecQrDecodeQrCode((const IsaCodecQrInputParam *)&input, &output);
 
     // Check return value
     assert_int_equal(ret, kDecodeQrDecodeError);

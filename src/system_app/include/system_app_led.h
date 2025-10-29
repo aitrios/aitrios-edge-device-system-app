@@ -40,7 +40,7 @@ typedef enum LedAppStatus {
 void SysAppLedSetAppStatus(LedType type, LedAppStatus app_state);
 void SysAppLedUnsetAppStatus(LedType type, LedAppStatus app_state);
 RetCode SysAppLedSetEnable(bool led_enable);
-RetCode SysAppLedGetEnable(bool* led_enable);
+RetCode SysAppLedGetEnable(bool *led_enable);
 
 #ifdef __cplusplus
 }

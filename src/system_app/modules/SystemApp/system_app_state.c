@@ -71,14 +71,14 @@
 
 typedef struct {
     int flag_value;
-    const char* message;
+    const char *message;
 } ErrorFlag;
 
 //
 // File static variables.
 //
 
-STATIC struct SYS_client* s_sys_client = NULL;
+STATIC struct SYS_client *s_sys_client = NULL;
 
 STATIC StDeviceInfoParams s_device_info;
 STATIC StDeviceCapabilitiesParams s_device_capabilities;
@@ -106,7 +106,7 @@ static pthread_mutex_t s_senscord_access_mutex = PTHREAD_MUTEX_INITIALIZER;
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 STATIC struct {
     uint32_t topic;
-    const char* topic_str;
+    const char *topic_str;
     char id[CFG_RES_ID_LEN + 1];
 } s_unimplemented_list[] = {
     {.topic = ST_TOPIC_SYSTEM_SETTINGS, .topic_str = "system_settings"},
@@ -137,20 +137,20 @@ STATIC RetCode SendDeploy(uint32_t topic_bits);
 
 STATIC void RequestConfigStateUpdate(uint32_t topic);
 
-STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg,
+STATIC bool AppendErrorDetail(const char *msg, char *error_detail_msg,
                               size_t error_detail_msg_size);
 
-STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t flag_count,
-                                           char* error_detail_msg, size_t error_detail_msg_size,
-                                           bool* error_exist);
+STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag *error_flags, size_t flag_count,
+                                           char *error_detail_msg, size_t error_detail_msg_size,
+                                           bool *error_exist);
 
-STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, const char* field_name,
-                                                    size_t index, char* error_detail_msg,
+STATIC void CheckErrorFlagAndAppendMessageWithField(const char *base_prefix, const char *field_name,
+                                                    size_t index, char *error_detail_msg,
                                                     size_t error_detail_msg_size,
-                                                    bool* error_exist);
+                                                    bool *error_exist);
 
 /*----------------------------------------------------------------------------*/
-STATIC char* ConvertFilterValueToString(CfgStLogFilter filter, char* filter_name)
+STATIC char *ConvertFilterValueToString(CfgStLogFilter filter, char *filter_name)
 {
     if (filter == AllLog) {
     }
@@ -186,7 +186,7 @@ STATIC RetCode ReadOutLogByFilterNo(CfgStLogFilter filter)
 
         /* Get information for level */
         CfgStLogLevel level;
-        stat = SysAppLogGetParameterNumber(filter, LogLevel, (int*)&level);
+        stat = SysAppLogGetParameterNumber(filter, LogLevel, (int *)&level);
 
         if (stat == kRetOk) {
             /* Save readed parameters. */
@@ -202,7 +202,7 @@ STATIC RetCode ReadOutLogByFilterNo(CfgStLogFilter filter)
 
         /* Get information for destination */
         CfgStLogDestination destination;
-        stat = SysAppLogGetParameterNumber(filter, LogDestination, (int*)&destination);
+        stat = SysAppLogGetParameterNumber(filter, LogDestination, (int *)&destination);
 
         if (stat == kRetOk) {
             /* Save readed parameters. */
@@ -284,7 +284,7 @@ STATIC RetCode ReadOutLogCompanionApp(void)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, const char* req_id)
+STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, const char *req_id)
 {
     RetCode ret = kRetOk;
 
@@ -296,21 +296,21 @@ STATIC RetCode MakeJsonReqInfoCore(EsfJsonHandle handle, EsfJsonValue root, cons
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_system_settings.id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_network_settings.id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_wireless_setting.id);
@@ -318,7 +318,7 @@ STATIC RetCode MakeJsonReqInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue
 
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, "");
@@ -327,14 +327,14 @@ STATIC RetCode MakeJsonReqInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue
 #endif
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     return MakeJsonReqInfoCore(handle, root, s_endpoint_settings.id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetErrorInfo(CfgStUpdateInfo* update, int* code, char* detail_msg, int len)
+STATIC RetCode GetErrorInfo(CfgStUpdateInfo *update, int *code, char *detail_msg, int len)
 {
     RetCode ret = kRetOk;
 
@@ -358,7 +358,7 @@ STATIC RetCode GetErrorInfo(CfgStUpdateInfo* update, int* code, char* detail_msg
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoSystemSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -435,7 +435,7 @@ call_core:
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -533,7 +533,7 @@ call_core:
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoWirelessSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -588,7 +588,7 @@ call_core:
 
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -600,7 +600,7 @@ STATIC RetCode MakeJsonResInfoPeriodicSetting(EsfJsonHandle handle, EsfJsonValue
 #endif
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     int code = 0;
@@ -612,7 +612,7 @@ STATIC RetCode MakeJsonResInfoEndpointSettings(EsfJsonHandle handle, EsfJsonValu
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -632,7 +632,7 @@ STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -743,7 +743,7 @@ STATIC RetCode MakeJsonDeviceCapabilities(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void* ctx)
+STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -759,7 +759,7 @@ STATIC RetCode MakeJsonPowerSource(EsfJsonHandle handle, EsfJsonValue root, uint
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonPowerStates(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonPowerStates(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -818,7 +818,7 @@ STATIC RetCode MakeJsonReserved(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonLog(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx, void* ctx)
+STATIC RetCode MakeJsonLog(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -885,7 +885,7 @@ STATIC RetCode MakeJsonSystemSettings(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -911,7 +911,7 @@ STATIC RetCode MakeJsonStaticSettingsIPv6(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -937,7 +937,7 @@ STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue roo
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonProxySettings(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonProxySettings(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -998,7 +998,7 @@ STATIC RetCode MakeJsonNetworkSettings(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonStaModeSetting(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonStaModeSetting(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
     (void)ctx;
     RetCode ret = kRetOk;
@@ -1041,7 +1041,7 @@ STATIC RetCode MakeJsonWirelessSetting(EsfJsonHandle handle, EsfJsonValue root)
 #if defined(CONFIG_BOARD_WIFI_SMALL_ES) //T3Ws
 /*----------------------------------------------------------------------------*/
 STATIC RetCode MakeJsonIntervalSettings(EsfJsonHandle handle, EsfJsonValue root, uint32_t idx,
-                                        void* ctx)
+                                        void *ctx)
 {
     (void)idx;
     (void)ctx;
@@ -1125,7 +1125,7 @@ STATIC RetCode MakeJsonEndpointSettings(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SendStateCore(const char* topic, const char* state_org, uint32_t state_len)
+STATIC RetCode SendStateCore(const char *topic, const char *state_org, uint32_t state_len)
 {
     (void)state_len;
     RetCode ret = kRetOk;
@@ -1151,21 +1151,21 @@ STATIC RetCode SendStateCore(const char* topic, const char* state_org, uint32_t 
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonReqInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
-    const char* req_id = (const char*)ctx;
+    const char *req_id = (const char *)ctx;
     return MakeJsonReqInfoCore(handle, root, req_id);
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode MakeJsonResInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void* ctx)
+STATIC RetCode MakeJsonResInfoUnimplemented(EsfJsonHandle handle, EsfJsonValue root, void *ctx)
 {
-    const char* res_id = (const char*)ctx;
+    const char *res_id = (const char *)ctx;
     return SysAppCmnMakeJsonResInfo(handle, root, res_id, 12, "unimplemented");
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char* id)
+STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char *id)
 {
     // Set req_info.
 
@@ -1177,7 +1177,7 @@ STATIC void MakeJsonUnimplemented(EsfJsonHandle handle, EsfJsonValue root, char*
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SendUnimplementedState(const char* topic, char* id)
+STATIC RetCode SendUnimplementedState(const char *topic, char *id)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1205,7 +1205,7 @@ STATIC RetCode SendUnimplementedState(const char* topic, char* id)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1319,7 +1319,7 @@ STATIC RetCode SendDeviceInfo(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1365,7 +1365,7 @@ STATIC RetCode SendDeviceCapabilities(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1411,7 +1411,7 @@ STATIC RetCode SendDeviceStates(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1457,7 +1457,7 @@ STATIC RetCode SendReserved(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1503,7 +1503,7 @@ STATIC RetCode SendSystemSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1566,7 +1566,7 @@ STATIC RetCode SendNetworkSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1637,7 +1637,7 @@ STATIC RetCode SendWirelessSetting(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1694,7 +1694,7 @@ STATIC RetCode SendPeriodicSetting(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1752,7 +1752,7 @@ STATIC RetCode SendEndpointSettings(void)
 
     // Send state.
 
-    const char* state_org = NULL;
+    const char *state_org = NULL;
     esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
 
     if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1783,8 +1783,8 @@ STATIC RetCode SendDeploy(uint32_t topic_bits)
     // Send deploy state.
 
     RetCode ret = kRetOk;
-    char* state = NULL;
-    const char* topic;
+    char *state = NULL;
+    const char *topic;
     uint32_t state_len;
 
     /* Get state json string by topic */
@@ -1821,7 +1821,7 @@ STATIC RetCode SendDeploy(uint32_t topic_bits)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorInfo(SensorInfoCategory target, char* buf, int bufsize)
+STATIC RetCode GetSensorInfo(SensorInfoCategory target, char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
     const uint32_t category_table[SensorInfoCategoryNum] = {
@@ -1840,7 +1840,7 @@ STATIC RetCode GetSensorInfo(SensorInfoCategory target, char* buf, int bufsize)
     strinfo.category = category_table[target];
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(INFO_STRING=%d) ret %d", category_table[target],
@@ -1879,7 +1879,7 @@ STATIC bool GetSensorPostProcessSupported(void)
 
     int sc_ret = senscord_stream_get_property(s_scstream,
                                               SENSCORD_POST_PROCESS_AVAILABLE_PROPERTY_KEY,
-                                              (void*)&postproc, sizeof(postproc));
+                                              (void *)&postproc, sizeof(postproc));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(POST_PROCESS_AVAILABLE) ret %d", sc_ret);
@@ -1919,7 +1919,7 @@ STATIC int GetSensorTemperature(int prev_temperature)
     struct senscord_temperature_property_t temperature_prop = {0};
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_TEMPERATURE_PROPERTY_KEY,
-                                              (void*)&temperature_prop, sizeof(temperature_prop));
+                                              (void *)&temperature_prop, sizeof(temperature_prop));
 
     if (sc_ret < 0) {
         SYSAPP_ELOG_ERR(SYSAPP_EVT_FAILED_TO_RETRIEVE_TEMP);
@@ -1987,7 +1987,7 @@ STATIC int GetAiIspTemperature(int prev_temperature)
     struct senscord_temperature_property_t temperature_prop = {0};
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_TEMPERATURE_PROPERTY_KEY,
-                                              (void*)&temperature_prop, sizeof(temperature_prop));
+                                              (void *)&temperature_prop, sizeof(temperature_prop));
 
     if (sc_ret < 0) {
         SYSAPP_ELOG_ERR(SYSAPP_EVT_FAILED_TO_RETRIEVE_TEMP);
@@ -2081,9 +2081,9 @@ STATIC void HoursMeterUpdateIntervalCallback(void)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC CfgStUpdateInfo* GetConfigStateUpdateInfo(uint32_t topic)
+STATIC CfgStUpdateInfo *GetConfigStateUpdateInfo(uint32_t topic)
 {
-    CfgStUpdateInfo* ret = NULL;
+    CfgStUpdateInfo *ret = NULL;
 
     if (topic == ST_TOPIC_DEVICE_STATES) {
     }
@@ -2119,7 +2119,7 @@ STATIC CfgStUpdateInfo* GetConfigStateUpdateInfo(uint32_t topic)
 /*----------------------------------------------------------------------------*/
 STATIC void RequestConfigStateUpdate(uint32_t topic)
 {
-    CfgStUpdateInfo* info = GetConfigStateUpdateInfo(topic);
+    CfgStUpdateInfo *info = GetConfigStateUpdateInfo(topic);
 
     if (info == NULL) {
         SYSAPP_ERR("RequestConfigStateUpdate(%u) Unknown topic.", topic);
@@ -2137,7 +2137,7 @@ STATIC void RequestConfigStateUpdate(uint32_t topic)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg, size_t error_detail_msg_size)
+STATIC bool AppendErrorDetail(const char *msg, char *error_detail_msg, size_t error_detail_msg_size)
 {
     if (strstr(error_detail_msg, TRUNCATION_SUFFIX) != NULL) {
         return false;
@@ -2165,9 +2165,9 @@ STATIC bool AppendErrorDetail(const char* msg, char* error_detail_msg, size_t er
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t flag_count,
-                                           char* error_detail_msg, size_t error_detail_msg_size,
-                                           bool* error_exist)
+STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag *error_flags, size_t flag_count,
+                                           char *error_detail_msg, size_t error_detail_msg_size,
+                                           bool *error_exist)
 {
     for (size_t i = 0; i < flag_count; i++) {
         if (error_flags[i].flag_value != 0) {
@@ -2183,9 +2183,9 @@ STATIC void CheckErrorFlagAndAppendMessage(const ErrorFlag* error_flags, size_t 
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, const char* field_name,
-                                                    size_t index, char* error_detail_msg,
-                                                    size_t error_detail_msg_size, bool* error_exist)
+STATIC void CheckErrorFlagAndAppendMessageWithField(const char *base_prefix, const char *field_name,
+                                                    size_t index, char *error_detail_msg,
+                                                    size_t error_detail_msg_size, bool *error_exist)
 {
     char buf[32];
     if (field_name == NULL) {
@@ -2201,7 +2201,7 @@ STATIC void CheckErrorFlagAndAppendMessageWithField(const char* base_prefix, con
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC char* ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
+STATIC char *ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
 {
     if (err_code == kEsfCodecBase64ResultNullParam) {
         return "Parameter is NULL";
@@ -2233,7 +2233,7 @@ STATIC char* ConvB64EncErrToString(EsfCodecBase64ResultEnum err_code)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size_t* out_size)
+STATIC RetCode SetHashWithB64Encode(uint8_t *in, size_t in_size, char *out, size_t *out_size)
 {
     /* Checks whether all data is 0 */
 
@@ -2252,7 +2252,7 @@ STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size
     }
 
     /* Encode the hash value into Base64 */
-    EsfCodecBase64ResultEnum ret_b64encode = EsfCodecBase64Encode((const uint8_t*)in, in_size, out,
+    EsfCodecBase64ResultEnum ret_b64encode = EsfCodecBase64Encode((const uint8_t *)in, in_size, out,
                                                                   out_size);
 
     if (ret_b64encode != kEsfCodecBase64ResultSuccess) {
@@ -2265,7 +2265,7 @@ STATIC RetCode SetHashWithB64Encode(uint8_t* in, size_t in_size, char* out, size
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
+STATIC RetCode GetSensorLoaderVersion(char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
 
@@ -2286,7 +2286,7 @@ STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
     // Get loader version
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(Loader Version) ret %d", sc_ret);
@@ -2312,7 +2312,7 @@ STATIC RetCode GetSensorLoaderVersion(char* buf, int bufsize)
 }
 
 /*----------------------------------------------------------------------------*/
-STATIC RetCode GetSensorFirmwareVersion(char* buf, int bufsize)
+STATIC RetCode GetSensorFirmwareVersion(char *buf, int bufsize)
 {
     RetCode ret = kRetOk;
 
@@ -2333,7 +2333,7 @@ STATIC RetCode GetSensorFirmwareVersion(char* buf, int bufsize)
     // Get firmware version
 
     int sc_ret = senscord_stream_get_property(s_scstream, SENSCORD_INFO_STRING_PROPERTY_KEY,
-                                              (void*)&strinfo, sizeof(strinfo));
+                                              (void *)&strinfo, sizeof(strinfo));
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_get_property(Firmware Version) ret %d", sc_ret);
@@ -2413,7 +2413,7 @@ STATIC CfgStPowerSupplyType GetPowerSupplyType(void)
 //
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStaInitialize(struct SYS_client* sys_client)
+RetCode SysAppStaInitialize(struct SYS_client *sys_client)
 {
     SYSAPP_INFO("Initialize State block.");
     RetCode ret = kRetOk;
@@ -2514,25 +2514,25 @@ ssfds_open_failed:
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateGetSensCordId(void* core_id)
+RetCode SysAppStateGetSensCordId(void *core_id)
 {
     if (s_sccore == 0) {
         return kRetFailed;
     }
 
-    *(senscord_core_t*)core_id = s_sccore;
+    *(senscord_core_t *)core_id = s_sccore;
 
     return kRetOk;
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateGetSensCordStream(void* stream)
+RetCode SysAppStateGetSensCordStream(void *stream)
 {
     if (s_scstream == 0) {
         return kRetFailed;
     }
 
-    *(senscord_stream_t*)stream = s_scstream;
+    *(senscord_stream_t *)stream = s_scstream;
 
     return kRetOk;
 }
@@ -2710,7 +2710,7 @@ RetCode SysAppStateUpdateBoolean(uint32_t topic, uint32_t type, bool boolean)
 }
 
 /*----------------------------------------------------------------------------*/
-void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
+void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string)
 {
     SYSAPP_INFO("SysAppStateUpdateString topic:%u  prop:%d.", topic, type);
 
@@ -2832,7 +2832,7 @@ void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char* string,
+RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char *string,
                                        uint32_t idx)
 {
     RetCode ret = kRetOk;
@@ -3513,12 +3513,12 @@ RetCode SysAppStateReadoutAiModels(void)
     // Get information for sensor.
 
     EsfFwMgrGetInfoData info;
-    EsfFwMgrGetInfoResponse* response = NULL;
+    EsfFwMgrGetInfoResponse *response = NULL;
     EsfFwMgrResult res;
 
     size_t bsize = sizeof(EsfFwMgrGetInfoResponse) * ST_AIMODELS_NUM;
 
-    response = (EsfFwMgrGetInfoResponse*)malloc(bsize);
+    response = (EsfFwMgrGetInfoResponse *)malloc(bsize);
 
     if (response == NULL) {
         SYSAPP_ERR("malloc");
@@ -4336,8 +4336,8 @@ RetCode SysAppStateReadoutEndpointSettings(void)
     size_t endp_host_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE;
     size_t endp_port_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE;
 
-    char* endpoint_url = (char*)malloc(endp_host_buf_size);
-    char* endpoint_port = (char*)malloc(endp_port_buf_size);
+    char *endpoint_url = (char *)malloc(endp_host_buf_size);
+    char *endpoint_port = (char *)malloc(endp_port_buf_size);
 
     if ((endpoint_url == NULL) || (endpoint_port == NULL)) {
         SYSAPP_ERR("malloc");
@@ -4396,9 +4396,9 @@ RetCode SysAppStateReadoutEndpointSettings(void)
 }
 
 /*----------------------------------------------------------------------*/
-char* SysAppStateGetReqId(uint32_t topic)
+char *SysAppStateGetReqId(uint32_t topic)
 {
-    char* ret = NULL;
+    char *ret = NULL;
 
     if (topic == ST_TOPIC_DEVICE_STATES) {
     }
@@ -4432,13 +4432,13 @@ char* SysAppStateGetReqId(uint32_t topic)
 }
 
 /*----------------------------------------------------------------------*/
-void SysAppStateGetTemperatureUpdateInterval(int* temperature_update_interval)
+void SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval)
 {
     *temperature_update_interval = s_system_settings.temperature_update_interval;
 }
 
 /*----------------------------------------------------------------------*/
-char* SysAppStateGetProtocolVersion(void)
+char *SysAppStateGetProtocolVersion(void)
 {
     return &(s_endpoint_settings.protocol_version[0]);
 }
@@ -4536,7 +4536,7 @@ bool SysAppStaIsStateQueueEmpty(void)
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------------*/
-bool SysAppStateIsUnimplementedTopic(const char* topic)
+bool SysAppStateIsUnimplementedTopic(const char *topic)
 {
     bool ret = false;
 
@@ -4551,7 +4551,7 @@ bool SysAppStateIsUnimplementedTopic(const char* topic)
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppStateSendUnimplementedState(const char* topic, const char* id)
+RetCode SysAppStateSendUnimplementedState(const char *topic, const char *id)
 {
     RetCode ret = kRetOk;
 

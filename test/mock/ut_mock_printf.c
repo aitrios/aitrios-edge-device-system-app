@@ -15,7 +15,7 @@
 #endif // UT_LOG_OUTPUT_ENABLE
 
 /*----------------------------------------------------------------------------*/
-int __wrap_printf(const char* restrict format, ...)
+int __wrap_printf(const char *restrict format, ...)
 {
 #ifdef UT_LOG_OUTPUT_ENABLE
     va_list arg;

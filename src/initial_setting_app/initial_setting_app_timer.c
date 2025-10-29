@@ -42,7 +42,7 @@ STATIC IsaTimerContext s_qr_mode_timer_ctx;
 //
 
 /*----------------------------------------------------------------------------*/
-STATIC void QrModeTimerCallback(void* timer_cb_params)
+STATIC void QrModeTimerCallback(void *timer_cb_params)
 {
     ISA_INFO("QrModeTimerCallback() param %p", timer_cb_params);
 
@@ -120,7 +120,7 @@ RetCode IsaTimerStart(uint32_t time, IsaTimerCallback notify_cb)
 
     RetCode ret = kRetOk;
     UtilityTimerErrCode utim_ret = kUtilityTimerOk;
-    IsaTimerContext* timer_ctx = &s_qr_mode_timer_ctx;
+    IsaTimerContext *timer_ctx = &s_qr_mode_timer_ctx;
 
     // If specified timer is working, have to stop it.
 
@@ -161,7 +161,7 @@ RetCode IsaTimerStop(void)
 
     RetCode ret = kRetOk;
     UtilityTimerErrCode utim_ret = kUtilityTimerOk;
-    IsaTimerContext* timer_ctx = &s_qr_mode_timer_ctx;
+    IsaTimerContext *timer_ctx = &s_qr_mode_timer_ctx;
 
     // Check specified timer is working?
 

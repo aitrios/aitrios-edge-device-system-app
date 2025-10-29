@@ -299,7 +299,7 @@ typedef enum {
 typedef union {
     int number;
     bool boolean;
-    const char* string;
+    const char *string;
 } CfgStData;
 
 // Struct for device_info.
@@ -516,36 +516,36 @@ typedef struct {
     CfgStUpdateInfo update;
 } CfgStEndpointSettingsParam;
 
-int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                const char** string);
-int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                int* number);
+int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                const char **string);
+int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                int *number);
 int SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                    const char* jsonkey, double* number);
-int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                 bool* boolean);
-int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                EsfJsonValue* object);
-RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char** req_id);
-RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                const char* string);
-RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+                                    const char *jsonkey, double *number);
+int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                 bool *boolean);
+int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                EsfJsonValue *object);
+RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char **req_id);
+RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                const char *string);
+RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                       EsfMemoryManagerHandle mm_handle, size_t size);
-RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                 int number);
-RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                     double number);
-RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                  bool boolean);
-RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void*),
-                                void* ctx);
-RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void *),
+                                void *ctx);
+RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                uint32_t array_num,
-                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void*),
-                               void* ctx);
-RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char* res_id,
-                                 int code, const char* detail_msg);
+                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void *),
+                               void *ctx);
+RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
+                                 int code, const char *detail_msg);
 
 #if 1 /* TENTATIVE_STUB : These functions are stub for avoid build error. Must be deleted after API replace. */
 #include "network_manager.h"

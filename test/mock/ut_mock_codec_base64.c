@@ -15,10 +15,10 @@
 #include "base64/include/base64_fileio.h"
 
 /*----------------------------------------------------------------------------*/
-EsfCodecBase64ResultEnum __wrap_EsfCodecBase64Encode(const uint8_t* in, size_t in_size, char* out,
-                                                     size_t* out_size)
+EsfCodecBase64ResultEnum __wrap_EsfCodecBase64Encode(const uint8_t *in, size_t in_size, char *out,
+                                                     size_t *out_size)
 {
-    char* out_tmp = mock_type(char*);
+    char *out_tmp = mock_type(char *);
 
     check_expected(in);
     check_expected(in_size);
@@ -29,14 +29,14 @@ EsfCodecBase64ResultEnum __wrap_EsfCodecBase64Encode(const uint8_t* in, size_t i
 }
 
 /*----------------------------------------------------------------------------*/
-EsfCodecBase64ResultEnum __wrap_EsfCodecBase64Decode(const char* in, size_t in_size, uint8_t* out,
-                                                     size_t* out_size)
+EsfCodecBase64ResultEnum __wrap_EsfCodecBase64Decode(const char *in, size_t in_size, uint8_t *out,
+                                                     size_t *out_size)
 {
     check_expected_ptr(in);
     check_expected(in_size);
 
     if (mock_type(bool) == true) {
-        const uint8_t* ret_out = mock_type(const uint8_t*);
+        const uint8_t *ret_out = mock_type(const uint8_t *);
         size_t ret_out_size = mock_type(size_t);
         memcpy(out, ret_out, ret_out_size);
         *out_size = ret_out_size;
@@ -63,7 +63,7 @@ size_t __wrap_EsfCodecBase64GetDecodeSize(size_t in_size)
 EsfCodecBase64ResultEnum __wrap_EsfCodecBase64EncodeHandle(EsfMemoryManagerHandle in_handle,
                                                            size_t in_size,
                                                            EsfMemoryManagerHandle out_handle,
-                                                           size_t* out_size)
+                                                           size_t *out_size)
 {
     check_expected(in_handle);
     check_expected(in_size);

@@ -19,8 +19,8 @@ IsaQrcodeErrorCode __wrap_IsaQrcodeInit(void)
 }
 
 /*----------------------------------------------------------------------------*/
-IsaQrcodeErrorCode __wrap_IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size,
-                                                 IsaQrcodeDecodeResult* result, uint8_t* qr_count)
+IsaQrcodeErrorCode __wrap_IsaQrcodeDecodePayload(uint8_t *payload, int32_t payload_size,
+                                                 IsaQrcodeDecodeResult *result, uint8_t *qr_count)
 {
     check_expected_ptr(payload);
     check_expected(payload_size);

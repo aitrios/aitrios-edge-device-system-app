@@ -31,8 +31,8 @@ typedef enum {
 
 IsaQrcodeErrorCode IsaQrcodeInit(void);
 
-IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size,
-                                          IsaQrcodeDecodeResult* result, uint8_t* qr_count);
+IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t *payload, int32_t payload_size,
+                                          IsaQrcodeDecodeResult *result, uint8_t *qr_count);
 
 IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void);
 

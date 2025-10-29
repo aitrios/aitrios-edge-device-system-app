@@ -13,7 +13,7 @@
 #include "led_manager.h"
 
 /*----------------------------------------------------------------------------*/
-EsfLedManagerResult __wrap_EsfLedManagerGetStatus(EsfLedManagerLedStatusInfo* status)
+EsfLedManagerResult __wrap_EsfLedManagerGetStatus(EsfLedManagerLedStatusInfo *status)
 {
     check_expected(status->led);
     check_expected(status->status);
@@ -34,7 +34,7 @@ EsfLedManagerResult __wrap_EsfLedManagerDeinit(void)
 }
 
 /*----------------------------------------------------------------------------*/
-EsfLedManagerResult __wrap_EsfLedManagerSetStatus(const EsfLedManagerLedStatusInfo* status)
+EsfLedManagerResult __wrap_EsfLedManagerSetStatus(const EsfLedManagerLedStatusInfo *status)
 {
     check_expected(status->led);
     check_expected(status->status);

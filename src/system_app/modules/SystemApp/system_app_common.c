@@ -37,8 +37,8 @@
 //
 
 /*----------------------------------------------------------------------*/
-int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                const char** string)
+int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                const char **string)
 {
     // -1 : A value which matches to jsokey is not found.
     // 0  : A value which matches to jsokey is found but it is not valid.
@@ -68,8 +68,8 @@ int SysAppCmnExtractStringValue(EsfJsonHandle handle, EsfJsonValue parent_val, c
 }
 
 /*----------------------------------------------------------------------*/
-int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                int* number)
+int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                int *number)
 {
     // -1 : A value which matches to jsokey is not found.
     // 0  : A value which matches to jsokey is found but it is not valid.
@@ -100,7 +100,7 @@ int SysAppCmnExtractNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val, c
 
 /*----------------------------------------------------------------------*/
 int SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent_val,
-                                    const char* jsonkey, double* number)
+                                    const char *jsonkey, double *number)
 {
     // -1 : A value which matches to jsokey is not found.
     // 0  : A value which matches to jsokey is found but it is not valid.
@@ -130,8 +130,8 @@ int SysAppCmnExtractRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent_va
 }
 
 /*----------------------------------------------------------------------*/
-int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                 bool* boolean)
+int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                 bool *boolean)
 {
     // -1 : A value which matches to jsokey is not found.
     // 0  : A value which matches to jsokey is found but it is not valid.
@@ -161,8 +161,8 @@ int SysAppCmnExtractBooleanValue(EsfJsonHandle handle, EsfJsonValue parent_val, 
 }
 
 /*----------------------------------------------------------------------*/
-int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char* jsonkey,
-                                EsfJsonValue* object)
+int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, const char *jsonkey,
+                                EsfJsonValue *object)
 {
     // -1 : A value which matches to jsokey is not found.
     // 0  : A value which matches to jsokey is found but it is not valid.
@@ -189,7 +189,7 @@ int SysAppCmnExtractObjectValue(EsfJsonHandle handle, EsfJsonValue parent_val, c
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char** req_id)
+RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const char **req_id)
 {
     RetCode ret = kRetNotFound;
     EsfJsonValue req_info_val;
@@ -220,8 +220,8 @@ RetCode SysAppCmnGetReqId(EsfJsonHandle handle, EsfJsonValue parent_val, const c
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char* res_id,
-                                 int code, const char* detail_msg)
+RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
+                                 int code, const char *detail_msg)
 {
     RetCode ret = kRetOk;
 
@@ -243,8 +243,8 @@ RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const 
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                const char* string)
+RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                const char *string)
 {
     RetCode ret = kRetOk;
     EsfJsonErrorCode esfj_ret = kEsfJsonSuccess;
@@ -271,7 +271,7 @@ RetCode SysAppCmnSetStringValue(EsfJsonHandle handle, EsfJsonValue parent, const
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                       EsfMemoryManagerHandle mm_handle, size_t size)
 {
     RetCode ret = kRetOk;
@@ -299,7 +299,7 @@ RetCode SysAppCmnSetStringValueHandle(EsfJsonHandle handle, EsfJsonValue parent,
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                 int number)
 {
     RetCode ret = kRetOk;
@@ -327,7 +327,7 @@ RetCode SysAppCmnSetNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                     double number)
 {
     RetCode ret = kRetOk;
@@ -355,7 +355,7 @@ RetCode SysAppCmnSetRealNumberValue(EsfJsonHandle handle, EsfJsonValue parent, c
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                  bool boolean)
 {
     RetCode ret = kRetOk;
@@ -383,8 +383,9 @@ RetCode SysAppCmnSetBooleanValue(EsfJsonHandle handle, EsfJsonValue parent, cons
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void*), void* ctx)
+RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, void *),
+                                void *ctx)
 {
     RetCode ret = kRetOk;
     EsfJsonErrorCode esfj_ret = kEsfJsonSuccess;
@@ -413,10 +414,10 @@ RetCode SysAppCmnSetObjectValue(EsfJsonHandle handle, EsfJsonValue parent, const
 }
 
 /*----------------------------------------------------------------------------*/
-RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                uint32_t array_num,
-                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void*),
-                               void* ctx)
+                               RetCode (*make_json)(EsfJsonHandle, EsfJsonValue, uint32_t, void *),
+                               void *ctx)
 {
     RetCode ret = kRetOk;
     EsfJsonErrorCode esfj_ret = kEsfJsonSuccess;

@@ -22,7 +22,7 @@ static double real_init_expect_value = 0;
 static bool is_set_real_init_expect_value = false;
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonOpen(EsfJsonHandle* handle)
+EsfJsonErrorCode __wrap_EsfJsonOpen(EsfJsonHandle *handle)
 {
     *handle = mock_type(EsfJsonHandle);
 
@@ -38,7 +38,7 @@ EsfJsonErrorCode __wrap_EsfJsonClose(EsfJsonHandle handle)
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonObjectInit(EsfJsonHandle handle, EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonObjectInit(EsfJsonHandle handle, EsfJsonValue *value)
 {
     check_expected(handle);
 
@@ -48,17 +48,17 @@ EsfJsonErrorCode __wrap_EsfJsonObjectInit(EsfJsonHandle handle, EsfJsonValue* va
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonSerialize(EsfJsonHandle handle, EsfJsonValue value, const char** str)
+EsfJsonErrorCode __wrap_EsfJsonSerialize(EsfJsonHandle handle, EsfJsonValue value, const char **str)
 {
     check_expected(handle);
     check_expected(value);
-    *str = mock_type(const char*);
+    *str = mock_type(const char *);
     return mock_type(EsfJsonErrorCode);
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonObjectGet(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
-                                         EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonObjectGet(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
+                                         EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(parent);
@@ -71,7 +71,7 @@ EsfJsonErrorCode __wrap_EsfJsonObjectGet(EsfJsonHandle handle, EsfJsonValue pare
 
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonValueTypeGet(EsfJsonHandle handle, EsfJsonValue value,
-                                            EsfJsonValueType* type)
+                                            EsfJsonValueType *type)
 {
     check_expected(handle);
     check_expected(value);
@@ -82,18 +82,18 @@ EsfJsonErrorCode __wrap_EsfJsonValueTypeGet(EsfJsonHandle handle, EsfJsonValue v
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonStringGet(EsfJsonHandle handle, EsfJsonValue value, const char** str)
+EsfJsonErrorCode __wrap_EsfJsonStringGet(EsfJsonHandle handle, EsfJsonValue value, const char **str)
 {
     check_expected(handle);
     check_expected(value);
 
-    *str = mock_type(const char*);
+    *str = mock_type(const char *);
 
     return mock_type(EsfJsonErrorCode);
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonIntegerGet(EsfJsonHandle handle, EsfJsonValue value, int32_t* num)
+EsfJsonErrorCode __wrap_EsfJsonIntegerGet(EsfJsonHandle handle, EsfJsonValue value, int32_t *num)
 {
     check_expected(handle);
     check_expected(value);
@@ -111,7 +111,7 @@ void SetEsfJsonRealGetValue(double value)
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonRealGet(EsfJsonHandle handle, EsfJsonValue value, double* num)
+EsfJsonErrorCode __wrap_EsfJsonRealGet(EsfJsonHandle handle, EsfJsonValue value, double *num)
 {
     check_expected(handle);
     check_expected(value);
@@ -136,7 +136,7 @@ EsfJsonErrorCode __wrap_EsfJsonRealGet(EsfJsonHandle handle, EsfJsonValue value,
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonBooleanGet(EsfJsonHandle handle, EsfJsonValue value, bool* boolean)
+EsfJsonErrorCode __wrap_EsfJsonBooleanGet(EsfJsonHandle handle, EsfJsonValue value, bool *boolean)
 {
     check_expected(handle);
     check_expected(value);
@@ -147,8 +147,8 @@ EsfJsonErrorCode __wrap_EsfJsonBooleanGet(EsfJsonHandle handle, EsfJsonValue val
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonStringInit(EsfJsonHandle handle, const char* str,
-                                          EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonStringInit(EsfJsonHandle handle, const char *str,
+                                          EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected_ptr(str);
@@ -159,7 +159,7 @@ EsfJsonErrorCode __wrap_EsfJsonStringInit(EsfJsonHandle handle, const char* str,
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonObjectSet(EsfJsonHandle handle, EsfJsonValue parent, const char* key,
+EsfJsonErrorCode __wrap_EsfJsonObjectSet(EsfJsonHandle handle, EsfJsonValue parent, const char *key,
                                          EsfJsonValue value)
 {
     check_expected(handle);
@@ -171,7 +171,7 @@ EsfJsonErrorCode __wrap_EsfJsonObjectSet(EsfJsonHandle handle, EsfJsonValue pare
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonIntegerInit(EsfJsonHandle handle, int32_t num, EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonIntegerInit(EsfJsonHandle handle, int32_t num, EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(num);
@@ -189,7 +189,7 @@ void SetEsfJsonRealInitExpectValue(double value)
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonRealInit(EsfJsonHandle handle, double num, EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonRealInit(EsfJsonHandle handle, double num, EsfJsonValue *value)
 {
     check_expected(handle);
 
@@ -222,7 +222,7 @@ EsfJsonErrorCode __wrap_EsfJsonRealInit(EsfJsonHandle handle, double num, EsfJso
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonBooleanInit(EsfJsonHandle handle, bool boolean, EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonBooleanInit(EsfJsonHandle handle, bool boolean, EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(boolean);
@@ -233,7 +233,7 @@ EsfJsonErrorCode __wrap_EsfJsonBooleanInit(EsfJsonHandle handle, bool boolean, E
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonArrayInit(EsfJsonHandle handle, EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonArrayInit(EsfJsonHandle handle, EsfJsonValue *value)
 {
     check_expected(handle);
 
@@ -254,8 +254,8 @@ EsfJsonErrorCode __wrap_EsfJsonArrayAppend(EsfJsonHandle handle, EsfJsonValue pa
 }
 
 /*----------------------------------------------------------------------------*/
-EsfJsonErrorCode __wrap_EsfJsonDeserialize(EsfJsonHandle handle, const char* str,
-                                           EsfJsonValue* value)
+EsfJsonErrorCode __wrap_EsfJsonDeserialize(EsfJsonHandle handle, const char *str,
+                                           EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected_ptr(str);
@@ -273,7 +273,7 @@ int32_t __wrap_EsfJsonArrayCount(EsfJsonHandle handle, EsfJsonValue parent)
 
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonArrayGet(EsfJsonHandle handle, EsfJsonValue parent, int32_t index,
-                                        EsfJsonValue* value)
+                                        EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(parent);
@@ -299,7 +299,7 @@ size_t __wrap_EsfJsonSerializeSizeGet(EsfJsonHandle handle, EsfJsonValue value)
 
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonSerializeFileIO(EsfJsonHandle handle, EsfJsonValue value,
-                                               EsfMemoryManagerHandle mem_handle, size_t* mem_size)
+                                               EsfMemoryManagerHandle mem_handle, size_t *mem_size)
 {
     check_expected(handle);
     check_expected(value);
@@ -312,7 +312,7 @@ EsfJsonErrorCode __wrap_EsfJsonSerializeFileIO(EsfJsonHandle handle, EsfJsonValu
 
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonSerializeHandle(EsfJsonHandle handle, EsfJsonValue value,
-                                               EsfMemoryManagerHandle mem_handle, size_t* mem_size)
+                                               EsfMemoryManagerHandle mem_handle, size_t *mem_size)
 {
     check_expected(handle);
     check_expected(value);
@@ -326,7 +326,7 @@ EsfJsonErrorCode __wrap_EsfJsonSerializeHandle(EsfJsonHandle handle, EsfJsonValu
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonStringInitFileIO(EsfJsonHandle handle,
                                                 EsfMemoryManagerHandle mem_handle, size_t mem_size,
-                                                EsfJsonValue* value)
+                                                EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(mem_handle);
@@ -340,7 +340,7 @@ EsfJsonErrorCode __wrap_EsfJsonStringInitFileIO(EsfJsonHandle handle,
 /*----------------------------------------------------------------------------*/
 EsfJsonErrorCode __wrap_EsfJsonStringInitHandle(EsfJsonHandle handle,
                                                 EsfMemoryManagerHandle mem_handle, size_t mem_size,
-                                                EsfJsonValue* value)
+                                                EsfJsonValue *value)
 {
     check_expected(handle);
     check_expected(mem_handle);

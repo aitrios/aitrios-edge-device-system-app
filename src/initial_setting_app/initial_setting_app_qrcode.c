@@ -21,7 +21,7 @@
 #include "initial_setting_app_util.h"
 #include "base64/include/base64.h"
 
-STATIC IsaQrcodePayloadInfo* sp_payload_info = NULL;
+STATIC IsaQrcodePayloadInfo *sp_payload_info = NULL;
 STATIC uint8_t s_qr_total_bit = 0x00;
 STATIC uint8_t s_qr_count_bit = 0x00;
 STATIC bool s_IsQRFirst = true;
@@ -42,13 +42,13 @@ static const uint8_t sc_qr_option_plain[Option_LEN] = {
 /* Base64 encoded magic number "SQR". */
 static const uint8_t sc_qr_magic_number_b64[MagicNumber_STRINGLEN] = {'U', '1', 'F', 'S'};
 
-static char* ParseQrPayloadIndex(char* p_tok, char* p_prop, uint16_t maxsize);
-static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count);
-static void WrapCopyData(char* dst, char* src, uint32_t max_data_size);
-static bool IsValidDomain(const char* domain, int max_len);
-STATIC bool IsValidEvpHubUrl(const char* domain);
-STATIC bool IsValidCommonUrl(const char* domain, int max_len);
-static IpVer CheckIpAddressType(const char* ip_string);
+static char *ParseQrPayloadIndex(char *p_tok, char *p_prop, uint16_t maxsize);
+static IsaQrcodeDecodeResult SetQrInfo(char *p_input, uint8_t *p_qr_count);
+static void WrapCopyData(char *dst, char *src, uint32_t max_data_size);
+static bool IsValidDomain(const char *domain, int max_len);
+STATIC bool IsValidEvpHubUrl(const char *domain);
+STATIC bool IsValidCommonUrl(const char *domain, int max_len);
+static IpVer CheckIpAddressType(const char *ip_string);
 
 IsaQrcodeErrorCode IsaQrcodeInit(void)
 {
@@ -57,7 +57,7 @@ IsaQrcodeErrorCode IsaQrcodeInit(void)
     do {
         /* malloc */
 
-        sp_payload_info = (IsaQrcodePayloadInfo*)malloc(sizeof(IsaQrcodePayloadInfo));
+        sp_payload_info = (IsaQrcodePayloadInfo *)malloc(sizeof(IsaQrcodePayloadInfo));
 
         if (sp_payload_info == NULL) {
             ISA_CRIT("sp_payload_info malloc failed. size=%zu", sizeof(IsaQrcodePayloadInfo));
@@ -76,8 +76,8 @@ IsaQrcodeErrorCode IsaQrcodeInit(void)
     return ret;
 }
 
-IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size,
-                                          IsaQrcodeDecodeResult* result, uint8_t* qr_count)
+IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t *payload, int32_t payload_size,
+                                          IsaQrcodeDecodeResult *result, uint8_t *qr_count)
 {
     IsaQrcodeErrorCode ret = kIsaQrcode_Success;
 
@@ -134,7 +134,7 @@ IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size
 
         EsfCodecBase64ResultEnum ret_b64codec = kEsfCodecBase64ResultSuccess;
 
-        ret_b64codec = EsfCodecBase64Decode((const char*)header_encoded, sizeof(header_encoded),
+        ret_b64codec = EsfCodecBase64Decode((const char *)header_encoded, sizeof(header_encoded),
                                             header_decoded, &out_size);
 
         if (ret_b64codec != kEsfCodecBase64ResultSuccess) {
@@ -158,7 +158,7 @@ IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size
         }
 
         size_t qr_input_size = payload_size - HEADER_STRINGLEN - MagicNumber_STRINGLEN;
-        char* p_qr_data_plain = (char*)malloc(qr_input_size + 1); /* +1 for '\0' */
+        char *p_qr_data_plain = (char *)malloc(qr_input_size + 1); /* +1 for '\0' */
 
         if (!p_qr_data_plain) {
             ISA_ERR("malloc() failed");
@@ -169,7 +169,7 @@ IsaQrcodeErrorCode IsaQrcodeDecodePayload(uint8_t* payload, int32_t payload_size
         memset(p_qr_data_plain, 0, qr_input_size + 1); /* +1 for '\0' */
         memcpy(p_qr_data_plain, payload + HEADER_STRINGLEN, qr_input_size);
 
-        char* end = strrchr(p_qr_data_plain, ';');
+        char *end = strrchr(p_qr_data_plain, ';');
 
         if (end == NULL) {
             ISA_ERR("Invalid QR Property");
@@ -211,7 +211,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     if (*sp_payload_info->m_evphub_url != '\0') {
         ISA_DBG("evphub url = %s", sp_payload_info->m_evphub_url);
 
-        char* endpoint_url = (char*)sp_payload_info->m_evphub_url;
+        char *endpoint_url = (char *)sp_payload_info->m_evphub_url;
         esfsm_ret = EsfSystemManagerSetEvpHubUrl(endpoint_url,
                                                  sizeof(sp_payload_info->m_evphub_url));
         if (esfsm_ret != kEsfSystemManagerResultOk) {
@@ -225,7 +225,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     if (*sp_payload_info->m_evphub_port != '\0') {
         ISA_DBG("evphub port = %s", sp_payload_info->m_evphub_port);
 
-        char* endpoint_port = (char*)sp_payload_info->m_evphub_port;
+        char *endpoint_port = (char *)sp_payload_info->m_evphub_port;
         esfsm_ret = EsfSystemManagerSetEvpHubPort(endpoint_port,
                                                   sizeof(sp_payload_info->m_evphub_port));
         if (esfsm_ret != kEsfSystemManagerResultOk) {
@@ -269,7 +269,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     if (*sp_payload_info->m_project_id != '\0') {
         ISA_DBG("project id = %s", sp_payload_info->m_project_id);
 
-        char* project_id = (char*)sp_payload_info->m_project_id;
+        char *project_id = (char *)sp_payload_info->m_project_id;
         esfsm_ret = EsfSystemManagerSetProjectId(project_id, sizeof(sp_payload_info->m_project_id));
         if (esfsm_ret != kEsfSystemManagerResultOk) {
             ISA_ERR("EsfSystemManagerSetProjectId failed %d", esfsm_ret);
@@ -289,7 +289,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     if (*sp_payload_info->m_register_token != '\0') {
         ISA_DBG("register token = %s", sp_payload_info->m_register_token);
 
-        char* register_token = (char*)sp_payload_info->m_register_token;
+        char *register_token = (char *)sp_payload_info->m_register_token;
         esfsm_ret = EsfSystemManagerSetRegisterToken(register_token,
                                                      sizeof(sp_payload_info->m_register_token));
         if (esfsm_ret != kEsfSystemManagerResultOk) {
@@ -719,13 +719,13 @@ void IsaClearMultiQRParam(void)
 }
 
 /*----------------------------------------------------------------------*/
-static char* ParseQrPayloadIndex(char* p_tok, char* p_prop, uint16_t maxsize)
+static char *ParseQrPayloadIndex(char *p_tok, char *p_prop, uint16_t maxsize)
 {
     if (p_tok[1] != '=') {
         return NULL;
     }
 
-    char* p = p_tok + 2;
+    char *p = p_tok + 2;
     int index = 0;
 
     for (; *p != ';' && index < maxsize - 1; index++, p++) {
@@ -744,9 +744,9 @@ static char* ParseQrPayloadIndex(char* p_tok, char* p_prop, uint16_t maxsize)
 }
 
 /*----------------------------------------------------------------------*/
-static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
+static IsaQrcodeDecodeResult SetQrInfo(char *p_input, uint8_t *p_qr_count)
 {
-    char* ptr = p_input;
+    char *ptr = p_input;
     IsaQrcodeDecodeResult ret = kIsaQrcodeDecode_Invalid;
     static bool contain_evphub_url;
     static bool contain_evphub_port;
@@ -810,11 +810,11 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
                                           sizeof(sp_payload_info->m_evphub_url));
 
                 if (*sp_payload_info->m_evphub_url != '\0') {
-                    ip_check = CheckIpAddressType((const char*)sp_payload_info->m_evphub_url);
+                    ip_check = CheckIpAddressType((const char *)sp_payload_info->m_evphub_url);
                     if (ip_check == IPv4) {
                         contain_evphub_url = true;
                     }
-                    else if (IsValidEvpHubUrl((const char*)sp_payload_info->m_evphub_url)) {
+                    else if (IsValidEvpHubUrl((const char *)sp_payload_info->m_evphub_url)) {
                         contain_evphub_url = true;
                     }
                     else {
@@ -913,9 +913,9 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
                                           sizeof(sp_payload_info->m_proxy_url));
 
                 if (*sp_payload_info->m_proxy_url != '\0') {
-                    ip_check = CheckIpAddressType((const char*)sp_payload_info->m_proxy_url);
+                    ip_check = CheckIpAddressType((const char *)sp_payload_info->m_proxy_url);
                     if ((ip_check != IPv4) && (ip_check != IPBlank)) {
-                        if (!IsValidCommonUrl((const char*)sp_payload_info->m_proxy_url, 256)) {
+                        if (!IsValidCommonUrl((const char *)sp_payload_info->m_proxy_url, 256)) {
                             ISA_ERR("Invalid Proxy URL %s", sp_payload_info->m_proxy_url);
                             memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
                             return ret;
@@ -956,7 +956,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case IPAddress:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_ip,
                                           sizeof(sp_payload_info->m_static_ip));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_ip);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_ip);
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid IPAddress %s", sp_payload_info->m_static_ip);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -968,7 +968,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case IPAddress_v6:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_ip_v6,
                                           sizeof(sp_payload_info->m_static_ip_v6));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_ip_v6);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_ip_v6);
                 if ((ip_check != IPv6) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid IPAddress_v6 %s", sp_payload_info->m_static_ip_v6);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -982,7 +982,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case SubnetMask:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_subnetmask,
                                           sizeof(sp_payload_info->m_static_subnetmask));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_subnetmask);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_subnetmask);
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid SubnetMask %s", sp_payload_info->m_static_subnetmask);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -994,7 +994,8 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case SubnetMask_v6:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_subnetmask_v6,
                                           sizeof(sp_payload_info->m_static_subnetmask_v6));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_subnetmask_v6);
+                ip_check =
+                    CheckIpAddressType((const char *)sp_payload_info->m_static_subnetmask_v6);
                 if ((ip_check != IPv6) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid SubnetMask_v6 %s", sp_payload_info->m_static_subnetmask_v6);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -1008,7 +1009,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case Gateway:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_gateway,
                                           sizeof(sp_payload_info->m_static_gateway));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_gateway);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_gateway);
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid Gateway %s", sp_payload_info->m_static_gateway);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -1020,7 +1021,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case Gateway_v6:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_gateway_v6,
                                           sizeof(sp_payload_info->m_static_gateway_v6));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_gateway_v6);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_gateway_v6);
                 if ((ip_check != IPv6) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid Gateway_v6 %s", sp_payload_info->m_static_gateway_v6);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -1034,7 +1035,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case DNS:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_dns,
                                           sizeof(sp_payload_info->m_static_dns));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_dns);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_dns);
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid DNS %s", sp_payload_info->m_static_dns);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -1046,7 +1047,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case DNS_v6:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_dns_v6,
                                           sizeof(sp_payload_info->m_static_dns_v6));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_dns_v6);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_dns_v6);
                 if ((ip_check != IPv6) && (ip_check != IPBlank)) {
                     ISA_ERR("Invalid DNS_v6 %s", sp_payload_info->m_static_dns_v6);
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
@@ -1060,9 +1061,9 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
             case NTP:
                 ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_ntp,
                                           sizeof(sp_payload_info->m_static_ntp));
-                ip_check = CheckIpAddressType((const char*)sp_payload_info->m_static_ntp);
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_ntp);
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
-                    if (!IsValidCommonUrl((const char*)sp_payload_info->m_static_ntp, 64)) {
+                    if (!IsValidCommonUrl((const char *)sp_payload_info->m_static_ntp, 64)) {
                         ISA_ERR("Invalid NTP %s", sp_payload_info->m_static_ntp);
                         memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
                         return ret;
@@ -1121,7 +1122,7 @@ static IsaQrcodeDecodeResult SetQrInfo(char* p_input, uint8_t* p_qr_count)
     return ret;
 }
 
-static void WrapCopyData(char* dst, char* src, uint32_t max_data_size)
+static void WrapCopyData(char *dst, char *src, uint32_t max_data_size)
 {
     if (*src != ' ') {
         size_t write_size = 0;
@@ -1137,7 +1138,7 @@ static void WrapCopyData(char* dst, char* src, uint32_t max_data_size)
     }
 }
 
-static bool IsValidDomain(const char* domain, int max_len)
+static bool IsValidDomain(const char *domain, int max_len)
 {
     bool isalpha_flag = false;
 
@@ -1218,7 +1219,7 @@ static bool IsValidDomain(const char* domain, int max_len)
 
     /* Check the last part. TLD: Top level domain. (Usually represents a country.) */
 
-    const char* tld = strrchr(domain, '.') + 1;
+    const char *tld = strrchr(domain, '.') + 1;
     int tld_len = strnlen(tld, max_len);
 
     if (tld_len < 2) {
@@ -1234,12 +1235,12 @@ static bool IsValidDomain(const char* domain, int max_len)
     return true; // Domain is valid
 }
 
-STATIC bool IsValidEvpHubUrl(const char* domain)
+STATIC bool IsValidEvpHubUrl(const char *domain)
 {
     return IsValidDomain(domain, 64);
 }
 
-STATIC bool IsValidCommonUrl(const char* domain, int max_len)
+STATIC bool IsValidCommonUrl(const char *domain, int max_len)
 {
     /* " " is valid. */
     if (strncmp(domain, " ", max_len) == 0) {
@@ -1250,7 +1251,7 @@ STATIC bool IsValidCommonUrl(const char* domain, int max_len)
 }
 
 /*----------------------------------------------------------------------*/
-static IpVer CheckIpAddressType(const char* ip_string)
+static IpVer CheckIpAddressType(const char *ip_string)
 {
     int inet_ret = 0;
 

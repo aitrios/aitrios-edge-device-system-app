@@ -13,7 +13,7 @@
 #include <sys/wait.h>
 
 /*----------------------------------------------------------------------------*/
-int __wrap_waitpid(pid_t pid, int* status, int options)
+int __wrap_waitpid(pid_t pid, int *status, int options)
 {
     return mock_type(int);
 }

@@ -53,12 +53,12 @@ static int s_connect_info = -1;
 
 /*----------------------------------------------------------------------------*/
 STATIC void NetworkManagerCallback(EsfNetworkManagerMode mode, EsfNetworkManagerNotifyInfo info,
-                                   void* private_data)
+                                   void *private_data)
 {
     ISA_INFO("Network callback, mode %d info %d prv_data %p", mode, info, private_data);
 
     if (private_data != NULL) {
-        int* data = (int*)private_data;
+        int *data = (int *)private_data;
         *data = info;
     }
 }
@@ -106,7 +106,7 @@ STATIC RetCode ConnectNetwork(void)
     }
 
     esfnm_ret = EsfNetworkManagerRegisterCallback(s_esfnm_handle, NetworkManagerCallback,
-                                                  (void*)&s_connect_info);
+                                                  (void *)&s_connect_info);
 
     if (esfnm_ret != kEsfNetworkManagerResultSuccess) {
         ISA_ERR("EsfNetworkManagerRegisterCallback() ret %d", esfnm_ret);

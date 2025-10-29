@@ -13,8 +13,8 @@
 #include <sys/mount.h>
 
 /*----------------------------------------------------------------------------*/
-int __wrap_mount(const char* source, const char* target, const char* filesystemtype,
-                 unsigned long flags, const void* data)
+int __wrap_mount(const char *source, const char *target, const char *filesystemtype,
+                 unsigned long flags, const void *data)
 {
     return mock_type(int);
 }

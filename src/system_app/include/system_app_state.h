@@ -49,7 +49,7 @@ typedef enum {
 // Public functions declaration.
 //
 
-RetCode SysAppStaInitialize(struct SYS_client* evp_client);
+RetCode SysAppStaInitialize(struct SYS_client *evp_client);
 RetCode SysAppStaFinalize(void);
 RetCode SysAppStateReadoutDeviceInfo(void);
 RetCode SysAppStateReadoutDeviceCapabilities(void);
@@ -66,8 +66,8 @@ RetCode SysAppStateReadoutEndpointSettings(void);
 RetCode SysAppStateUpdateNumber(uint32_t topic, uint32_t type, int number);
 RetCode SysAppStateUpdateNumberWithIdx(uint32_t topic, uint32_t type, int number, uint32_t idx);
 RetCode SysAppStateUpdateBoolean(uint32_t topic, uint32_t type, bool boolean);
-void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char* string);
-RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char* string,
+void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string);
+RetCode SysAppStateUpdateStringWithIdx(uint32_t topic, uint32_t type, const char *string,
                                        uint32_t idx);
 RetCode SysAppStateUpdateSensorTemperature(void);
 RetCode SysAppStateUpdateHoursMeter(void);
@@ -76,21 +76,21 @@ RetCode SysAppStateSetInvalidArgErrorWithIdx(uint32_t topic, uint32_t property, 
 RetCode SysAppStateSetInternalError(uint32_t topic, uint32_t property);
 RetCode SysAppStateSetInternalErrorWithIdx(uint32_t topic, uint32_t property, uint32_t idx);
 
-char* SysAppStateGetReqId(uint32_t topic);
-void SysAppStateGetTemperatureUpdateInterval(int* temperature_update_interval);
-char* SysAppStateGetProtocolVersion(void);
+char *SysAppStateGetReqId(uint32_t topic);
+void SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval);
+char *SysAppStateGetProtocolVersion(void);
 
 RetCode SysAppStateSendState(uint32_t req);
 RetCode SysAppStaReopenIfClose(void);
 RetCode SysAppStaClose(void);
 
-RetCode SysAppStateGetSensCordId(void* core_id);
-RetCode SysAppStateGetSensCordStream(void* stream);
+RetCode SysAppStateGetSensCordId(void *core_id);
+RetCode SysAppStateGetSensCordStream(void *stream);
 bool SysAppStaIsStateQueueEmpty(void);
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
-bool SysAppStateIsUnimplementedTopic(const char* topic);
-RetCode SysAppStateSendUnimplementedState(const char* topic, const char* id);
+bool SysAppStateIsUnimplementedTopic(const char *topic);
+RetCode SysAppStateSendUnimplementedState(const char *topic, const char *id);
 #endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 
 #endif // _SYSTEM_APP_STATE_H_

@@ -40,14 +40,14 @@ typedef enum { IPvInvalid = -1, IPv4 = 1, IPv6 = 2 } IpVer;
 // File static variables.
 //
 
-STATIC struct SYS_client* s_sys_client = NULL;
+STATIC struct SYS_client *s_sys_client = NULL;
 
 //
 // File static private functions.
 //
 
 /*----------------------------------------------------------------------*/
-static int ConvertFilterNameToValue(const char* filer_name)
+static int ConvertFilterNameToValue(const char *filer_name)
 {
     int filter = -1;
 
@@ -74,7 +74,7 @@ static int ConvertFilterNameToValue(const char* filer_name)
 }
 
 /*----------------------------------------------------------------------*/
-static IpVer CheckIpAddressType(const char* ip_string)
+static IpVer CheckIpAddressType(const char *ip_string)
 {
     int inet_ret = 0;
 
@@ -198,7 +198,7 @@ static bool CheckUpdateNumberWithIdx(uint32_t topic, uint32_t type, int idx, int
         if (type == LogLevel) {
             CfgStLogLevel level;
 
-            log_ret = SysAppLogGetParameterNumber(idx, LogLevel, (int*)&level);
+            log_ret = SysAppLogGetParameterNumber(idx, LogLevel, (int *)&level);
 
             if (log_ret == kRetOk) {
                 update = (number != (int)level) ? true : false;
@@ -211,7 +211,7 @@ static bool CheckUpdateNumberWithIdx(uint32_t topic, uint32_t type, int idx, int
         else if (type == LogDestination) {
             CfgStLogDestination destination;
 
-            log_ret = SysAppLogGetParameterNumber(idx, LogDestination, (int*)&destination);
+            log_ret = SysAppLogGetParameterNumber(idx, LogDestination, (int *)&destination);
 
             if (log_ret == kRetOk) {
                 update = (number != (int)destination) ? true : false;
@@ -286,7 +286,7 @@ static bool CheckUpdateBoolean(uint32_t topic, uint32_t type, bool boolean)
 }
 
 /*----------------------------------------------------------------------*/
-static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
+static bool CheckUpdateString(uint32_t topic, uint32_t type, const char *string)
 {
     bool update = false;
     EsfNetworkManagerResult esfnm_ret = kEsfNetworkManagerResultSuccess;
@@ -294,7 +294,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
 
     if (topic == ST_TOPIC_SYSTEM_SETTINGS) {
         if (type == Id) {
-            char* req_id = SysAppStateGetReqId(topic);
+            char *req_id = SysAppStateGetReqId(topic);
             if (req_id != NULL) {
                 update = (strncmp(string, req_id, CFG_RES_ID_LEN + 1) != 0);
             }
@@ -302,7 +302,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
     }
     else if (topic == ST_TOPIC_NETWORK_SETTINGS) {
         if (type == Id) {
-            char* req_id = SysAppStateGetReqId(topic);
+            char *req_id = SysAppStateGetReqId(topic);
             if (req_id != NULL) {
                 update = (strncmp(string, req_id, CFG_RES_ID_LEN + 1) != 0);
             }
@@ -356,7 +356,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
     }
     else if (topic == ST_TOPIC_WIRELESS_SETTING) {
         if (type == Id) {
-            char* req_id = SysAppStateGetReqId(topic);
+            char *req_id = SysAppStateGetReqId(topic);
             if (req_id != NULL) {
                 update = (strncmp(string, req_id, CFG_RES_ID_LEN + 1) != 0);
             }
@@ -390,7 +390,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
     }
     else if (topic == ST_TOPIC_PERIODIC_SETTING) {
         if (type == Id) {
-            char* req_id = SysAppStateGetReqId(topic);
+            char *req_id = SysAppStateGetReqId(topic);
             if (req_id != NULL) {
                 update = (strncmp(string, req_id, CFG_RES_ID_LEN + 1) != 0);
             }
@@ -403,15 +403,15 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
     }
     else if (topic == ST_TOPIC_ENDPOINT_SETTINGS) {
         if (type == Id) {
-            char* req_id = SysAppStateGetReqId(topic);
+            char *req_id = SysAppStateGetReqId(topic);
             if (req_id != NULL) {
                 update = (strncmp(string, req_id, CFG_RES_ID_LEN + 1) != 0);
             }
         }
         else if (type == EndpointUrl) {
-            char* endp_host = NULL;
+            char *endp_host = NULL;
             size_t endp_host_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE;
-            endp_host = (char*)malloc(endp_host_buf_size);
+            endp_host = (char *)malloc(endp_host_buf_size);
             if (endp_host != NULL) {
                 esfsm_ret = EsfSystemManagerGetEvpHubUrl(endp_host, &endp_host_buf_size);
 
@@ -427,9 +427,9 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
             }
         }
         else if (type == EndpointPort) {
-            char* endp_port = NULL;
+            char *endp_port = NULL;
             size_t endp_port_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE;
-            endp_port = (char*)malloc(endp_port_buf_size);
+            endp_port = (char *)malloc(endp_port_buf_size);
             if (endp_port != NULL) {
                 esfsm_ret = EsfSystemManagerGetEvpHubPort(endp_port, &endp_port_buf_size);
 
@@ -445,7 +445,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
             }
         }
         else if (type == ProtocolVersion) {
-            char* protocol_version = SysAppStateGetProtocolVersion();
+            char *protocol_version = SysAppStateGetProtocolVersion();
             update = (strncmp(string, protocol_version, CFGST_ENDPOINT_PROTOCOL_VERSION_LEN) != 0);
         }
         else {
@@ -466,7 +466,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char* string)
 }
 
 /*----------------------------------------------------------------------*/
-static bool CheckUpdateIpAddress(uint32_t type, const char* string, int ip_check)
+static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check)
 {
     bool update = false;
     EsfNetworkManagerResult esfnm_ret = kEsfNetworkManagerResultSuccess;
@@ -557,7 +557,7 @@ static RetCode ExistStaticIPv4InFlash(void)
                                                  .normal_mode.dev_ip.subnet_mask = 1,
                                                  .normal_mode.dev_ip.gateway = 1,
                                                  .normal_mode.dev_ip.dns = 1};
-    EsfNetworkManagerParameter* esfnm_param = calloc(1, sizeof(EsfNetworkManagerParameter));
+    EsfNetworkManagerParameter *esfnm_param = calloc(1, sizeof(EsfNetworkManagerParameter));
 
     if (esfnm_param == NULL) {
         SYSAPP_ERR("calloc");
@@ -591,7 +591,7 @@ static RetCode ExistStaticIPv4InFlash(void)
 }
 
 /*----------------------------------------------------------------------*/
-static bool CheckUpdateStringWithIdx(uint32_t topic, uint32_t type, int idx, const char* string)
+static bool CheckUpdateStringWithIdx(uint32_t topic, uint32_t type, int idx, const char *string)
 {
     bool update = false;
     RetCode log_ret = kRetOk;
@@ -644,7 +644,7 @@ static bool CheckUpdateStringWithIdx(uint32_t topic, uint32_t type, int idx, con
 
 #ifndef CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 /*----------------------------------------------------------------------*/
-STATIC RetCode ProcessUnimplementedConfiguration(const char* topic, const char* param)
+STATIC RetCode ProcessUnimplementedConfiguration(const char *topic, const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -670,7 +670,7 @@ STATIC RetCode ProcessUnimplementedConfiguration(const char* topic, const char* 
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if ((ret != kRetOk) || ((strnlen(req_id, (CFG_RES_ID_LEN + 1)) > CFG_RES_ID_LEN))) {
@@ -700,9 +700,9 @@ close_json_handle:
 #endif // !CONFIG_EXTERNAL_SYSTEMAPP_ENABLE_SYSTEM_FUNCTION
 
 /*----------------------------------------------------------------------*/
-STATIC void ConfigurationCallback(struct SYS_client* client, const char* topic, const char* config,
+STATIC void ConfigurationCallback(struct SYS_client *client, const char *topic, const char *config,
                                   enum SYS_type_configuration type, enum SYS_callback_reason reason,
-                                  void* userData)
+                                  void *userData)
 {
     (void)userData;
     if ((topic == NULL) || (config == NULL)) {
@@ -724,28 +724,28 @@ STATIC void ConfigurationCallback(struct SYS_client* client, const char* topic, 
     // Execute each configuration.
 
     if (strcmp(topic, "system_settings") == 0) {
-        SysAppCfgSystemSettings((const char*)config);
+        SysAppCfgSystemSettings((const char *)config);
     }
     else if (strcmp(topic, "network_settings") == 0) {
-        SysAppCfgNetworkSettings((const char*)config);
+        SysAppCfgNetworkSettings((const char *)config);
     }
     else if (strcmp(topic, "periodic_setting") == 0) {
-        SysAppCfgPeriodicSetting((const char*)config);
+        SysAppCfgPeriodicSetting((const char *)config);
     }
     else if (strcmp(topic, "wireless_setting") == 0) {
-        SysAppCfgWirelessSetting((const char*)config);
+        SysAppCfgWirelessSetting((const char *)config);
     }
     else if (strcmp(topic, "PRIVATE_endpoint_settings") == 0) {
-        SysAppCfgEndpointSettings((const char*)config);
+        SysAppCfgEndpointSettings((const char *)config);
     }
     else if (strcmp(topic, "PRIVATE_deploy_firmware") == 0) {
-        SysAppDeploy(topic, (const char*)config, strlen(config));
+        SysAppDeploy(topic, (const char *)config, strlen(config));
     }
     else if (strcmp(topic, "PRIVATE_deploy_ai_model") == 0) {
-        SysAppDeploy(topic, (const char*)config, strlen(config));
+        SysAppDeploy(topic, (const char *)config, strlen(config));
     }
     else if (strcmp(topic, "PRIVATE_deploy_sensor_calibration_param") == 0) {
-        SysAppDeploy(topic, (const char*)config, strlen(config));
+        SysAppDeploy(topic, (const char *)config, strlen(config));
     }
     else {
         // Do nothing.
@@ -852,7 +852,7 @@ static int LoadIpMethodFromEsf(void)
 }
 
 /*----------------------------------------------------------------------*/
-static char* LoadNetworkAddressFromEsf(char* addr_buf, int addr_buf_len, uint32_t type)
+static char *LoadNetworkAddressFromEsf(char *addr_buf, int addr_buf_len, uint32_t type)
 {
     EsfNetworkManagerResult esfnm_ret = kEsfNetworkManagerResultSuccess;
     EsfNetworkManagerParameter esfnm_param = {0};
@@ -908,7 +908,7 @@ static char* LoadNetworkAddressFromEsf(char* addr_buf, int addr_buf_len, uint32_
 }
 
 /*----------------------------------------------------------------------*/
-static bool IsValidDomain(const char* domain, int max_len)
+static bool IsValidDomain(const char *domain, int max_len)
 {
     bool isalpha_flag = false;
 
@@ -992,7 +992,7 @@ static bool IsValidDomain(const char* domain, int max_len)
 
     /* Check the last part. TLD: Top level domain. (Usually represents a country.) */
 
-    const char* tld = strrchr(domain, '.') + 1;
+    const char *tld = strrchr(domain, '.') + 1;
     int tld_len = strnlen(tld, max_len);
 
     if (tld_len < 2) {
@@ -1009,7 +1009,7 @@ static bool IsValidDomain(const char* domain, int max_len)
 }
 
 /*----------------------------------------------------------------------*/
-STATIC bool IsValidUrlOrIpAddress(const char* string, int max_len)
+STATIC bool IsValidUrlOrIpAddress(const char *string, int max_len)
 {
     IpVer vIpAddress = CheckIpAddressType(string);
     if (vIpAddress == IPv4) { /* Exclude IPv6 */
@@ -1024,7 +1024,7 @@ STATIC bool IsValidUrlOrIpAddress(const char* string, int max_len)
 }
 
 /*----------------------------------------------------------------------*/
-STATIC bool IsValidUrlOrNullString(const char* domain, int max_len)
+STATIC bool IsValidUrlOrNullString(const char *domain, int max_len)
 {
     /* "" is valid URL. */
     if (strncmp(domain, "", max_len) == 0) {
@@ -1039,7 +1039,7 @@ STATIC bool IsValidUrlOrNullString(const char* domain, int max_len)
 //
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgInitialize(struct SYS_client* sys_client)
+RetCode SysAppCfgInitialize(struct SYS_client *sys_client)
 {
     SYSAPP_INFO("Initialize Configuration block.");
     RetCode ret = kRetOk;
@@ -1081,7 +1081,7 @@ RetCode SysAppCfgFinalize(void)
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgLog(const char* param)
+RetCode SysAppCfgLog(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1107,7 +1107,7 @@ RetCode SysAppCfgLog(const char* param)
 
     // Get filter property.
 
-    const char* filter_str = NULL;
+    const char *filter_str = NULL;
     int filter = 0;
     bool valid_filter = false;
     int extret = SysAppCmnExtractStringValue(esfj_handle, val, "filter", &filter_str);
@@ -1211,7 +1211,7 @@ RetCode SysAppCfgLog(const char* param)
 
             // Get storage_name property.
 
-            const char* storage_name = NULL;
+            const char *storage_name = NULL;
             extret = SysAppCmnExtractStringValue(esfj_handle, val, "storage_name", &storage_name);
 
             if (extret >= 0) {
@@ -1253,7 +1253,7 @@ RetCode SysAppCfgLog(const char* param)
 
             // Get path property.
 
-            const char* path = NULL;
+            const char *path = NULL;
             extret = SysAppCmnExtractStringValue(esfj_handle, val, "path", &path);
 
             if (extret >= 0) {
@@ -1310,7 +1310,7 @@ log_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgSystemSettings(const char* param)
+RetCode SysAppCfgSystemSettings(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1336,7 +1336,7 @@ RetCode SysAppCfgSystemSettings(const char* param)
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if (ret == kRetOk) {
@@ -1401,7 +1401,7 @@ RetCode SysAppCfgSystemSettings(const char* param)
                 esfj_ret = EsfJsonArrayGet(esfj_handle, cval, idx, &ccval);
 
                 if (esfj_ret == kEsfJsonSuccess) {
-                    const char* log_obj_str = NULL;
+                    const char *log_obj_str = NULL;
                     esfj_ret = EsfJsonSerialize(esfj_handle, ccval, &log_obj_str);
 
                     if ((log_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -1464,7 +1464,7 @@ system_settings_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgStaticSettings(const char* param, IpVer ip_ver)
+RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
 {
     //
     // This function have to be called when StaticIP setting.
@@ -1502,7 +1502,7 @@ RetCode SysAppCfgStaticSettings(const char* param, IpVer ip_ver)
 
     property = (ip_ver == IPv4) ? IpAddress : IpAddressV6;
     char ip_address_esfload[CFGST_NETOWRK_IP_ADDRESS_LEN + 1] = "";
-    const char* ip_address = ip_address_esfload;
+    const char *ip_address = ip_address_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "ip_address", &ip_address);
 
@@ -1562,7 +1562,7 @@ RetCode SysAppCfgStaticSettings(const char* param, IpVer ip_ver)
 
     property = (ip_ver == IPv4) ? SubnetMask : SubnetMaskV6;
     char subnet_mask_esfload[CFGST_NETOWRK_SUBNET_MASK_LEN + 1] = "";
-    const char* subnet_mask = subnet_mask_esfload;
+    const char *subnet_mask = subnet_mask_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "subnet_mask", &subnet_mask);
 
@@ -1623,7 +1623,7 @@ RetCode SysAppCfgStaticSettings(const char* param, IpVer ip_ver)
 
     property = (ip_ver == IPv4) ? GatewayAddress : GatewayAddressV6;
     char gateway_address_esfload[CFGST_NETOWRK_GATEWAY_ADDRESS_LEN + 1] = "";
-    const char* gateway_address = gateway_address_esfload;
+    const char *gateway_address = gateway_address_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "gateway_address", &gateway_address);
 
@@ -1684,7 +1684,7 @@ RetCode SysAppCfgStaticSettings(const char* param, IpVer ip_ver)
 
     property = (ip_ver == IPv4) ? DnsAddress : DnsAddressV6;
     char dns_address_esfload[CFGST_NETOWRK_DNS_ADDRESS_LEN + 1] = "";
-    const char* dns_address = dns_address_esfload;
+    const char *dns_address = dns_address_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "dns_address", &dns_address);
 
@@ -1754,19 +1754,19 @@ network_static_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgStaticSettingsIPv6(const char* param)
+RetCode SysAppCfgStaticSettingsIPv6(const char *param)
 {
     return SysAppCfgStaticSettings(param, IPv6);
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgStaticSettingsIPv4(const char* param)
+RetCode SysAppCfgStaticSettingsIPv4(const char *param)
 {
     return SysAppCfgStaticSettings(param, IPv4);
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgProxySettings(const char* param)
+RetCode SysAppCfgProxySettings(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1794,7 +1794,7 @@ RetCode SysAppCfgProxySettings(const char* param)
 
     // Get proxy_url property.
 
-    const char* proxy_url = NULL;
+    const char *proxy_url = NULL;
     int extret = SysAppCmnExtractStringValue(esfj_handle, val, "proxy_url", &proxy_url);
 
     if (extret >= 0) {
@@ -1855,7 +1855,7 @@ RetCode SysAppCfgProxySettings(const char* param)
 
     // Get proxy_user_name property.
 
-    const char* proxy_user_name = NULL;
+    const char *proxy_user_name = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "proxy_user_name", &proxy_user_name);
 
     if (extret >= 0) {
@@ -1887,7 +1887,7 @@ RetCode SysAppCfgProxySettings(const char* param)
 
     // Get proxy_password property.
 
-    const char* proxy_password = NULL;
+    const char *proxy_password = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "proxy_password", &proxy_password);
 
     if (extret >= 0) {
@@ -1931,7 +1931,7 @@ network_proxy_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgNetworkSettings(const char* param)
+RetCode SysAppCfgNetworkSettings(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1960,7 +1960,7 @@ RetCode SysAppCfgNetworkSettings(const char* param)
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if (ret == kRetOk) {
@@ -2005,7 +2005,7 @@ RetCode SysAppCfgNetworkSettings(const char* param)
 
     // Get ntp_url property.
 
-    const char* ntp_url = NULL;
+    const char *ntp_url = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "ntp_url", &ntp_url);
 
     if (extret >= 0) {
@@ -2062,7 +2062,7 @@ RetCode SysAppCfgNetworkSettings(const char* param)
             esfj_ret = EsfJsonValueTypeGet(esfj_handle, cval, &val_type);
 
             if ((val_type == kEsfJsonValueTypeObject) && (esfj_ret == kEsfJsonSuccess)) {
-                const char* sta_obj_str = NULL;
+                const char *sta_obj_str = NULL;
                 esfj_ret = EsfJsonSerialize(esfj_handle, cval, &sta_obj_str);
 
                 if ((sta_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -2093,7 +2093,7 @@ RetCode SysAppCfgNetworkSettings(const char* param)
             esfj_ret = EsfJsonValueTypeGet(esfj_handle, cval, &val_type);
 
             if ((val_type == kEsfJsonValueTypeObject) && (esfj_ret == kEsfJsonSuccess)) {
-                const char* sta_obj_str = NULL;
+                const char *sta_obj_str = NULL;
                 esfj_ret = EsfJsonSerialize(esfj_handle, cval, &sta_obj_str);
 
                 if ((sta_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -2114,7 +2114,7 @@ RetCode SysAppCfgNetworkSettings(const char* param)
         esfj_ret = EsfJsonValueTypeGet(esfj_handle, cval, &val_type);
 
         if ((val_type == kEsfJsonValueTypeObject) && (esfj_ret == kEsfJsonSuccess)) {
-            const char* sta_obj_str = NULL;
+            const char *sta_obj_str = NULL;
             esfj_ret = EsfJsonSerialize(esfj_handle, cval, &sta_obj_str);
 
             if ((sta_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -2178,7 +2178,7 @@ network_setting_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgIntervalSetting(const char* param, int idx)
+RetCode SysAppCfgIntervalSetting(const char *param, int idx)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -2203,7 +2203,7 @@ RetCode SysAppCfgIntervalSetting(const char* param, int idx)
 
     // Get base_time.
 
-    const char* base_time = NULL;
+    const char *base_time = NULL;
     int extret = SysAppCmnExtractStringValue(esfj_handle, val, "base_time", &base_time);
 
     if (extret >= 0) {
@@ -2269,7 +2269,7 @@ interval_setting_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgPeriodicSetting(const char* param)
+RetCode SysAppCfgPeriodicSetting(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -2294,7 +2294,7 @@ RetCode SysAppCfgPeriodicSetting(const char* param)
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if (ret == kRetOk) {
@@ -2370,7 +2370,7 @@ RetCode SysAppCfgPeriodicSetting(const char* param)
                 esfj_ret = EsfJsonArrayGet(esfj_handle, cval, idx, &ccval);
 
                 if (esfj_ret == kEsfJsonSuccess) {
-                    const char* interval_setting_obj_str = NULL;
+                    const char *interval_setting_obj_str = NULL;
                     esfj_ret = EsfJsonSerialize(esfj_handle, ccval, &interval_setting_obj_str);
 
                     if ((interval_setting_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -2385,7 +2385,7 @@ RetCode SysAppCfgPeriodicSetting(const char* param)
 
     // Get ip_addr_setting.
 
-    const char* ip_addr_setting = NULL;
+    const char *ip_addr_setting = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "ip_addr_setting", &ip_addr_setting);
     if (extret >= 0) {
         if ((extret >= 1) &&
@@ -2414,7 +2414,7 @@ periodic_setting_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgStaModeSetting(const char* param)
+RetCode SysAppCfgStaModeSetting(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -2442,7 +2442,7 @@ RetCode SysAppCfgStaModeSetting(const char* param)
 
     // Get ssid property.
 
-    const char* ssid = NULL;
+    const char *ssid = NULL;
     int extret = SysAppCmnExtractStringValue(esfj_handle, val, "ssid", &ssid);
 
     if (extret >= 0) {
@@ -2474,7 +2474,7 @@ RetCode SysAppCfgStaModeSetting(const char* param)
 
     // Get password property.
 
-    const char* password = NULL;
+    const char *password = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "password", &password);
 
     if (extret >= 0) {
@@ -2557,7 +2557,7 @@ wireless_sta_mode_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgWirelessSetting(const char* param)
+RetCode SysAppCfgWirelessSetting(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -2583,7 +2583,7 @@ RetCode SysAppCfgWirelessSetting(const char* param)
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if (ret == kRetOk) {
@@ -2615,7 +2615,7 @@ RetCode SysAppCfgWirelessSetting(const char* param)
         esfj_ret = EsfJsonValueTypeGet(esfj_handle, cval, &val_type);
 
         if ((val_type == kEsfJsonValueTypeObject) && (esfj_ret == kEsfJsonSuccess)) {
-            const char* sta_obj_str = NULL;
+            const char *sta_obj_str = NULL;
             esfj_ret = EsfJsonSerialize(esfj_handle, cval, &sta_obj_str);
 
             if ((sta_obj_str != NULL) && (esfj_ret == kEsfJsonSuccess)) {
@@ -2648,16 +2648,16 @@ wireless_setting_exit:
 }
 
 /*----------------------------------------------------------------------*/
-RetCode SysAppCfgEndpointSettings(const char* param)
+RetCode SysAppCfgEndpointSettings(const char *param)
 {
     RetCode ret = kRetOk;
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
     EsfJsonValue val = ESF_JSON_VALUE_INVALID;
     const uint32_t topic = ST_TOPIC_ENDPOINT_SETTINGS;
     EsfSystemManagerResult esfsm_ret = kEsfSystemManagerResultOk;
-    char* endp_host_bk = NULL;
+    char *endp_host_bk = NULL;
     size_t endp_host_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_URL_MAX_SIZE;
-    char* endp_port_bk = NULL;
+    char *endp_port_bk = NULL;
     size_t endp_port_buf_size = ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE;
 
     // Open handle and set config parameters.
@@ -2679,7 +2679,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
 
     // Get req_id property.
 
-    const char* req_id = NULL;
+    const char *req_id = NULL;
     ret = SysAppCmnGetReqId(esfj_handle, val, &req_id);
 
     if (ret == kRetOk) {
@@ -2703,7 +2703,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
 
     // Get endpoint url and port for backup purposes.
 
-    endp_host_bk = (char*)malloc(endp_host_buf_size);
+    endp_host_bk = (char *)malloc(endp_host_buf_size);
 
     if (endp_host_bk == NULL) {
         SysAppStateSetInternalError(topic, EndpointUrl);
@@ -2718,7 +2718,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
         goto request_to_send_endpoint_settings_exit;
     }
 
-    endp_port_bk = (char*)malloc(endp_port_buf_size);
+    endp_port_bk = (char *)malloc(endp_port_buf_size);
     if (endp_port_bk == NULL) {
         SysAppStateSetInternalError(topic, EndpointPort);
         goto request_to_send_endpoint_settings_exit;
@@ -2735,7 +2735,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
     // Get endpoint_url property.
 
     uint32_t writeback_request = 0;
-    const char* endpoint_url = NULL;
+    const char *endpoint_url = NULL;
     int extret = SysAppCmnExtractStringValue(esfj_handle, val, "endpoint_url", &endpoint_url);
 
     if (extret >= 0) {
@@ -2768,7 +2768,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
 
     if (extret >= 0) {
         if ((extret >= 1) && ((endpoint_port >= 0) && (endpoint_port <= CFGST_ENDPOINT_PORT_MAX))) {
-            char* port_buf = (char*)malloc(ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE);
+            char *port_buf = (char *)malloc(ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE);
             if (port_buf != NULL) {
                 int len = snprintf(port_buf, ESF_SYSTEM_MANAGER_EVP_HUB_PORT_MAX_SIZE, "%d",
                                    endpoint_port);
@@ -2824,7 +2824,7 @@ RetCode SysAppCfgEndpointSettings(const char* param)
     // Get protocol_version property.
     // Note : This item is an error if it is specified other than "TB".
 
-    const char* protocol_version = NULL;
+    const char *protocol_version = NULL;
     extret = SysAppCmnExtractStringValue(esfj_handle, val, "protocol_version", &protocol_version);
 
     if (extret >= 0) {

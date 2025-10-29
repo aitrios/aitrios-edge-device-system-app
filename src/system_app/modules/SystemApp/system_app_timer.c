@@ -42,7 +42,7 @@ STATIC TimerContext s_hoursmeter_timer_ctx;
 //
 
 /*----------------------------------------------------------------------*/
-STATIC void SensorTempTimerCallback(void* timer_cb_params)
+STATIC void SensorTempTimerCallback(void *timer_cb_params)
 {
     SYSAPP_INFO("SensorTempTimerCallback() param %p", timer_cb_params);
 
@@ -54,7 +54,7 @@ STATIC void SensorTempTimerCallback(void* timer_cb_params)
 }
 
 /*----------------------------------------------------------------------*/
-STATIC void HoursMeterTimerCallback(void* timer_cb_params)
+STATIC void HoursMeterTimerCallback(void *timer_cb_params)
 {
     SYSAPP_INFO("HoursMeterTimerCallback() param %p", timer_cb_params);
 
@@ -66,7 +66,7 @@ STATIC void HoursMeterTimerCallback(void* timer_cb_params)
 }
 
 /*----------------------------------------------------------------------*/
-static TimerContext* GetTimerContext(TimerType type)
+static TimerContext *GetTimerContext(TimerType type)
 {
     // Get timer context from type.
 
@@ -178,7 +178,7 @@ RetCode SysAppTimerStartTimer(TimerType type, uint32_t time, TimerCallback notif
 
     RetCode ret = kRetOk;
     UtilityTimerErrCode utim_ret = kUtilityTimerOk;
-    TimerContext* timer_ctx = NULL;
+    TimerContext *timer_ctx = NULL;
 
     // Get timer context which is according to timer type.
 
@@ -234,7 +234,7 @@ RetCode SysAppTimerStopTimer(TimerType type)
 
     RetCode ret = kRetOk;
     UtilityTimerErrCode utim_ret = kUtilityTimerOk;
-    TimerContext* timer_ctx = NULL;
+    TimerContext *timer_ctx = NULL;
 
     // Get timer context which is according to timer type.
 
