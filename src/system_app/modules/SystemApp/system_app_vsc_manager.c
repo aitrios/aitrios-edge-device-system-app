@@ -21,6 +21,7 @@
 
 #define VSC_RTSP_PORT 8554     // RTSP default port
 #define VSC_RTSP_MAX_CLIENTS 4 // RTSP default max clients
+#define VSC_TIMEOUT_SEC 30     // VSC operation timeout in seconds
 
 //
 // Private VSC Manager Structure
@@ -126,8 +127,9 @@ RetCode SysAppVscManagerFinalize(void)
 /*----------------------------------------------------------------------*/
 vsclient_result_t SysAppVscConfigureRtspServer(const char *server_ip, const char *stream_name)
 {
-    vsclient_result_t result = vsclient_oneshot_set_rtsp_server_config(
-        s_vsc_manager.socket_path, server_ip, VSC_RTSP_PORT, stream_name, VSC_RTSP_MAX_CLIENTS);
+    vsclient_result_t result = vsclient_oneshot_set_rtsp_server_config_timeout(
+        s_vsc_manager.socket_path, server_ip, VSC_RTSP_PORT, stream_name, VSC_RTSP_MAX_CLIENTS,
+        VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_INFO("VSC Manager: RTSP server configured successfully: %s:%d/%s (max %d clients)",
@@ -149,8 +151,8 @@ vsclient_result_t SysAppVscConfigureRtspAuth(const char *user_name, const char *
     bool enable_auth =
         (user_name != NULL && strlen(user_name) > 0 && password != NULL && strlen(password) > 0);
 
-    vsclient_result_t result = vsclient_oneshot_set_rtsp_auth_config(
-        s_vsc_manager.socket_path, user_name, password, enable_auth);
+    vsclient_result_t result = vsclient_oneshot_set_rtsp_auth_config_timeout(
+        s_vsc_manager.socket_path, user_name, password, enable_auth, VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         if (enable_auth) {
@@ -188,8 +190,8 @@ vsclient_result_t SysAppVscConfigureNfs(const char *server_ip, const char *mount
     nfs_config.use_tcp = use_tcp ? 1 : 0;
     nfs_config.file_duration_minutes = (uint32_t)record_time;
 
-    vsclient_result_t result = vsclient_oneshot_set_nfs_config(s_vsc_manager.socket_path,
-                                                               &nfs_config);
+    vsclient_result_t result = vsclient_oneshot_set_nfs_config_timeout(
+        s_vsc_manager.socket_path, &nfs_config, VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_INFO("VSC Manager: NFS configured successfully: %s:%s (v%d, %s, max_record_time:%d)",
@@ -205,8 +207,8 @@ vsclient_result_t SysAppVscConfigureNfs(const char *server_ip, const char *mount
 /*----------------------------------------------------------------------*/
 vsclient_result_t SysAppVscSetMode(int mode)
 {
-    vsclient_result_t result = vsclient_oneshot_set_operating_mode(s_vsc_manager.socket_path,
-                                                                   (vsclient_operating_mode_t)mode);
+    vsclient_result_t result = vsclient_oneshot_set_operating_mode_timeout(
+        s_vsc_manager.socket_path, (vsclient_operating_mode_t)mode, VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_INFO("VSC Manager: Operating mode set successfully: %d", mode);
@@ -221,7 +223,8 @@ vsclient_result_t SysAppVscSetMode(int mode)
 /*----------------------------------------------------------------------*/
 vsclient_result_t SysAppVscStartStream(void)
 {
-    vsclient_result_t result = vsclient_oneshot_start_stream(s_vsc_manager.socket_path);
+    vsclient_result_t result = vsclient_oneshot_start_stream_timeout(s_vsc_manager.socket_path,
+                                                                     VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_INFO("VSC Manager: Stream started successfully");
@@ -236,7 +239,8 @@ vsclient_result_t SysAppVscStartStream(void)
 /*----------------------------------------------------------------------*/
 vsclient_result_t SysAppVscStopStream(void)
 {
-    vsclient_result_t result = vsclient_oneshot_stop_stream(s_vsc_manager.socket_path);
+    vsclient_result_t result = vsclient_oneshot_stop_stream_timeout(s_vsc_manager.socket_path,
+                                                                    VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_INFO("VSC Manager: Stream stopped successfully");
@@ -256,8 +260,8 @@ vsclient_result_t SysAppVscGetServerStatus(vsclient_server_status_t *status)
         return VSCLIENT_ERROR_INVALID_PARAMETER;
     }
 
-    vsclient_result_t result = vsclient_oneshot_get_server_status(s_vsc_manager.socket_path,
-                                                                  status);
+    vsclient_result_t result = vsclient_oneshot_get_server_status_timeout(s_vsc_manager.socket_path,
+                                                                          status, VSC_TIMEOUT_SEC);
 
     if (result == VSCLIENT_SUCCESS) {
         SYSAPP_DBG("VSC Manager: Server status retrieved successfully");
