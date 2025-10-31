@@ -27,8 +27,10 @@
 #define Gateway 'G'
 #define Gateway_v6 'g'
 #define DNS 'D'
+#define DNS2 'n'
 #define DNS_v6 'd'
 #define NTP 'T'
+#define NTP2 'p'
 #define HEADER_STRINGLEN (24)
 #define HEADER_LEN (16)
 #define HEADER_LEN_BUFFER (18) /* HEADER_STRINGLEN * 3 / 4 */
@@ -62,8 +64,10 @@ typedef struct {
     char m_static_gateway[40];       /* Gateway, up to 39 characters */
     char m_static_gateway_v6[40];    /* Gateway for IPv6, up to 39 characters */
     char m_static_dns[40];           /* DNS, up to 39 characters */
+    char m_static_dns2[16];          /* DNS2, up to 15 characters (DNS2 only supports IPv4.) */
     char m_static_dns_v6[40];        /* DNS for IPv6, up to 39 characters */
     char m_static_ntp[65];           /* NTP, up to 64 characters */
+    char m_static_ntp2[65];          /* NTP2, up to 64 characters */
 } IsaQrcodePayloadInfo;
 
 typedef enum { IPvInvalid = -1, IPBlank = 0, IPv4 = 1, IPv6 = 2 } IpVer;

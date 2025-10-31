@@ -5753,6 +5753,7 @@ static void test_IsaRunProvisioningService_Should_exit(void **state)
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -5791,6 +5792,7 @@ static void test_IsaRunProvisioningService_Should_exit(void **state)
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -5937,6 +5939,7 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -5982,6 +5985,7 @@ static void test_IsaRunProvisioningService_SendTelemetry(void **state)
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -6306,6 +6310,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort(void **state)
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -6460,6 +6465,7 @@ static void test_IsaRunProvisioningService_ConnectNetwork_Abort_FR(void **state)
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -6718,6 +6724,7 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -6756,6 +6763,7 @@ static void test_IsaRunProvisioningService_ErrorStartNTP(void **state)
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -6870,6 +6878,7 @@ static void test_IsaRunProvisioningService_StartSyncNtp_Abort_FactoryReset(void 
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -6911,6 +6920,7 @@ static void test_IsaRunProvisioningService_StartSyncNtp_Abort_FactoryReset(void 
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7048,6 +7058,7 @@ static void test_IsaRunProvisioningService_StartSyncNtp_Abort_Reboot(void **stat
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -7089,6 +7100,7 @@ static void test_IsaRunProvisioningService_StartSyncNtp_Abort_Reboot(void **stat
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7219,6 +7231,7 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -7264,6 +7277,7 @@ static void test_IsaRunProvisioningService_Error_SetupEvpAgent(void **state)
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7423,6 +7437,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_FactoryResetRequested(
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -7461,6 +7476,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_FactoryResetRequested(
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7615,6 +7631,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrM
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -7653,6 +7670,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrM
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7798,6 +7816,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrM
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -7836,6 +7855,7 @@ static void test_IsaRunProvisioningService_EvpConnectWait_RebootRequested_SetQrM
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -7981,6 +8001,7 @@ static void test_IsaRunProvisioningService_EvpConnectTimeout(void **state)
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -8019,6 +8040,7 @@ static void test_IsaRunProvisioningService_EvpConnectTimeout(void **state)
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -8166,6 +8188,7 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -8211,6 +8234,7 @@ static void test_IsaRunProvisioningService_DirectCommandRebootRequested(void **s
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -8436,6 +8460,7 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -8474,6 +8499,7 @@ static void test_IsaRunProvisioningService_ErrorReboot(void **state)
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -8615,6 +8641,7 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -8653,6 +8680,7 @@ static void test_IsaRunProvisioningService_ErrorFactoryReset(void **state)
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -8805,6 +8833,7 @@ static void test_IsaRunProvisioningService_Qr_Cleanup_unregister_sys_client_Erro
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask, 0);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.gateway, 0);
@@ -8843,6 +8872,7 @@ static void test_IsaRunProvisioningService_Qr_Cleanup_unregister_sys_client_Erro
 
     // StartNTP()
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  cm_mask.common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -8989,6 +9019,7 @@ static void test_IsaRunProvisioningService_AllowlistFalse(void **state)
                      0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.gateway, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns, 0);
+        expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip, 0);
         expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
                      0);
@@ -9033,6 +9064,7 @@ static void test_IsaRunProvisioningService_AllowlistFalse(void **state)
         // Check EsfClockManagerSetParams.
 
         expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, 0);
+        expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, 0);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                      cm_mask.common.sync_interval);
         expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,

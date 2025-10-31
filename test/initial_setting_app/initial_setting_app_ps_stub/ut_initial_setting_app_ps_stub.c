@@ -65,6 +65,8 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
                  mask->normal_mode.dev_ip.gateway);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns,
                  mask->normal_mode.dev_ip.dns);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2,
+                 mask->normal_mode.dev_ip.dns2);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip,
                  mask->normal_mode.dev_ip_v6.ip);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
@@ -121,6 +123,10 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
     if (mask->normal_mode.dev_ip.dns == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns,
                       parameter->normal_mode.dev_ip.dns);
+    }
+    if (mask->normal_mode.dev_ip.dns2 == 1) {
+        expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns2,
+                      parameter->normal_mode.dev_ip.dns2);
     }
     if (mask->normal_mode.dev_ip_v6.ip == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip_v6.ip,
@@ -284,6 +290,7 @@ static void CheckEsfClockManagerSetParams(const EsfClockManagerParams *data,
 {
     // Check mask
     expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname, mask->connect.hostname);
+    expect_value(__wrap_EsfClockManagerSetParams, mask->connect.hostname2, mask->connect.hostname2);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.sync_interval,
                  mask->common.sync_interval);
     expect_value(__wrap_EsfClockManagerSetParams, mask->common.polling_time,
@@ -306,6 +313,10 @@ static void CheckEsfClockManagerSetParams(const EsfClockManagerParams *data,
     if (mask->connect.hostname == 1) {
         expect_string(__wrap_EsfClockManagerSetParams, data->connect.hostname,
                       data->connect.hostname);
+    }
+    if (mask->connect.hostname2 == 1) {
+        expect_string(__wrap_EsfClockManagerSetParams, data->connect.hostname2,
+                      data->connect.hostname2);
     }
     if (mask->common.sync_interval == 1) {
         expect_value(__wrap_EsfClockManagerSetParams, data->common.sync_interval,

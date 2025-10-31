@@ -432,6 +432,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     bool exist_gateway = false;
     bool exist_gateway_v6 = false;
     bool exist_dns = false;
+    bool exist_dns2 = false;
     bool exist_dns_v6 = false;
 
     /* IP Address */
@@ -570,6 +571,25 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
         esfnm_mask.normal_mode.dev_ip.dns = 0;
     }
 
+    /* DNS2 */
+
+    if (*sp_payload_info->m_static_dns2 != '\0') {
+        ISA_DBG("static dns2 = %s", sp_payload_info->m_static_dns2);
+
+        /* Exist DNS2 */
+        /* Blank Space means "Delete DNS2" */
+        if (*sp_payload_info->m_static_dns2 != ' ') {
+            exist_dns2 = true;
+        }
+
+        esfnm_mask.normal_mode.dev_ip.dns2 = 1;
+        WrapCopyData(esfnm_param.normal_mode.dev_ip.dns2, sp_payload_info->m_static_dns2,
+                     sizeof(sp_payload_info->m_static_dns2));
+    }
+    else {
+        esfnm_mask.normal_mode.dev_ip.dns2 = 0;
+    }
+
     /* DNS IPv6 */
 
     if (*sp_payload_info->m_static_dns_v6 != '\0') {
@@ -593,7 +613,7 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     bool enable_static_ip_v6 = false;
 
     /* Check if static ip is enable. */
-    if (exist_ip && exist_subnet && exist_gateway && exist_dns) {
+    if (exist_ip && exist_subnet && exist_gateway && (exist_dns || exist_dns2)) {
         enable_static_ip = true;
     }
     else {
@@ -652,34 +672,40 @@ IsaQrcodeErrorCode IsaWriteQrcodePayloadToFlash(void)
     /* Write NTP data to flash.*/
 
     EsfClockManagerParams cm_param = {0};
+    EsfClockManagerParamsMask cm_mask = {.connect.hostname = 1, .connect.hostname2 = 1};
 
     /* NTP */
 
     if (*sp_payload_info->m_static_ntp != '\0') {
         ISA_DBG("static ntp = %s", sp_payload_info->m_static_ntp);
 
-        EsfClockManagerParamsMask cm_mask = {.connect.hostname = 1};
         WrapCopyData(cm_param.connect.hostname, sp_payload_info->m_static_ntp,
                      sizeof(sp_payload_info->m_static_ntp));
-
-        EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParamsForcibly(&cm_param,
-                                                                                &cm_mask);
-        if (esfcm_ret != kClockManagerSuccess) {
-            ISA_ERR("EsfClockManagerSetParamsForcibly failed %d", esfcm_ret);
-            is_flash_write_error = true;
-        }
     }
     else {
-        EsfClockManagerParamsMask cm_mask = {.connect.hostname = 1};
         /* Delete NTP Setting */
-        memcpy(cm_param.connect.hostname, "", 1);
 
-        EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParamsForcibly(&cm_param,
-                                                                                &cm_mask);
-        if (esfcm_ret != kClockManagerSuccess) {
-            ISA_ERR("EsfClockManagerSetParamsForcibly failed %d", esfcm_ret);
-            is_flash_write_error = true;
-        }
+        memcpy(cm_param.connect.hostname, "", 1);
+    }
+
+    /* NTP2 */
+
+    if (*sp_payload_info->m_static_ntp2 != '\0') {
+        ISA_DBG("static ntp2 = %s", sp_payload_info->m_static_ntp2);
+
+        WrapCopyData(cm_param.connect.hostname2, sp_payload_info->m_static_ntp2,
+                     sizeof(sp_payload_info->m_static_ntp2));
+    }
+    else {
+        /* Delete NTP2 Setting */
+
+        memcpy(cm_param.connect.hostname2, "", 1);
+    }
+
+    EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParamsForcibly(&cm_param, &cm_mask);
+    if (esfcm_ret != kClockManagerSuccess) {
+        ISA_ERR("EsfClockManagerSetParamsForcibly failed %d", esfcm_ret);
+        is_flash_write_error = true;
     }
 
     /* If writing to Flash fails, the error LED will light for 5 seconds. */
@@ -1041,7 +1067,37 @@ static IsaQrcodeDecodeResult SetQrInfo(char *p_input, uint8_t *p_qr_count)
                     memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
                     return ret;
                 }
-                num_of_ipv4_element++;
+
+                /* 
+                 * Count num_of_ipv4_element only if DNS2 has not yet been found.
+                 * This is because if at least one of DNS or DNS2 is specified, it is considered a valid DNS configuration.
+                 */
+
+                if (sp_payload_info->m_static_dns2[0] == '\0') {
+                    num_of_ipv4_element++;
+                }
+
+                break;
+
+            case DNS2:
+                ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_dns2,
+                                          sizeof(sp_payload_info->m_static_dns2));
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_dns2);
+                if ((ip_check != IPv4) && (ip_check != IPBlank)) {
+                    ISA_ERR("Invalid DNS2 %s", sp_payload_info->m_static_dns2);
+                    memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
+                    return ret;
+                }
+
+                /* 
+                 * Count num_of_ipv4_element only if DNS has not yet been found.
+                 * This is because if at least one of DNS or DNS2 is specified, it is considered a valid DNS configuration.
+                 */
+
+                if (sp_payload_info->m_static_dns[0] == '\0') {
+                    num_of_ipv4_element++;
+                }
+
                 break;
 
             case DNS_v6:
@@ -1065,6 +1121,19 @@ static IsaQrcodeDecodeResult SetQrInfo(char *p_input, uint8_t *p_qr_count)
                 if ((ip_check != IPv4) && (ip_check != IPBlank)) {
                     if (!IsValidCommonUrl((const char *)sp_payload_info->m_static_ntp, 64)) {
                         ISA_ERR("Invalid NTP %s", sp_payload_info->m_static_ntp);
+                        memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
+                        return ret;
+                    }
+                }
+                break;
+
+            case NTP2:
+                ptr = ParseQrPayloadIndex(ptr, sp_payload_info->m_static_ntp2,
+                                          sizeof(sp_payload_info->m_static_ntp2));
+                ip_check = CheckIpAddressType((const char *)sp_payload_info->m_static_ntp2);
+                if ((ip_check != IPv4) && (ip_check != IPBlank)) {
+                    if (!IsValidCommonUrl((const char *)sp_payload_info->m_static_ntp2, 64)) {
+                        ISA_ERR("Invalid NTP2 %s", sp_payload_info->m_static_ntp2);
                         memset(sp_payload_info, '\0', sizeof(IsaQrcodePayloadInfo));
                         return ret;
                     }

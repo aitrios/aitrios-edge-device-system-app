@@ -1946,6 +1946,7 @@ static void common_set_SysAppStateReadoutNetworkSettings(int ip_method_val,
 
     // ntp_url
     will_return(__wrap_EsfClockManagerGetParams, "old_ntp_domain");
+    will_return(__wrap_EsfClockManagerGetParams, "");
     will_return(__wrap_EsfClockManagerGetParams, 0);
     will_return(__wrap_EsfClockManagerGetParams, 0);
     will_return(__wrap_EsfClockManagerGetParams, kClockManagerParamTypeOff);
@@ -1981,6 +1982,9 @@ static void common_set_SysAppStateReadoutNetworkSettings(int ip_method_val,
     common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, ret_val);
 
     // dns_address
+    common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, ret_val);
+
+    // dns2_address
     common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, ret_val);
 
     // SysAppStateReadoutProxySettings()
@@ -5423,6 +5427,9 @@ static void test_SysAppStateReadoutStaticSettingsIPv4_fully_success(void **)
     // dns_address
     common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, kEsfNetworkManagerResultSuccess);
 
+    // dns2_address
+    common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, kEsfNetworkManagerResultSuccess);
+
     ret = SysAppStateReadoutStaticSettingsIPv4();
 
     assert_int_equal(ret, kRetOk);
@@ -5445,6 +5452,9 @@ static void test_SysAppStateReadoutStaticSettingsIPv4_fully_errors(void **)
     common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, 3);
 
     // dns_address
+    common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, 4);
+
+    // dns2_address
     common_set_EsfNetworkManagerLoadParameter(0, 0, EncWpa2Psk, 4);
 
     ret = SysAppStateReadoutStaticSettingsIPv4();

@@ -45,9 +45,15 @@ static void CheckEsfClockManagerSetParamsForcibly(const EsfClockManagerParams *d
 {
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname,
                  mask->connect.hostname);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2,
+                 mask->connect.hostname2);
     if (mask->connect.hostname == 1) {
         expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname,
                       data->connect.hostname);
+    }
+    if (mask->connect.hostname == 1) {
+        expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2,
+                      data->connect.hostname2);
     }
     will_return(__wrap_EsfClockManagerSetParamsForcibly, esfcm_result);
 }
@@ -70,6 +76,8 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
                  mask->normal_mode.dev_ip.gateway);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns,
                  mask->normal_mode.dev_ip.dns);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2,
+                 mask->normal_mode.dev_ip.dns2);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip,
                  mask->normal_mode.dev_ip_v6.ip);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
@@ -126,6 +134,10 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
     if (mask->normal_mode.dev_ip.dns == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns,
                       parameter->normal_mode.dev_ip.dns);
+    }
+    if (mask->normal_mode.dev_ip.dns2 == 1) {
+        expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns2,
+                      parameter->normal_mode.dev_ip.dns2);
     }
     if (mask->normal_mode.dev_ip_v6.ip == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip_v6.ip,
@@ -2365,6 +2377,8 @@ static void test_IsaWriteQrcodePayloadToFlash_SetEmptyProjectId_failed(void **st
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2420,6 +2434,8 @@ static void test_IsaWriteQrcodePayloadToFlash_SetEmptyRegisterToken_failed(void 
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2484,6 +2500,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -2543,6 +2561,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_blank(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -2603,6 +2623,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_SysMgrSet_failed(void **
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2668,6 +2690,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubUrl_NwkMgrSave_failed(void *
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2732,6 +2756,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubPort_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -2791,6 +2817,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubPort_SysMgrSet_failed(void *
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2855,6 +2883,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpHubPort_NwkMgrSave_failed(void 
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -2914,6 +2944,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMode_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -2972,6 +3004,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsEnable_success(
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3031,6 +3065,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsEnable_SysMgrSe
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3095,6 +3131,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsEnable_NwkMgrSa
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3158,6 +3196,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsDisable_success
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3217,6 +3257,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsDisable_SysMgrS
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3281,6 +3323,8 @@ static void test_IsaWriteQrcodePayloadToFlash_EvpMQTTInsecure_TlsDisable_NwkMgrS
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3344,6 +3388,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProjectId_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3402,6 +3448,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProjectId_SysMgrSet_failed(void **
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3465,6 +3513,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProjectId_NwkMgrSave_failed(void *
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3529,6 +3579,8 @@ static void test_IsaWriteQrcodePayloadToFlash_RegisterToken_success(void **state
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3588,6 +3640,8 @@ static void test_IsaWriteQrcodePayloadToFlash_RegisterToken_SysMgrSet_failed(voi
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3652,6 +3706,8 @@ static void test_IsaWriteQrcodePayloadToFlash_RegisterToken_NwkMgrSave_failed(vo
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -3710,6 +3766,8 @@ static void test_IsaWriteQrcodePayloadToFlash_WiFiSSID_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3763,6 +3821,8 @@ static void test_IsaWriteQrcodePayloadToFlash_WiFiSSID_empty_success(void **stat
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3817,6 +3877,8 @@ static void test_IsaWriteQrcodePayloadToFlash_WiFiPass_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3874,6 +3936,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyURL_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3930,6 +3994,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyURL_blank(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -3986,6 +4052,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyPort_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4040,6 +4108,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyURLPort(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4095,6 +4165,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyPort_illegal_below_minimum(vo
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4150,6 +4222,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyPort_illegal_exceed_maximum(v
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4207,6 +4281,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyUser_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4264,6 +4340,8 @@ static void test_IsaWriteQrcodePayloadToFlash_ProxyPass_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4321,6 +4399,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticIP_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4379,6 +4459,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticIPv6_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4436,6 +4518,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticSubnetMask_success(void **st
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4495,6 +4579,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticSubnetMaskv6_success(void **
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4552,6 +4638,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticGateway_success(void **state
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4609,6 +4697,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticGatewayv6_success(void **sta
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4665,6 +4755,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticDNS_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4722,6 +4814,8 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticDNSv6_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4796,6 +4890,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -4870,6 +4966,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_NwkMgrSave_failed(void 
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     expect_value(__wrap_SysAppLedSetAppStatus, type, LedTypePower);
@@ -4946,6 +5044,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_gateway(v
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5018,6 +5118,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_dns(void 
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5041,6 +5143,9 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_success(void **state)
     strncpy(sp_payload_info->m_static_ntp, "pool.ntp.org",
             sizeof(sp_payload_info->m_static_ntp) - 1);
     sp_payload_info->m_static_ntp[sizeof(sp_payload_info->m_static_ntp) - 1] = '\0';
+    strncpy(sp_payload_info->m_static_ntp2, "pool.ntp2.org",
+            sizeof(sp_payload_info->m_static_ntp2) - 1);
+    sp_payload_info->m_static_ntp2[sizeof(sp_payload_info->m_static_ntp2) - 1] = '\0';
 
     // Initialize & set NetworkManager parameter
     memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -5078,8 +5183,11 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_success(void **state)
     memset(&expected_cm_mask, 0, sizeof(EsfClockManagerParamsMask));
     memset(&expected_cm_param, 0, sizeof(EsfClockManagerParams));
     expected_cm_mask.connect.hostname = 1;
+    expected_cm_mask.connect.hostname2 = 1;
     memcpy(expected_cm_param.connect.hostname, sp_payload_info->m_static_ntp,
            sizeof(sp_payload_info->m_static_ntp));
+    memcpy(expected_cm_param.connect.hostname2, sp_payload_info->m_static_ntp2,
+           sizeof(sp_payload_info->m_static_ntp2));
 
     CheckEsfClockManagerSetParamsForcibly(&expected_cm_param, &expected_cm_mask,
                                           kClockManagerSuccess);
@@ -5105,6 +5213,9 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_NwkMgrSave_failed(void *
     strncpy(sp_payload_info->m_static_ntp, "pool.ntp.org",
             sizeof(sp_payload_info->m_static_ntp) - 1);
     sp_payload_info->m_static_ntp[sizeof(sp_payload_info->m_static_ntp) - 1] = '\0';
+    strncpy(sp_payload_info->m_static_ntp2, "pool.ntp2.org",
+            sizeof(sp_payload_info->m_static_ntp2) - 1);
+    sp_payload_info->m_static_ntp2[sizeof(sp_payload_info->m_static_ntp2) - 1] = '\0';
 
     // Initialize & set NetworkManager parameter
     memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -5144,6 +5255,9 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_NwkMgrSave_failed(void *
     expected_cm_mask.connect.hostname = 1;
     memcpy(expected_cm_param.connect.hostname, sp_payload_info->m_static_ntp,
            sizeof(sp_payload_info->m_static_ntp));
+    expected_cm_mask.connect.hostname2 = 1;
+    memcpy(expected_cm_param.connect.hostname2, sp_payload_info->m_static_ntp2,
+           sizeof(sp_payload_info->m_static_ntp2));
 
     CheckEsfClockManagerSetParamsForcibly(&expected_cm_param, &expected_cm_mask,
                                           kClockManagerParamError);
@@ -5172,6 +5286,7 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_empty_NwkMgrSave_failed(
     SetEmptyToEsfSystemManagerSetRegisterToken(kEsfSystemManagerResultOk);
 
     strncpy(sp_payload_info->m_static_ntp, "\0", sizeof(sp_payload_info->m_static_ntp));
+    strncpy(sp_payload_info->m_static_ntp2, "\0", sizeof(sp_payload_info->m_static_ntp2));
 
     // Initialize & set NetworkManager parameter
     memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -5209,8 +5324,11 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticNTP_empty_NwkMgrSave_failed(
     memset(&expected_cm_mask, 0, sizeof(EsfClockManagerParamsMask));
     memset(&expected_cm_param, 0, sizeof(EsfClockManagerParams));
     expected_cm_mask.connect.hostname = 1;
+    expected_cm_mask.connect.hostname2 = 1;
     memcpy(expected_cm_param.connect.hostname, sp_payload_info->m_static_ntp,
            sizeof(sp_payload_info->m_static_ntp));
+    memcpy(expected_cm_param.connect.hostname2, sp_payload_info->m_static_ntp2,
+           sizeof(sp_payload_info->m_static_ntp2));
 
     CheckEsfClockManagerSetParamsForcibly(&expected_cm_param, &expected_cm_mask,
                                           kClockManagerParamError);
@@ -5295,6 +5413,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_success(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5366,6 +5486,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_blank(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5415,6 +5537,8 @@ static void test_IsaWriteQrcodePayloadToFlash_All_empty(void **state)
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5488,6 +5612,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_ip_str(vo
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5559,6 +5685,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_subnetmas
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5630,6 +5758,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_gateway_s
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5701,6 +5831,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_dns_str(v
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5778,6 +5910,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_Not_specified_ip_str(vo
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5854,6 +5988,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_Not_specified_subnetmas
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -5930,6 +6066,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_Not_specified_gateway_s
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();
@@ -6005,6 +6143,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv6_Not_specified_dns_str(v
 
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     ret = IsaWriteQrcodePayloadToFlash();

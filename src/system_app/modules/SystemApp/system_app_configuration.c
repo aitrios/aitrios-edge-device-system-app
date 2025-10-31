@@ -458,6 +458,15 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char *string)
                     (strncmp(string, cm_param.connect.hostname, CFGST_NETOWRK_NTP_URL_LEN) != 0);
             }
         }
+        else if (type == Ntp2Url) {
+            EsfClockManagerParams cm_param = {0};
+            EsfClockManagerReturnValue esfcm_ret = EsfClockManagerGetParams(&cm_param);
+
+            if (esfcm_ret == kClockManagerSuccess) {
+                update =
+                    (strncmp(string, cm_param.connect.hostname2, CFGST_NETOWRK_NTP_URL_LEN) != 0);
+            }
+        }
         else {
         }
     }
@@ -645,6 +654,16 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip_v6.dns,
                                   CFGST_NETOWRK_DNS_ADDRESS_LEN) != 0);
             }
+        }
+    }
+    else if (type == Dns2Address) {
+        esfnm_mask.normal_mode.dev_ip.dns2 = 1;
+
+        esfnm_ret = EsfNetworkManagerLoadParameter(&esfnm_mask, &esfnm_param);
+
+        if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
+            update = (strncmp(string, esfnm_param.normal_mode.dev_ip.dns2,
+                              CFGST_NETOWRK_DNS2_ADDRESS_LEN) != 0);
         }
     }
     else {
@@ -991,6 +1010,7 @@ static char *LoadNetworkAddressFromEsf(char *addr_buf, int addr_buf_len, uint32_
     esfnm_mask.normal_mode.dev_ip.subnet_mask = 1;
     esfnm_mask.normal_mode.dev_ip.gateway = 1;
     esfnm_mask.normal_mode.dev_ip.dns = 1;
+    esfnm_mask.normal_mode.dev_ip.dns2 = 1;
 
     // Load ESF network parameters.
 
@@ -1020,6 +1040,9 @@ static char *LoadNetworkAddressFromEsf(char *addr_buf, int addr_buf_len, uint32_
         }
         else if (type == DnsAddress) {
             strncpy(addr_buf, esfnm_param.normal_mode.dev_ip.dns, addr_buf_len);
+        }
+        else if (type == Dns2Address) {
+            strncpy(addr_buf, esfnm_param.normal_mode.dev_ip.dns2, addr_buf_len);
         }
     }
     else {
@@ -2168,10 +2191,12 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
             // If it is -1, read the current value. This process is necessary because
             // the current value may change to an invalid value when it is
             // Factory Reset, among other times.
+
             ip_address = LoadNetworkAddressFromEsf(ip_address_esfload, sizeof(ip_address_esfload),
                                                    property);
         }
         // Check and save ip_address property.
+
         ip_check = CheckIpAddressType(ip_address);
         if ((strnlen(ip_address, (CFGST_NETOWRK_IP_ADDRESS_LEN + 1)) <=
              CFGST_NETOWRK_IP_ADDRESS_LEN) &&
@@ -2228,10 +2253,12 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
             // If it is -1, read the current value. This process is necessary because
             // the current value may change to an invalid value when it is
             // Factory Reset, among other times.
+
             subnet_mask = LoadNetworkAddressFromEsf(subnet_mask_esfload,
                                                     sizeof(subnet_mask_esfload), property);
         }
         // Check and save subnet_mask property.
+
         ip_check = CheckIpAddressType(subnet_mask);
         if ((strnlen(subnet_mask, (CFGST_NETOWRK_SUBNET_MASK_LEN + 1)) <=
              CFGST_NETOWRK_SUBNET_MASK_LEN) &&
@@ -2289,10 +2316,12 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
             // If it is -1, read the current value. This process is necessary because
             // the current value may change to an invalid value when it is
             // Factory Reset, among other times.
+
             gateway_address = LoadNetworkAddressFromEsf(gateway_address_esfload,
                                                         sizeof(gateway_address_esfload), property);
         }
         // Check and save gateway_address property.
+
         ip_check = CheckIpAddressType(gateway_address);
         if ((strnlen(gateway_address, (CFGST_NETOWRK_GATEWAY_ADDRESS_LEN + 1)) <=
              CFGST_NETOWRK_GATEWAY_ADDRESS_LEN) &&
@@ -2342,6 +2371,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     property = (ip_ver == IPv4) ? DnsAddress : DnsAddressV6;
     char dns_address_esfload[CFGST_NETOWRK_DNS_ADDRESS_LEN + 1] = "";
     const char *dns_address = dns_address_esfload;
+    RetCode primary_dns_ret = kRetOk;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "dns_address", &dns_address);
 
@@ -2350,10 +2380,12 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
             // If it is -1, read the current value. This process is necessary because
             // the current value may change to an invalid value when it is
             // Factory Reset, among other times.
+
             dns_address = LoadNetworkAddressFromEsf(dns_address_esfload,
                                                     sizeof(dns_address_esfload), property);
         }
         // Check and save dns_address property.
+
         ip_check = CheckIpAddressType(dns_address);
         if ((strnlen(dns_address, (CFGST_NETOWRK_DNS_ADDRESS_LEN + 1)) <=
              CFGST_NETOWRK_DNS_ADDRESS_LEN) &&
@@ -2381,19 +2413,97 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
                     SYSAPP_WARN("EsfNetworkManagerSaveParameter(.dns %s) ret %d", dns_address,
                                 esfnm_ret);
                     SysAppStateSetInternalError(topic, property);
-                    ret = kRetFailed;
+                    primary_dns_ret = kRetFailed;
                 }
             }
         }
         else {
             SYSAPP_WARN("Invalid dns_address %s", dns_address);
             SysAppStateSetInvalidArgError(topic, property);
-            ret = kRetFailed;
+            primary_dns_ret = kRetFailed;
         }
     }
     else {
         SYSAPP_WARN("Invalid dns_address %s", dns_address);
         SysAppStateSetInvalidArgError(topic, property);
+        primary_dns_ret = kRetFailed;
+    }
+
+    // For IPv6, dns2_address is not supported.
+
+    if (ip_ver == IPv6) {
+        if (primary_dns_ret != kRetOk) {
+            ret = kRetFailed;
+        }
+        goto network_static_exit;
+    }
+
+    // Get dns2_address property.
+
+    property = Dns2Address;
+    char dns2_address_esfload[CFGST_NETOWRK_DNS2_ADDRESS_LEN + 1] = "";
+    const char *dns2_address = dns2_address_esfload;
+    RetCode secondary_dns_ret = kRetOk;
+
+    ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "dns2_address", &dns2_address);
+
+    if (ext_ret != 0) {
+        if (ext_ret < 0) {
+            // If it is -1, read the current value. This process is necessary because
+            // the current value may change to an invalid value when it is
+            // Factory Reset, among other times.
+
+            dns2_address = LoadNetworkAddressFromEsf(dns2_address_esfload,
+                                                     sizeof(dns2_address_esfload), property);
+        }
+        // Check and save dns2_address property.
+        // dns2_address is IPv4 only.
+        // If dns2_address is empty string, Clean up dns2_address.
+
+        ip_check = CheckIpAddressType(dns2_address);
+        bool is_valid_dns2 = (ip_check == IPv4 || (strcmp(dns2_address, "") == 0));
+
+        if ((strnlen(dns2_address, (CFGST_NETOWRK_DNS2_ADDRESS_LEN + 1)) <=
+             CFGST_NETOWRK_DNS2_ADDRESS_LEN) &&
+            is_valid_dns2) {
+            if (CheckUpdateIpAddress(property, dns2_address, ip_check)) {
+                memset(&esfnm_mask, 0, sizeof(esfnm_mask));
+
+                esfnm_mask.normal_mode.dev_ip.dns2 = 1;
+                snprintf(esfnm_param.normal_mode.dev_ip.dns2,
+                         sizeof(esfnm_param.normal_mode.dev_ip.dns2), "%s", dns2_address);
+
+                esfnm_ret = EsfNetworkManagerSaveParameter(&esfnm_mask, &esfnm_param);
+
+                if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
+                    SysAppStateUpdateString(topic, property, dns2_address);
+                }
+                else {
+                    SYSAPP_WARN("EsfNetworkManagerSaveParameter(.dns2 %s) ret %d", dns2_address,
+                                esfnm_ret);
+                    SysAppStateSetInternalError(topic, property);
+                    secondary_dns_ret = kRetFailed;
+                }
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid dns2_address %s (dns2_address is not support IPv6)", dns2_address);
+            SysAppStateSetInvalidArgError(topic, property);
+            secondary_dns_ret = kRetFailed;
+        }
+    }
+    else {
+        SYSAPP_WARN("Invalid dns2_address %s", dns2_address);
+        SysAppStateSetInvalidArgError(topic, property);
+        secondary_dns_ret = kRetFailed;
+    }
+
+    // If primary and secondary DNS settings failed, return kRetFailed.
+    // If primary failed and secondary DNS settings success but secondary DNS is
+    // empty string, return kRetFailed.
+
+    if ((primary_dns_ret != kRetOk) &&
+        ((secondary_dns_ret != kRetOk) || (strcmp(dns2_address, "") == 0))) {
         ret = kRetFailed;
     }
 
@@ -2701,6 +2811,50 @@ RetCode SysAppCfgNetworkSettings(const char *param)
         else {
             SYSAPP_WARN("Invalid ntp_url");
             SysAppStateSetInvalidArgError(topic, NtpUrl);
+        }
+    }
+
+    // Get ntp2_url property.
+
+    const char *ntp2_url = NULL;
+    extret = SysAppCmnExtractStringValue(esfj_handle, val, "ntp2_url", &ntp2_url);
+
+    if (extret >= 0) {
+        if ((extret >= 1) &&
+            (strnlen(ntp2_url, (CFGST_NETOWRK_NTP_URL_LEN + 1)) <= CFGST_NETOWRK_NTP_URL_LEN) &&
+            (IsValidUrlOrNullString(ntp2_url, CFGST_NETOWRK_NTP_URL_LEN))) {
+            if (CheckUpdateString(topic, Ntp2Url, ntp2_url)) {
+                EsfClockManagerParams cm_param = {0};
+                EsfClockManagerParamsMask cm_mask = {.connect.hostname2 = 1};
+                snprintf(cm_param.connect.hostname2, sizeof(cm_param.connect.hostname2), "%s",
+                         ntp2_url);
+
+                EsfClockManagerReturnValue esfcm_ret = EsfClockManagerSetParamsForcibly(&cm_param,
+                                                                                        &cm_mask);
+
+                if (esfcm_ret == kClockManagerSuccess) {
+                    // Reread after write ClockManager params.
+
+                    esfcm_ret = EsfClockManagerGetParams(&cm_param);
+                    ntp2_url = &(cm_param.connect.hostname2[0]);
+
+                    if (esfcm_ret == kClockManagerSuccess) {
+                        SysAppStateUpdateString(topic, Ntp2Url, ntp2_url);
+                    }
+                    else {
+                        SYSAPP_WARN("EsfClockManagerGetParams() %d", esfcm_ret);
+                        SysAppStateSetInternalError(topic, Ntp2Url);
+                    }
+                }
+                else {
+                    SYSAPP_WARN("EsfClockManagerSetParamsForcibly() %d", esfcm_ret);
+                    SysAppStateSetInternalError(topic, Ntp2Url);
+                }
+            }
+        }
+        else {
+            SYSAPP_WARN("Invalid ntp2_url");
+            SysAppStateSetInvalidArgError(topic, Ntp2Url);
         }
     }
 

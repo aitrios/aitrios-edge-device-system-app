@@ -146,6 +146,7 @@ EsfNetworkManagerResult __wrap_EsfNetworkManagerSaveParameter(
     check_expected(mask->normal_mode.dev_ip.subnet_mask);
     check_expected(mask->normal_mode.dev_ip.gateway);
     check_expected(mask->normal_mode.dev_ip.dns);
+    check_expected(mask->normal_mode.dev_ip.dns2);
     check_expected(mask->normal_mode.dev_ip_v6.ip);
     check_expected(mask->normal_mode.dev_ip_v6.subnet_mask);
     check_expected(mask->normal_mode.dev_ip_v6.gateway);
@@ -179,6 +180,9 @@ EsfNetworkManagerResult __wrap_EsfNetworkManagerSaveParameter(
     }
     if (mask->normal_mode.dev_ip.dns == 1) {
         check_expected_ptr(parameter->normal_mode.dev_ip.dns);
+    }
+    if (mask->normal_mode.dev_ip.dns2 == 1) {
+        check_expected_ptr(parameter->normal_mode.dev_ip.dns2);
     }
     if (mask->normal_mode.dev_ip_v6.ip == 1) {
         check_expected_ptr(parameter->normal_mode.dev_ip_v6.ip);
@@ -310,6 +314,11 @@ EsfNetworkManagerResult __wrap_EsfNetworkManagerLoadParameter(
     if (mask->normal_mode.dev_ip.dns == 1) {
         snprintf(parameter->normal_mode.dev_ip.dns, sizeof parameter->normal_mode.dev_ip.dns, "%s",
                  mock_type(const char *));
+    }
+
+    if (mask->normal_mode.dev_ip.dns2 == 1) {
+        snprintf(parameter->normal_mode.dev_ip.dns2, sizeof parameter->normal_mode.dev_ip.dns2,
+                 "%s", mock_type(const char *));
     }
 
     if (mask->normal_mode.dev_ip_v6.ip == 1) {
