@@ -1345,11 +1345,11 @@ static void SysAppCfgProcessRtspServerIp(EsfJsonHandle esfj_handle, EsfJsonValue
                 config->server_ip[sizeof(config->server_ip) - 1] = '\0';
             }
             else {
-                SYSAPP_WARN("Invalid server_ip %s", server_ip);
+                SYSAPP_WARN("Invalid rtsp server_ip %s", server_ip);
             }
         }
         else {
-            SYSAPP_WARN("Invalid server_ip");
+            SYSAPP_WARN("Invalid rtsp server_ip");
         }
     }
     else {
@@ -1486,12 +1486,12 @@ static void SysAppCfgProcessNfsServerSettings(EsfJsonHandle esfj_handle,
                 config->server_ip[sizeof(config->server_ip) - 1] = '\0';
             }
             else {
-                SYSAPP_WARN("Invalid server_ip %s (must be a valid IPv4 address or hostname)",
+                SYSAPP_WARN("Invalid nfs server_ip %s (must be a valid IPv4 address or hostname)",
                             server_ip);
             }
         }
         else {
-            SYSAPP_WARN("Invalid server_ip");
+            SYSAPP_WARN("Invalid nfs server_ip");
         }
     }
 
@@ -1594,7 +1594,7 @@ static NfsConfig SysAppCfgProcessNfsConfig(EsfJsonHandle esfj_handle, EsfJsonVal
 /*----------------------------------------------------------------------*/
 static RetCode SysAppCfgApplyRtspConfig(const RtspConfig *rtsp_config)
 {
-    if (!rtsp_config->config_found || strlen(rtsp_config->server_ip) == 0) {
+    if (!rtsp_config->config_found) {
         return kRetOk;
     }
 
@@ -1611,17 +1611,15 @@ static RetCode SysAppCfgApplyRtspConfig(const RtspConfig *rtsp_config)
         return kRetFailed;
     }
 
-    // Apply RTSP authentication configuration (if username or password is specified)
+    // Apply RTSP authentication configuration
 
-    if (strlen(rtsp_config->user_name) > 0 || strlen(rtsp_config->password) > 0) {
-        vsc_ret = SysAppVscConfigureRtspAuth(rtsp_config->user_name, rtsp_config->password);
+    vsc_ret = SysAppVscConfigureRtspAuth(rtsp_config->user_name, rtsp_config->password);
 
-        if (vsc_ret != VSCLIENT_SUCCESS) {
-            SysAppVscHandleCreateError(vsc_ret, "RTSP authentication configuration",
-                                       ST_TOPIC_STREAMING_SETTINGS);
-            SYSAPP_ERR("RTSP authentication configuration failed");
-            return kRetFailed;
-        }
+    if (vsc_ret != VSCLIENT_SUCCESS) {
+        SysAppVscHandleCreateError(vsc_ret, "RTSP authentication configuration",
+                                   ST_TOPIC_STREAMING_SETTINGS);
+        SYSAPP_ERR("RTSP authentication configuration failed");
+        return kRetFailed;
     }
 
     return kRetOk;
@@ -1630,8 +1628,7 @@ static RetCode SysAppCfgApplyRtspConfig(const RtspConfig *rtsp_config)
 /*----------------------------------------------------------------------*/
 static RetCode SysAppCfgApplyNfsConfig(const NfsConfig *nfs_config)
 {
-    if (!nfs_config->config_found || strlen(nfs_config->server_ip) == 0 ||
-        strlen(nfs_config->mount_path) == 0) {
+    if (!nfs_config->config_found) {
         return kRetOk;
     }
 
