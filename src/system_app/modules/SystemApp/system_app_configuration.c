@@ -455,7 +455,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char *string)
 
             if (esfcm_ret == kClockManagerSuccess) {
                 update =
-                    (strncmp(string, cm_param.connect.hostname, CFGST_NETOWRK_NTP_URL_LEN) != 0);
+                    (strncmp(string, cm_param.connect.hostname, CFGST_NETWORK_NTP_URL_LEN) != 0);
             }
         }
         else if (type == Ntp2Url) {
@@ -464,7 +464,7 @@ static bool CheckUpdateString(uint32_t topic, uint32_t type, const char *string)
 
             if (esfcm_ret == kClockManagerSuccess) {
                 update =
-                    (strncmp(string, cm_param.connect.hostname2, CFGST_NETOWRK_NTP_URL_LEN) != 0);
+                    (strncmp(string, cm_param.connect.hostname2, CFGST_NETWORK_NTP_URL_LEN) != 0);
             }
         }
         else {
@@ -597,11 +597,11 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
             if (ip_check == IPv4) { // IPv4.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip.ip,
-                                  CFGST_NETOWRK_IP_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_IP_ADDRESS_LEN) != 0);
             }
             else if (ip_check == IPv6) { // IPv6.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip_v6.ip,
-                                  CFGST_NETOWRK_IP_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_IP_ADDRESS_LEN) != 0);
             }
         }
     }
@@ -614,11 +614,11 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
             if (ip_check == IPv4) { // IPv4.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip.subnet_mask,
-                                  CFGST_NETOWRK_SUBNET_MASK_LEN) != 0);
+                                  CFGST_NETWORK_SUBNET_MASK_LEN) != 0);
             }
             else if (ip_check == IPv6) { // IPv6.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip_v6.subnet_mask,
-                                  CFGST_NETOWRK_SUBNET_MASK_LEN) != 0);
+                                  CFGST_NETWORK_SUBNET_MASK_LEN) != 0);
             }
         }
     }
@@ -631,11 +631,11 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
             if (ip_check == IPv4) { // IPv4.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip.gateway,
-                                  CFGST_NETOWRK_GATEWAY_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_GATEWAY_ADDRESS_LEN) != 0);
             }
             else if (ip_check == IPv6) { // IPv6.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip_v6.gateway,
-                                  CFGST_NETOWRK_GATEWAY_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_GATEWAY_ADDRESS_LEN) != 0);
             }
         }
     }
@@ -648,11 +648,11 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
             if (ip_check == IPv4) { // IPv4.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip.dns,
-                                  CFGST_NETOWRK_DNS_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_DNS_ADDRESS_LEN) != 0);
             }
             else if (ip_check == IPv6) { // IPv6.
                 update = (strncmp(string, esfnm_param.normal_mode.dev_ip_v6.dns,
-                                  CFGST_NETOWRK_DNS_ADDRESS_LEN) != 0);
+                                  CFGST_NETWORK_DNS_ADDRESS_LEN) != 0);
             }
         }
     }
@@ -663,7 +663,7 @@ static bool CheckUpdateIpAddress(uint32_t type, const char *string, int ip_check
 
         if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
             update = (strncmp(string, esfnm_param.normal_mode.dev_ip.dns2,
-                              CFGST_NETOWRK_DNS2_ADDRESS_LEN) != 0);
+                              CFGST_NETWORK_DNS2_ADDRESS_LEN) != 0);
         }
     }
     else {
@@ -2181,7 +2181,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     // Get ip_address property.
 
     property = (ip_ver == IPv4) ? IpAddress : IpAddressV6;
-    char ip_address_esfload[CFGST_NETOWRK_IP_ADDRESS_LEN + 1] = "";
+    char ip_address_esfload[CFGST_NETWORK_IP_ADDRESS_LEN + 1] = "";
     const char *ip_address = ip_address_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "ip_address", &ip_address);
@@ -2198,8 +2198,8 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
         // Check and save ip_address property.
 
         ip_check = CheckIpAddressType(ip_address);
-        if ((strnlen(ip_address, (CFGST_NETOWRK_IP_ADDRESS_LEN + 1)) <=
-             CFGST_NETOWRK_IP_ADDRESS_LEN) &&
+        if ((strnlen(ip_address, (CFGST_NETWORK_IP_ADDRESS_LEN + 1)) <=
+             CFGST_NETWORK_IP_ADDRESS_LEN) &&
             (ip_check == ip_ver)) {
             if (CheckUpdateIpAddress(property, ip_address, ip_check)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
@@ -2243,7 +2243,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     // Get subnet_mask property.
 
     property = (ip_ver == IPv4) ? SubnetMask : SubnetMaskV6;
-    char subnet_mask_esfload[CFGST_NETOWRK_SUBNET_MASK_LEN + 1] = "";
+    char subnet_mask_esfload[CFGST_NETWORK_SUBNET_MASK_LEN + 1] = "";
     const char *subnet_mask = subnet_mask_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "subnet_mask", &subnet_mask);
@@ -2260,8 +2260,8 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
         // Check and save subnet_mask property.
 
         ip_check = CheckIpAddressType(subnet_mask);
-        if ((strnlen(subnet_mask, (CFGST_NETOWRK_SUBNET_MASK_LEN + 1)) <=
-             CFGST_NETOWRK_SUBNET_MASK_LEN) &&
+        if ((strnlen(subnet_mask, (CFGST_NETWORK_SUBNET_MASK_LEN + 1)) <=
+             CFGST_NETWORK_SUBNET_MASK_LEN) &&
             (ip_check == ip_ver)) {
             if (CheckUpdateIpAddress(property, subnet_mask, ip_check)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
@@ -2306,7 +2306,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     // Get gateway_address property.
 
     property = (ip_ver == IPv4) ? GatewayAddress : GatewayAddressV6;
-    char gateway_address_esfload[CFGST_NETOWRK_GATEWAY_ADDRESS_LEN + 1] = "";
+    char gateway_address_esfload[CFGST_NETWORK_GATEWAY_ADDRESS_LEN + 1] = "";
     const char *gateway_address = gateway_address_esfload;
 
     ext_ret = SysAppCmnExtractStringValue(esfj_handle, val, "gateway_address", &gateway_address);
@@ -2323,8 +2323,8 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
         // Check and save gateway_address property.
 
         ip_check = CheckIpAddressType(gateway_address);
-        if ((strnlen(gateway_address, (CFGST_NETOWRK_GATEWAY_ADDRESS_LEN + 1)) <=
-             CFGST_NETOWRK_GATEWAY_ADDRESS_LEN) &&
+        if ((strnlen(gateway_address, (CFGST_NETWORK_GATEWAY_ADDRESS_LEN + 1)) <=
+             CFGST_NETWORK_GATEWAY_ADDRESS_LEN) &&
             (ip_check == ip_ver)) {
             if (CheckUpdateIpAddress(property, gateway_address, ip_check)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
@@ -2369,7 +2369,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     // Get dns_address property.
 
     property = (ip_ver == IPv4) ? DnsAddress : DnsAddressV6;
-    char dns_address_esfload[CFGST_NETOWRK_DNS_ADDRESS_LEN + 1] = "";
+    char dns_address_esfload[CFGST_NETWORK_DNS_ADDRESS_LEN + 1] = "";
     const char *dns_address = dns_address_esfload;
     RetCode primary_dns_ret = kRetOk;
 
@@ -2387,8 +2387,8 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
         // Check and save dns_address property.
 
         ip_check = CheckIpAddressType(dns_address);
-        if ((strnlen(dns_address, (CFGST_NETOWRK_DNS_ADDRESS_LEN + 1)) <=
-             CFGST_NETOWRK_DNS_ADDRESS_LEN) &&
+        if ((strnlen(dns_address, (CFGST_NETWORK_DNS_ADDRESS_LEN + 1)) <=
+             CFGST_NETWORK_DNS_ADDRESS_LEN) &&
             (ip_check == ip_ver)) {
             if (CheckUpdateIpAddress(property, dns_address, ip_check)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
@@ -2441,7 +2441,7 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
     // Get dns2_address property.
 
     property = Dns2Address;
-    char dns2_address_esfload[CFGST_NETOWRK_DNS2_ADDRESS_LEN + 1] = "";
+    char dns2_address_esfload[CFGST_NETWORK_DNS2_ADDRESS_LEN + 1] = "";
     const char *dns2_address = dns2_address_esfload;
     RetCode secondary_dns_ret = kRetOk;
 
@@ -2463,8 +2463,8 @@ RetCode SysAppCfgStaticSettings(const char *param, IpVer ip_ver)
         ip_check = CheckIpAddressType(dns2_address);
         bool is_valid_dns2 = (ip_check == IPv4 || (strcmp(dns2_address, "") == 0));
 
-        if ((strnlen(dns2_address, (CFGST_NETOWRK_DNS2_ADDRESS_LEN + 1)) <=
-             CFGST_NETOWRK_DNS2_ADDRESS_LEN) &&
+        if ((strnlen(dns2_address, (CFGST_NETWORK_DNS2_ADDRESS_LEN + 1)) <=
+             CFGST_NETWORK_DNS2_ADDRESS_LEN) &&
             is_valid_dns2) {
             if (CheckUpdateIpAddress(property, dns2_address, ip_check)) {
                 memset(&esfnm_mask, 0, sizeof(esfnm_mask));
@@ -2777,8 +2777,8 @@ RetCode SysAppCfgNetworkSettings(const char *param)
 
     if (extret >= 0) {
         if ((extret >= 1) &&
-            (strnlen(ntp_url, (CFGST_NETOWRK_NTP_URL_LEN + 1)) <= CFGST_NETOWRK_NTP_URL_LEN) &&
-            (IsValidUrlOrNullString(ntp_url, CFGST_NETOWRK_NTP_URL_LEN))) {
+            (strnlen(ntp_url, (CFGST_NETWORK_NTP_URL_LEN + 1)) <= CFGST_NETWORK_NTP_URL_LEN) &&
+            (IsValidUrlOrNullString(ntp_url, CFGST_NETWORK_NTP_URL_LEN))) {
             if (CheckUpdateString(topic, NtpUrl, ntp_url)) {
                 EsfClockManagerParams cm_param = {0};
                 EsfClockManagerParamsMask cm_mask = {.connect.hostname = 1};
@@ -2821,8 +2821,8 @@ RetCode SysAppCfgNetworkSettings(const char *param)
 
     if (extret >= 0) {
         if ((extret >= 1) &&
-            (strnlen(ntp2_url, (CFGST_NETOWRK_NTP_URL_LEN + 1)) <= CFGST_NETOWRK_NTP_URL_LEN) &&
-            (IsValidUrlOrNullString(ntp2_url, CFGST_NETOWRK_NTP_URL_LEN))) {
+            (strnlen(ntp2_url, (CFGST_NETWORK_NTP_URL_LEN + 1)) <= CFGST_NETWORK_NTP_URL_LEN) &&
+            (IsValidUrlOrNullString(ntp2_url, CFGST_NETWORK_NTP_URL_LEN))) {
             if (CheckUpdateString(topic, Ntp2Url, ntp2_url)) {
                 EsfClockManagerParams cm_param = {0};
                 EsfClockManagerParamsMask cm_mask = {.connect.hostname2 = 1};

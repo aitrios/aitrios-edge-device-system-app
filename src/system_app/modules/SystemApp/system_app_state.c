@@ -4345,7 +4345,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
         len = snprintf(s_static_settings_ipv6.ip_address, sizeof(s_static_settings_ipv6.ip_address),
                        "%s", esfnm_param.normal_mode.dev_ip_v6.ip);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_IP_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_IP_ADDRESS_LEN)) {
             s_static_settings_ipv6.ip_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4367,7 +4367,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.subnet_mask), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.subnet_mask);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_SUBNET_MASK_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_SUBNET_MASK_LEN)) {
             s_static_settings_ipv6.subnet_mask[0] = '\0';
             ret = kRetFailed;
         }
@@ -4389,7 +4389,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.gateway_address), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.gateway);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_GATEWAY_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_GATEWAY_ADDRESS_LEN)) {
             s_static_settings_ipv6.gateway_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4411,7 +4411,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.dns_address), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.dns);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_DNS_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_DNS_ADDRESS_LEN)) {
             s_static_settings_ipv6.dns_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4444,7 +4444,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
         len = snprintf(s_static_settings_ipv4.ip_address, sizeof(s_static_settings_ipv4.ip_address),
                        "%s", esfnm_param.normal_mode.dev_ip.ip);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_IP_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_IP_ADDRESS_LEN)) {
             s_static_settings_ipv4.ip_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4466,7 +4466,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.subnet_mask), "%s",
                        esfnm_param.normal_mode.dev_ip.subnet_mask);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_SUBNET_MASK_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_SUBNET_MASK_LEN)) {
             s_static_settings_ipv4.subnet_mask[0] = '\0';
             ret = kRetFailed;
         }
@@ -4488,7 +4488,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.gateway_address), "%s",
                        esfnm_param.normal_mode.dev_ip.gateway);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_GATEWAY_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_GATEWAY_ADDRESS_LEN)) {
             s_static_settings_ipv4.gateway_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4510,7 +4510,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.dns_address), "%s",
                        esfnm_param.normal_mode.dev_ip.dns);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_DNS_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_DNS_ADDRESS_LEN)) {
             s_static_settings_ipv4.dns_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4530,9 +4530,9 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
     if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
         len = snprintf(s_static_settings_ipv4.dns2_address,
                        sizeof(s_static_settings_ipv4.dns2_address), "%.*s",
-                       CFGST_NETOWRK_DNS2_ADDRESS_LEN, esfnm_param.normal_mode.dev_ip.dns2);
+                       CFGST_NETWORK_DNS2_ADDRESS_LEN, esfnm_param.normal_mode.dev_ip.dns2);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_DNS2_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_DNS2_ADDRESS_LEN)) {
             s_static_settings_ipv4.dns2_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4680,7 +4680,7 @@ RetCode SysAppStateReadoutNetworkSettings(void)
         len = snprintf(s_network_settings.ntp_url, sizeof(s_network_settings.ntp_url), "%.253s",
                        cm_param.connect.hostname);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_NTP_URL_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_NTP_URL_LEN)) {
             s_network_settings.ntp_url[0] = '\0';
             ret = kRetFailed;
         }
@@ -4688,7 +4688,7 @@ RetCode SysAppStateReadoutNetworkSettings(void)
         len = snprintf(s_network_settings.ntp2_url, sizeof(s_network_settings.ntp2_url), "%.253s",
                        cm_param.connect.hostname2);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_NTP_URL_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_NTP_URL_LEN)) {
             s_network_settings.ntp2_url[0] = '\0';
             ret = kRetFailed;
         }

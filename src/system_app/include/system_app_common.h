@@ -71,13 +71,13 @@
 #define CFGST_NETWORK_PROXY_URL_LEN (256)
 #define CFGST_NETWORK_PROXY_USER_NAME_LEN (32)
 #define CFGST_NETWORK_PROXY_PASSWORD_LEN (32)
-#define CFGST_NETOWRK_IP_ADDRESS_LEN (39)
-#define CFGST_NETOWRK_SUBNET_MASK_LEN (39)
-#define CFGST_NETOWRK_GATEWAY_ADDRESS_LEN (39)
-#define CFGST_NETOWRK_DNS_ADDRESS_LEN (39)
+#define CFGST_NETWORK_IP_ADDRESS_LEN (39)
+#define CFGST_NETWORK_SUBNET_MASK_LEN (39)
+#define CFGST_NETWORK_GATEWAY_ADDRESS_LEN (39)
+#define CFGST_NETWORK_DNS_ADDRESS_LEN (39)
 // Secondary DNS can only be set IPv4, so its length is different from primary.
-#define CFGST_NETOWRK_DNS2_ADDRESS_LEN (15)
-#define CFGST_NETOWRK_NTP_URL_LEN (256)
+#define CFGST_NETWORK_DNS2_ADDRESS_LEN (15)
+#define CFGST_NETWORK_NTP_URL_LEN (256)
 
 // String length for wireless_setting.
 
@@ -154,7 +154,7 @@ typedef enum {
 
 } RetCode;
 
-// Tremination reason.
+// Termination reason.
 
 typedef enum {
     UnDefined = 0,
@@ -274,7 +274,7 @@ typedef enum {
     LogLevelNum
 } CfgStLogLevel;
 
-// Log desitination.
+// Log destination.
 
 typedef enum {
     DestUart = 0,
@@ -504,8 +504,8 @@ typedef struct {
 typedef struct {
     char id[CFG_RES_ID_LEN + 1];
     int ip_method;
-    char ntp_url[CFGST_NETOWRK_NTP_URL_LEN + 1];
-    char ntp2_url[CFGST_NETOWRK_NTP_URL_LEN + 1];
+    char ntp_url[CFGST_NETWORK_NTP_URL_LEN + 1];
+    char ntp2_url[CFGST_NETWORK_NTP_URL_LEN + 1];
     CfgStUpdateInfo update;
     uint32_t invalid_ip_method_flag;
     uint32_t invalid_ntp_url_flag;
@@ -515,11 +515,11 @@ typedef struct {
 // Struct for static_settings.
 
 typedef struct {
-    char ip_address[CFGST_NETOWRK_IP_ADDRESS_LEN + 1];
-    char subnet_mask[CFGST_NETOWRK_SUBNET_MASK_LEN + 1];
-    char gateway_address[CFGST_NETOWRK_GATEWAY_ADDRESS_LEN + 1];
-    char dns_address[CFGST_NETOWRK_DNS_ADDRESS_LEN + 1];
-    char dns2_address[CFGST_NETOWRK_DNS2_ADDRESS_LEN + 1];
+    char ip_address[CFGST_NETWORK_IP_ADDRESS_LEN + 1];
+    char subnet_mask[CFGST_NETWORK_SUBNET_MASK_LEN + 1];
+    char gateway_address[CFGST_NETWORK_GATEWAY_ADDRESS_LEN + 1];
+    char dns_address[CFGST_NETWORK_DNS_ADDRESS_LEN + 1];
+    char dns2_address[CFGST_NETWORK_DNS2_ADDRESS_LEN + 1];
     CfgStUpdateInfo update;
     uint32_t invalid_ip_address_flag;
     uint32_t invalid_subnet_mask_flag;
@@ -542,7 +542,7 @@ typedef struct {
     uint32_t invalid_proxy_password_flag;
 } CfgStProxySettingsParam;
 
-// Struct for wiress_setting.
+// Struct for wireless_setting.
 
 typedef struct {
     char id[CFG_RES_ID_LEN + 1];
