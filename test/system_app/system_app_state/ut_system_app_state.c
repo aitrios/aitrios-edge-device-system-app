@@ -1243,6 +1243,13 @@ static void common_set_MakeJsonStaticSettingsIPv4(EsfJsonHandle handle_val, EsfJ
     expect_string(__wrap_SysAppCmnSetStringValue, string, s_static_settings_ipv4.dns_address);
     will_return(__wrap_SysAppCmnSetStringValue, ret_val);
 
+    // SysAppCmnSetStringValue
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "dns2_address");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, s_static_settings_ipv4.dns2_address);
+    will_return(__wrap_SysAppCmnSetStringValue, ret_val);
+
     return;
 }
 
@@ -1306,6 +1313,13 @@ static void common_set_MakeJsonNetworkSettings(EsfJsonHandle handle_val, EsfJson
     expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
     expect_string(__wrap_SysAppCmnSetStringValue, key, "ntp_url");
     expect_string(__wrap_SysAppCmnSetStringValue, string, s_network_settings.ntp_url);
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // SysAppCmnSetStringValue
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "ntp2_url");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, s_network_settings.ntp2_url);
     will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
 
     // _SysAppCmnSetObjectValue
@@ -4592,6 +4606,8 @@ static void test_SysAppStateSetInvalidArgError_FullySuccess(void **)
     assert_int_equal(ret, kRetOk);
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, NtpUrl);
     assert_int_equal(ret, kRetOk);
+    ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, Ntp2Url);
+    assert_int_equal(ret, kRetOk);
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, IpAddress);
     assert_int_equal(ret, kRetOk);
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, SubnetMask);
@@ -4599,6 +4615,8 @@ static void test_SysAppStateSetInvalidArgError_FullySuccess(void **)
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, GatewayAddress);
     assert_int_equal(ret, kRetOk);
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, DnsAddress);
+    assert_int_equal(ret, kRetOk);
+    ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, Dns2Address);
     assert_int_equal(ret, kRetOk);
     ret = SysAppStateSetInvalidArgError(ST_TOPIC_NETWORK_SETTINGS, IpAddressV6);
     assert_int_equal(ret, kRetOk);
@@ -4900,7 +4918,9 @@ static void test_SysAppStateUpdateString_FullySuccess(void **)
     SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, SubnetMask, "MASK-V4");
     SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, GatewayAddress, "GATEWAY-V4");
     SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, DnsAddress, "DNS-V4");
+    SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, Dns2Address, "DNS2-V4");
     SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, NtpUrl, "NTP-URL");
+    SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, Ntp2Url, "NTP2-URL");
     SysAppStateUpdateString(ST_TOPIC_NETWORK_SETTINGS, -1, NULL);
     SysAppStateUpdateString(ST_TOPIC_WIRELESS_SETTING, Id, "WIRELESS-ID");
     SysAppStateUpdateString(ST_TOPIC_WIRELESS_SETTING, StaSsid, "STA-SSID");

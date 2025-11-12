@@ -987,11 +987,8 @@ STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue roo
     SysAppCmnSetStringValue(handle, root, "dns_address", s_static_settings_ipv4.dns_address);
 
     // Set dns2_address.
-    // dns2_address is optional. so set only when it is not empty.
 
-    if (s_static_settings_ipv4.dns2_address[0] != '\0') {
-        SysAppCmnSetStringValue(handle, root, "dns2_address", s_static_settings_ipv4.dns2_address);
-    }
+    SysAppCmnSetStringValue(handle, root, "dns2_address", s_static_settings_ipv4.dns2_address);
 
     return ret;
 }
@@ -1039,11 +1036,8 @@ STATIC RetCode MakeJsonNetworkSettings(EsfJsonHandle handle, EsfJsonValue root)
     SysAppCmnSetStringValue(handle, root, "ntp_url", s_network_settings.ntp_url);
 
     // Set ntp2_url.
-    // ntp2_url is optional. so set only when it is not empty.
 
-    if (s_network_settings.ntp2_url[0] != '\0') {
-        SysAppCmnSetStringValue(handle, root, "ntp2_url", s_network_settings.ntp2_url);
-    }
+    SysAppCmnSetStringValue(handle, root, "ntp2_url", s_network_settings.ntp2_url);
 
     // Set static_settings_ipv6.
 

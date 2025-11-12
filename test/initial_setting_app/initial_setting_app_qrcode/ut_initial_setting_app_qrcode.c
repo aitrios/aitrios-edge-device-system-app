@@ -1889,6 +1889,42 @@ static void test_IsaQrcodeDecodePayload_UserData_DNS_blank(void **state)
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_DNS2(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "n=8.8.8.8;U1FS"; // DNS2
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_DNS2_invalid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "n=8.8.8;U1FS"; // DNS2 invalid
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_DNS2_blank(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "n= ;U1FS"; // DNS2 blank
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 static void test_IsaQrcodeDecodePayload_UserData_DNS_v6(void **state)
 {
     const char *payload =
@@ -2001,6 +2037,66 @@ static void test_IsaQrcodeDecodePayload_UserData_NTP_blank(void **state)
     const char *payload =
         "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
         "T= ;U1FS"; // NTP blank
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_NTP2(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "p=pool.ntp.org;U1FS"; // NTP2
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_NTP2_invalid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "p=pool.ntp.org.;U1FS"; // invalid NTP
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_NTP2_IP(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "p=192.200.100.200;U1FS"; // NTP IP Address
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_NTP2_IP_invalid(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "p=192.200.100.;U1FS"; // NTP IP Address
+    size_t payload_size = strlen(payload);
+
+    VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcodeDecode_Invalid);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_IsaQrcodeDecodePayload_UserData_NTP2_blank(void **state)
+{
+    const char *payload =
+        "AAIAAAAAAAAAAAAAAAAAAA==N=11;E=example.com;H=8883;S=WiFiSSID;P=WiFiPassword;"
+        "p= ;U1FS"; // NTP blank
     size_t payload_size = strlen(payload);
 
     VerifyQrcodeDecodePayloadPerProperty(payload, payload_size, kIsaQrcode_Success);
@@ -4766,6 +4862,64 @@ static void test_IsaWriteQrcodePayloadToFlash_StaticDNS_success(void **state)
 }
 
 /*----------------------------------------------------------------------------*/
+static void test_IsaWriteQrcodePayloadToFlash_StaticDNS2_success(void **state)
+{
+    IsaQrcodeErrorCode ret;
+    EsfNetworkManagerParameterMask expected_esfnm_mask;
+    EsfNetworkManagerParameter expected_esfnm_param;
+
+    SetEmptyToEsfSystemManagerSetProjectId(kEsfSystemManagerResultOk);
+    SetEmptyToEsfSystemManagerSetRegisterToken(kEsfSystemManagerResultOk);
+
+    strncpy(sp_payload_info->m_static_dns2, "8.8.8.8", sizeof(sp_payload_info->m_static_dns2) - 1);
+    sp_payload_info->m_static_dns2[sizeof(sp_payload_info->m_static_dns2) - 1] = '\0';
+
+    // Initialize & set NetworkManager parameter
+    memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
+    memset(&expected_esfnm_param, 0, sizeof(EsfNetworkManagerParameter));
+    expected_esfnm_mask.normal_mode.dev_ip.dns2 = 1;
+    memcpy(expected_esfnm_param.normal_mode.dev_ip.dns2, sp_payload_info->m_static_dns2,
+           sizeof(sp_payload_info->m_static_dns2));
+
+    expected_esfnm_mask.normal_mode.dev_ip.ip = 1;
+    memcpy(expected_esfnm_param.normal_mode.dev_ip.ip, "", 1);
+    expected_esfnm_mask.normal_mode.dev_ip_v6.ip = 1;
+    memcpy(expected_esfnm_param.normal_mode.dev_ip_v6.ip, "", 1);
+    expected_esfnm_mask.normal_mode.wifi_sta.ssid = 1;
+    memcpy(expected_esfnm_param.normal_mode.wifi_sta.ssid, "", 1);
+    expected_esfnm_mask.normal_mode.wifi_sta.password = 1;
+    memcpy(expected_esfnm_param.normal_mode.wifi_sta.password, "", 1);
+    expected_esfnm_mask.proxy.url = 1;
+    memcpy(expected_esfnm_param.proxy.url, "", 1);
+    expected_esfnm_mask.proxy.port = 1;
+    expected_esfnm_param.proxy.port = 0;
+    expected_esfnm_mask.proxy.username = 1;
+    memcpy(expected_esfnm_param.proxy.username, "", 1);
+    expected_esfnm_mask.proxy.password = 1;
+    memcpy(expected_esfnm_param.proxy.password, "", 1);
+
+    CheckEsfNetworkManagerSaveParameter(&expected_esfnm_mask, &expected_esfnm_param,
+                                        kEsfNetworkManagerResultSuccess);
+
+    memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
+    expected_esfnm_mask.normal_mode.ip_method = 1;
+
+    CheckEsfNetworkManagerSaveParameter(&expected_esfnm_mask, &expected_esfnm_param,
+                                        kEsfNetworkManagerResultSuccess);
+
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, "");
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, "");
+    will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
+
+    ret = IsaWriteQrcodePayloadToFlash();
+
+    assert_int_equal(ret, kIsaQrcode_Success);
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 static void test_IsaWriteQrcodePayloadToFlash_StaticDNSv6_success(void **state)
 {
     IsaQrcodeErrorCode ret;
@@ -5788,6 +5942,8 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_dns_str(v
     sp_payload_info->m_static_gateway[sizeof(sp_payload_info->m_static_gateway) - 1] = '\0';
     strncpy(sp_payload_info->m_static_dns, " ", sizeof(sp_payload_info->m_static_dns) - 1);
     sp_payload_info->m_static_dns[sizeof(sp_payload_info->m_static_dns) - 1] = '\0';
+    strncpy(sp_payload_info->m_static_dns2, " ", sizeof(sp_payload_info->m_static_dns2) - 1);
+    sp_payload_info->m_static_dns2[sizeof(sp_payload_info->m_static_dns2) - 1] = '\0';
 
     // Initialize & set NetworkManager parameter
     memset(&expected_esfnm_mask, 0, sizeof(EsfNetworkManagerParameterMask));
@@ -5796,6 +5952,7 @@ static void test_IsaWriteQrcodePayloadToFlash_IPMethodv4_Not_specified_dns_str(v
     expected_esfnm_mask.normal_mode.dev_ip.subnet_mask = 1;
     expected_esfnm_mask.normal_mode.dev_ip.gateway = 1;
     expected_esfnm_mask.normal_mode.dev_ip.dns = 1;
+    expected_esfnm_mask.normal_mode.dev_ip.dns2 = 1;
 
     memcpy(expected_esfnm_param.normal_mode.dev_ip.subnet_mask,
            sp_payload_info->m_static_subnetmask, sizeof(sp_payload_info->m_static_subnetmask));
@@ -6597,6 +6754,11 @@ int main(void)
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS_blank, setup,
                                         teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS2, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS2_invalid, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS2_blank, setup,
+                                        teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS_v6, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_DNS_v6_invalid, setup,
@@ -6615,6 +6777,15 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP_IP_invalid, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP_blank, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP2, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP2_invalid, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP2_IP, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP2_IP_invalid, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_NTP2_blank, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaQrcodeDecodePayload_UserData_undefined_property,
                                         setup, teardown),
@@ -6747,6 +6918,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_IsaWriteQrcodePayloadToFlash_StaticGatewayv6_success,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_IsaWriteQrcodePayloadToFlash_StaticDNS_success, setup,
+                                        teardown),
+        cmocka_unit_test_setup_teardown(test_IsaWriteQrcodePayloadToFlash_StaticDNS2_success, setup,
                                         teardown),
         cmocka_unit_test_setup_teardown(test_IsaWriteQrcodePayloadToFlash_StaticDNSv6_success,
                                         setup, teardown),
