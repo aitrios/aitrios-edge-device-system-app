@@ -35,7 +35,7 @@ typedef enum {
     DcUnknown,
     DcInvalidArgument,
     DcResourceExhausted,
-    DcFailedPreCodition,
+    DcFailedPreCondition,
     DcAborted,
     DcUnimplemented,
     DcInternal,

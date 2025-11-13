@@ -249,7 +249,7 @@ STATIC void Response2CodeAndDetailmsg(DcResult res, int *code, char *desc, uint3
             snprintf(desc, desc_len, "%s", "resource_exhausted");
             break;
 
-        case DcFailedPreCodition:
+        case DcFailedPreCondition:
             *code = RESULT_CODE_FAILED_PRECONDITION;
             snprintf(desc, desc_len, "%s", "failed_precondition");
             break;
