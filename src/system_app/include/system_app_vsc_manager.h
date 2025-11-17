@@ -18,7 +18,7 @@ extern "C" {
 // Constants
 
 // Default stream name for RTSP streaming
-static const char *DEFAULT_STREAM_NAME = "cam";
+#define DEFAULT_STREAM_NAME "cam"
 
 //
 // Configuration parameter structures
