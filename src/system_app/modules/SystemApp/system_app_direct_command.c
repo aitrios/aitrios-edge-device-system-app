@@ -541,7 +541,7 @@ static DcResult GetDirectGetImageParams(const char *param, DirectGetImageParam *
         if ((extret >= 1) && (strnlen(network_id, DC_NETWORK_ID_LEN + 1) <= DC_NETWORK_ID_LEN)) {
             if (strncmp(network_id, "", DC_NETWORK_ID_LEN) == 0) {
                 snprintf(out->network_id, sizeof(out->network_id), "%s",
-                         DC_DIRECT_GET_IMAGE_NETWORK_ID);
+                         CONFIG_EXTERNAL_SYSTEMAPP_DEFAULT_NETWORK_ID);
             }
             else {
                 snprintf(out->network_id, sizeof(out->network_id), "%s", network_id);
@@ -553,7 +553,8 @@ static DcResult GetDirectGetImageParams(const char *param, DirectGetImageParam *
         }
     }
     else {
-        snprintf(out->network_id, sizeof(out->network_id), "%s", DC_DIRECT_GET_IMAGE_NETWORK_ID);
+        snprintf(out->network_id, sizeof(out->network_id), "%s",
+                 CONFIG_EXTERNAL_SYSTEMAPP_DEFAULT_NETWORK_ID);
     }
     SYSAPP_INFO("direct_get_image network_id (%s)", out->network_id);
 

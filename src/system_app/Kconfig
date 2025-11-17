@@ -102,4 +102,10 @@ config EXTERNAL_SYSTEMAPP_TEMPERATURE_LOWER_THRESHOLD
 		Lower temperature threshold in degrees Celsius.
 		An error message will be generated when temperature falls below this value.
 
+config EXTERNAL_SYSTEMAPP_DEFAULT_NETWORK_ID
+	string "Default Network Id for direct_get_image"
+	default "999997"
+	---help---
+		Default Network Id for direct_get_image.
+
 endif
