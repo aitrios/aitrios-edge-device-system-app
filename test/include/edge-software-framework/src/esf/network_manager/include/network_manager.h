@@ -12,7 +12,7 @@ extern "C" {
 
 #if defined(__NuttX__)
 #include <nuttx/config.h>
-#endif  // __NuttX__
+#endif // __NuttX__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -32,18 +32,16 @@ extern "C" {
 
 // Note:
 // """
-#define ESF_NETWORK_MANAGER_INIT_INFO_NORMAL_WIFI(_os_info_, _ssid_,        \
-                                                  _password_)               \
-  do {                                                                      \
-    memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo));                \
-    snprintf((_os_info_)->normal_mode.wifi_sta.ssid,                        \
-             sizeof((_os_info_)->normal_mode.wifi_sta.ssid), "%s", _ssid_); \
-    snprintf((_os_info_)->normal_mode.wifi_sta.password,                    \
-             sizeof((_os_info_)->normal_mode.wifi_sta.password), "%s",      \
-             _password_);                                                   \
-    (_os_info_)->normal_mode.ip_method = 0;                                 \
-    (_os_info_)->normal_mode.netif_kind = 0;                                \
-  } while (0)
+#define ESF_NETWORK_MANAGER_INIT_INFO_NORMAL_WIFI(_os_info_, _ssid_, _password_)        \
+    do {                                                                                \
+        memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo));                        \
+        snprintf((_os_info_)->normal_mode.wifi_sta.ssid,                                \
+                 sizeof((_os_info_)->normal_mode.wifi_sta.ssid), "%s", _ssid_);         \
+        snprintf((_os_info_)->normal_mode.wifi_sta.password,                            \
+                 sizeof((_os_info_)->normal_mode.wifi_sta.password), "%s", _password_); \
+        (_os_info_)->normal_mode.ip_method = 0;                                         \
+        (_os_info_)->normal_mode.netif_kind = 0;                                        \
+    } while (0)
 
 // """Initializes the information used to start the network for Normal mode.
 
@@ -56,12 +54,12 @@ extern "C" {
 
 // Note:
 // """
-#define ESF_NETWORK_MANAGER_INIT_INFO_NORMAL_ETH(_os_info_)  \
-  do {                                                       \
-    memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo)); \
-    (_os_info_)->normal_mode.ip_method = 0;                  \
-    (_os_info_)->normal_mode.netif_kind = 1;                 \
-  } while (0)
+#define ESF_NETWORK_MANAGER_INIT_INFO_NORMAL_ETH(_os_info_)      \
+    do {                                                         \
+        memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo)); \
+        (_os_info_)->normal_mode.ip_method = 0;                  \
+        (_os_info_)->normal_mode.netif_kind = 1;                 \
+    } while (0)
 
 // """Initializes the information used to start the network for AccessPoint
 // mode.
@@ -80,16 +78,14 @@ extern "C" {
 
 // Note:
 // """
-#define ESF_NETWORK_MANAGER_INIT_INFO_AP(_os_info_, _ssid_, _password_)    \
-  do {                                                                     \
-    memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo));               \
-    snprintf((_os_info_)->accesspoint_mode.wifi_ap.ssid,                   \
-             sizeof((_os_info_)->accesspoint_mode.wifi_ap.ssid), "%s",     \
-             _ssid_);                                                      \
-    snprintf((_os_info_)->accesspoint_mode.wifi_ap.password,               \
-             sizeof((_os_info_)->accesspoint_mode.wifi_ap.password), "%s", \
-             _password_);                                                  \
-  } while (0)
+#define ESF_NETWORK_MANAGER_INIT_INFO_AP(_os_info_, _ssid_, _password_)                     \
+    do {                                                                                    \
+        memset((_os_info_), 0, sizeof(EsfNetworkManagerOSInfo));                            \
+        snprintf((_os_info_)->accesspoint_mode.wifi_ap.ssid,                                \
+                 sizeof((_os_info_)->accesspoint_mode.wifi_ap.ssid), "%s", _ssid_);         \
+        snprintf((_os_info_)->accesspoint_mode.wifi_ap.password,                            \
+                 sizeof((_os_info_)->accesspoint_mode.wifi_ap.password), "%s", _password_); \
+    } while (0)
 
 // """Enables all masks.
 
@@ -107,8 +103,7 @@ extern "C" {
 
 // Note:
 // """
-#define ESF_NETWORK_MANAGER_MASK_ENABLE_ALL(obj) \
-  (memset((obj), 0xFF, sizeof(*(obj))))
+#define ESF_NETWORK_MANAGER_MASK_ENABLE_ALL(obj) (memset((obj), 0xFF, sizeof(*(obj))))
 
 // """Disables all masks.
 
@@ -126,58 +121,57 @@ extern "C" {
 
 // Note:
 // """
-#define ESF_NETWORK_MANAGER_MASK_DISABLE_ALL(obj) \
-  (memset((obj), 0x00, sizeof(*(obj))))
+#define ESF_NETWORK_MANAGER_MASK_DISABLE_ALL(obj) (memset((obj), 0x00, sizeof(*(obj))))
 
 // Defines an enumeration type for the result of executing an API.
 typedef enum EsfNetworkManagerResult {
-  // Success
-  kEsfNetworkManagerResultSuccess = 0,
+    // Success
+    kEsfNetworkManagerResultSuccess = 0,
 
-  // HAL API execution error.
-  kEsfNetworkManagerResultHWIFError,
+    // HAL API execution error.
+    kEsfNetworkManagerResultHWIFError,
 
-  // DHCP server error.
-  kEsfNetworkManagerResultUtilityDHCPServerError,
+    // DHCP server error.
+    kEsfNetworkManagerResultUtilityDHCPServerError,
 
-  // IP address operation error.
-  kEsfNetworkManagerResultUtilityIPAddressError,
+    // IP address operation error.
+    kEsfNetworkManagerResultUtilityIPAddressError,
 
-  // External API execution error.
-  kEsfNetworkManagerResultExternalError,
+    // External API execution error.
+    kEsfNetworkManagerResultExternalError,
 
-  // Not in a viable state.
-  kEsfNetworkManagerResultStatusUnexecutable,
+    // Not in a viable state.
+    kEsfNetworkManagerResultStatusUnexecutable,
 
-  // Already running.
-  kEsfNetworkManagerResultStatusAlreadyRunning,
+    // Already running.
+    kEsfNetworkManagerResultStatusAlreadyRunning,
 
-  // Parameter error.
-  kEsfNetworkManagerResultInvalidParameter,
+    // Parameter error.
+    kEsfNetworkManagerResultInvalidParameter,
 
-  // No connection information available.
-  kEsfNetworkManagerResultNoConnectInfo,
+    // No connection information available.
+    kEsfNetworkManagerResultNoConnectInfo,
 
-  // Callback function is already registered.
-  kEsfNetworkManagerResultAlreadyCallbackRegistered,
+    // Callback function is already registered.
+    kEsfNetworkManagerResultAlreadyCallbackRegistered,
 
-  // Callback function has already been unregistered.
-  kEsfNetworkManagerResultAlreadyCallbackUnregistered,
+    // Callback function has already been unregistered.
+    kEsfNetworkManagerResultAlreadyCallbackUnregistered,
 
-  // Insufficient resources.
-  kEsfNetworkManagerResultResourceExhausted,
+    // Insufficient resources.
+    kEsfNetworkManagerResultResourceExhausted,
 
-  // Internal error.
-  kEsfNetworkManagerResultInternalError,
+    // Internal error.
+    kEsfNetworkManagerResultInternalError,
 
-  // Handle mismatch error.
-  kEsfNetworkManagerResultNotFound,
+    // Handle mismatch error.
+    kEsfNetworkManagerResultNotFound,
 
-  // Handle type error.
-  kEsfNetworkManagerResultInvalidHandleType,
+    // Handle type error.
+    kEsfNetworkManagerResultInvalidHandleType,
 
-  // Operation rejected.
-  kEsfNetworkManagerResultFailedPrecondition
+    // Operation rejected.
+    kEsfNetworkManagerResultFailedPrecondition
 } EsfNetworkManagerResult;
 
 // Defines handle type for Network.
@@ -188,58 +182,58 @@ typedef int32_t EsfNetworkManagerHandle;
 
 // Defines the connection mode.
 typedef enum EsfNetworkManagerMode {
-  // Normal mode.
-  kEsfNetworkManagerModeNormal,
+    // Normal mode.
+    kEsfNetworkManagerModeNormal,
 
-  // AccessPoint mode.
-  kEsfNetworkManagerModeAccessPoint,
+    // AccessPoint mode.
+    kEsfNetworkManagerModeAccessPoint,
 
-  // The number of definitions.
-  kEsfNetworkManagerModeNum,
+    // The number of definitions.
+    kEsfNetworkManagerModeNum,
 } EsfNetworkManagerMode;
 
 // Defines the handle type.
 typedef enum EsfNetworkManagerHandleType {
-  // Control type. API usage is not restricted.
-  kEsfNetworkManagerHandleTypeControl,
+    // Control type. API usage is not restricted.
+    kEsfNetworkManagerHandleTypeControl,
 
-  // Information type. API usage is partially restricted.
-  kEsfNetworkManagerHandleTypeInfo,
+    // Information type. API usage is partially restricted.
+    kEsfNetworkManagerHandleTypeInfo,
 
-  // The number of definitions.
-  kEsfNetworkManagerHandleTypeNum,
+    // The number of definitions.
+    kEsfNetworkManagerHandleTypeNum,
 } EsfNetworkManagerHandleType;
 
 // Defines network connection state.
 // Used with EsfNetworkManagerNotifyInfoCallback.
 typedef enum EsfNetworkManagerNotifyInfo {
-  // Device has connected to network.
-  kEsfNetworkManagerNotifyInfoConnected = 0,
+    // Device has connected to network.
+    kEsfNetworkManagerNotifyInfoConnected = 0,
 
-  // Device has been disconnected from network.
-  kEsfNetworkManagerNotifyInfoDisconnected,
+    // Device has been disconnected from network.
+    kEsfNetworkManagerNotifyInfoDisconnected,
 
-  // Device has started as Wi-Fi access point. Notified when in AccessPoint
-  // mode.
-  kEsfNetworkManagerNotifyInfoApStart,
+    // Device has started as Wi-Fi access point. Notified when in AccessPoint
+    // mode.
+    kEsfNetworkManagerNotifyInfoApStart,
 
-  // The number of definitions.
-  kSEsfNetworkManagerNotifyInfoNum
+    // The number of definitions.
+    kSEsfNetworkManagerNotifyInfoNum
 } EsfNetworkManagerNotifyInfo;
 
 // Defines the network connection initiation type.
 typedef enum EsfNetworkManagerStartType {
-  // Use function-specified parameters.
-  kEsfNetworkManagerStartTypeFuncParameter = 0,
+    // Use function-specified parameters.
+    kEsfNetworkManagerStartTypeFuncParameter = 0,
 
-  // Use the saved parameters.
-  kEsfNetworkManagerStartTypeSaveParameter,
+    // Use the saved parameters.
+    kEsfNetworkManagerStartTypeSaveParameter,
 
-  // Use the parameters that were successful last time for Start.
-  kEsfNetworkManagerStartTypeLastStartSuccessParameter,
+    // Use the parameters that were successful last time for Start.
+    kEsfNetworkManagerStartTypeLastStartSuccessParameter,
 
-  // The number of definitions.
-  kEsfNetworkManagerStartTypeNum
+    // The number of definitions.
+    kEsfNetworkManagerStartTypeNum
 } EsfNetworkManagerStartType;
 
 // IP address length.
@@ -262,96 +256,97 @@ typedef enum EsfNetworkManagerStartType {
 
 // IP information structure.
 typedef struct EsfNetworkManagerIPInfo {
-  char ip[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
-  char subnet_mask[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
-  char gateway[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
-  char dns[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
+    char ip[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
+    char subnet_mask[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
+    char gateway[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
+    char dns[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
+    char dns2[ESF_NETWORK_MANAGER_IP_ADDRESS_LEN];
 } EsfNetworkManagerIPInfo;
 
 // Wi-Fi station information structure.
 typedef struct EsfNetworkManagerWiFiStaInfo {
-  char ssid[ESF_NETWORK_MANAGER_WIFI_SSID_LEN];
-  char password[ESF_NETWORK_MANAGER_WIFI_PASSWORD_LEN];
+    char ssid[ESF_NETWORK_MANAGER_WIFI_SSID_LEN];
+    char password[ESF_NETWORK_MANAGER_WIFI_PASSWORD_LEN];
 
-  // Wi-Fi encryption method. (Not supported)
-  // 0: WPA2-PSK
-  // 1: WPA3-PSK
-  // 2: WPA2_WPA3_PSK
-  int32_t encryption;
+    // Wi-Fi encryption method. (Not supported)
+    // 0: WPA2-PSK
+    // 1: WPA3-PSK
+    // 2: WPA2_WPA3_PSK
+    int32_t encryption;
 } EsfNetworkManagerWiFiStaInfo;
 
 // Normal mode information structure.
 typedef struct EsfNetworkManagerNormalMode {
-  // Static IP information for IPv4.
-  EsfNetworkManagerIPInfo dev_ip;
+    // Static IP information for IPv4.
+    EsfNetworkManagerIPInfo dev_ip;
 
-  // Static IP information for IPv6.
-  EsfNetworkManagerIPInfo dev_ip_v6;
+    // Static IP information for IPv6.
+    EsfNetworkManagerIPInfo dev_ip_v6;
 
-  // Information about the Wi-Fi Station to connect.
-  EsfNetworkManagerWiFiStaInfo wifi_sta;
+    // Information about the Wi-Fi Station to connect.
+    EsfNetworkManagerWiFiStaInfo wifi_sta;
 
-  // Select the IP address method for the device.
-  // 0: use DHCP.
-  // 1: use static information.
-  int32_t ip_method;
+    // Select the IP address method for the device.
+    // 0: use DHCP.
+    // 1: use static information.
+    int32_t ip_method;
 
-  // Select network interface for the device.
-  // 0: Wi-Fi
-  // 1: Ethernet
-  int32_t netif_kind;
+    // Select network interface for the device.
+    // 0: Wi-Fi
+    // 1: Ethernet
+    int32_t netif_kind;
 } EsfNetworkManagerNormalMode;
 
 // Wi-Fi access point information structure.
 typedef struct EsfNetworkManagerWiFiApInfo {
-  char ssid[ESF_NETWORK_MANAGER_WIFI_SSID_LEN];
-  char password[ESF_NETWORK_MANAGER_WIFI_PASSWORD_LEN];
+    char ssid[ESF_NETWORK_MANAGER_WIFI_SSID_LEN];
+    char password[ESF_NETWORK_MANAGER_WIFI_PASSWORD_LEN];
 
-  // Wi-Fi encryption method. (Not supported)
-  // 0: WPA2-PSK
-  // 1: WPA3-PSK
-  // 2: WPA2_WPA3_PSK
-  int32_t encryption;
+    // Wi-Fi encryption method. (Not supported)
+    // 0: WPA2-PSK
+    // 1: WPA3-PSK
+    // 2: WPA2_WPA3_PSK
+    int32_t encryption;
 
-  // Wi-Fi channel number. (Not supported)
-  int32_t channel;
+    // Wi-Fi channel number. (Not supported)
+    int32_t channel;
 } EsfNetworkManagerWiFiApInfo;
 
 // AccessPoint mode information structure.
 typedef struct EsfNetworkManagerAccessPointMode {
-  // Static IP information for IPv4.
-  // The state after setting in ESF_NETWORK_MANAGER_INIT_INFO_AP uses the
-  // following default values.
-  //
-  //  IP address: 192.168.4.1
-  // Subnet mask: 255.255.255.0
-  //     Gateway: 192.168.4.1
-  //         DNS: 0.0.0.0
-  EsfNetworkManagerIPInfo dev_ip;
+    // Static IP information for IPv4.
+    // The state after setting in ESF_NETWORK_MANAGER_INIT_INFO_AP uses the
+    // following default values.
+    //
+    //  IP address: 192.168.4.1
+    // Subnet mask: 255.255.255.0
+    //     Gateway: 192.168.4.1
+    //         DNS: 0.0.0.0
+    EsfNetworkManagerIPInfo dev_ip;
 
-  // Information for the device to act as a Wi-Fi access point.
-  EsfNetworkManagerWiFiApInfo wifi_ap;
+    // Information for the device to act as a Wi-Fi access point.
+    EsfNetworkManagerWiFiApInfo wifi_ap;
 } EsfNetworkManagerAccessPointMode;
 
 // Normal mode and AccessPoint mode information structure.
 // For Normal mode, use normal_mode member.
 // For AccessPoint mode, use the accesspoint_mode member.
 typedef union EsfNetworkManagerOSInfo {
-  EsfNetworkManagerNormalMode normal_mode;
-  EsfNetworkManagerAccessPointMode accesspoint_mode;
+    EsfNetworkManagerNormalMode normal_mode;
+    EsfNetworkManagerAccessPointMode accesspoint_mode;
 } EsfNetworkManagerOSInfo;
 
 // Network connection status structure.
 typedef struct EsfNetworkManagerStatusInfo {
-  // Network startup status.
-  //  true: Up.
-  // false: Down.
-  bool is_if_up;
+    // Network startup status.
+    //  true: Up.
+    // false: Down.
+    bool is_if_up;
 
-  // Network link status. Valid only for Ethernet.
-  //  true: Up.
-  // false: Down.
-  bool is_link_up;
+    // Network link status. Valid only for Ethernet.
+    //  true: Up.
+    // false: Down.
+    bool is_link_up;
 } EsfNetworkManagerStatusInfo;
 
 // """Callback function to notify the network connection status.
@@ -369,90 +364,91 @@ typedef struct EsfNetworkManagerStatusInfo {
 
 // Note:
 // """
-typedef void (*EsfNetworkManagerNotifyInfoCallback)(
-    EsfNetworkManagerMode mode, EsfNetworkManagerNotifyInfo info,
-    void *private_data);
+typedef void (*EsfNetworkManagerNotifyInfoCallback)(EsfNetworkManagerMode mode,
+                                                    EsfNetworkManagerNotifyInfo info,
+                                                    void *private_data);
 
 // Mask structure of EsfNetworkManagerIPInfo.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerIPInfoMask {
-  uint8_t ip : 1;
-  uint8_t subnet_mask : 1;
-  uint8_t gateway : 1;
-  uint8_t dns : 1;
+    uint8_t ip : 1;
+    uint8_t subnet_mask : 1;
+    uint8_t gateway : 1;
+    uint8_t dns : 1;
+    uint8_t dns2 : 1;
 } EsfNetworkManagerIPInfoMask;
 
 // Mask structure of EsfNetworkManagerWiFiStaInfo.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerWiFiStaInfoMask {
-  uint8_t ssid : 1;
-  uint8_t password : 1;
-  uint8_t encryption : 1;
+    uint8_t ssid : 1;
+    uint8_t password : 1;
+    uint8_t encryption : 1;
 } EsfNetworkManagerWiFiStaInfoMask;
 
 // Mask structure of EsfNetworkManagerWiFiApInfo.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerWiFiApInfoMask {
-  uint8_t ssid : 1;
-  uint8_t password : 1;
-  uint8_t encryption : 1;
-  uint8_t channel : 1;
+    uint8_t ssid : 1;
+    uint8_t password : 1;
+    uint8_t encryption : 1;
+    uint8_t channel : 1;
 } EsfNetworkManagerWiFiApInfoMask;
 
 // Mask structure of EsfNetworkManagerNormalMode.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerNormalModeMask {
-  EsfNetworkManagerIPInfoMask dev_ip;
-  EsfNetworkManagerIPInfoMask dev_ip_v6;
-  EsfNetworkManagerWiFiStaInfoMask wifi_sta;
-  uint8_t ip_method : 1;
-  uint8_t netif_kind : 1;
+    EsfNetworkManagerIPInfoMask dev_ip;
+    EsfNetworkManagerIPInfoMask dev_ip_v6;
+    EsfNetworkManagerWiFiStaInfoMask wifi_sta;
+    uint8_t ip_method : 1;
+    uint8_t netif_kind : 1;
 } EsfNetworkManagerNormalModeMask;
 
 // Mask structure of EsfNetworkManagerAccessPointMode.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerAccessPointModeMask {
-  EsfNetworkManagerIPInfoMask dev_ip;
-  EsfNetworkManagerWiFiApInfoMask wifi_ap;
+    EsfNetworkManagerIPInfoMask dev_ip;
+    EsfNetworkManagerWiFiApInfoMask wifi_ap;
 } EsfNetworkManagerAccessPointModeMask;
 
 // Proxy information structure.
 typedef struct EsfNetworkManagerProxy {
-  char url[ESF_NETWORK_MANAGER_PROXY_URL_LEN];
-  int32_t port;
-  char username[ESF_NETWORK_MANAGER_PROXY_USER_NAME_LEN];
-  char password[ESF_NETWORK_MANAGER_PROXY_PASSWORD_LEN];
+    char url[ESF_NETWORK_MANAGER_PROXY_URL_LEN];
+    int32_t port;
+    char username[ESF_NETWORK_MANAGER_PROXY_USER_NAME_LEN];
+    char password[ESF_NETWORK_MANAGER_PROXY_PASSWORD_LEN];
 } EsfNetworkManagerProxy;
 
 // Proxy information mask structure.
 // If 0 is set in the bit field, it will not be processed.
 // Setting it to 1 will process it.
 typedef struct EsfNetworkManagerProxyMask {
-  uint8_t url : 1;
-  uint8_t port : 1;
-  uint8_t username : 1;
-  uint8_t password : 1;
+    uint8_t url : 1;
+    uint8_t port : 1;
+    uint8_t username : 1;
+    uint8_t password : 1;
 } EsfNetworkManagerProxyMask;
 
 // A network connection information structure.
 typedef struct EsfNetworkManagerParameter {
-  EsfNetworkManagerNormalMode normal_mode;
-  EsfNetworkManagerAccessPointMode accesspoint_mode;
-  EsfNetworkManagerProxy proxy;
+    EsfNetworkManagerNormalMode normal_mode;
+    EsfNetworkManagerAccessPointMode accesspoint_mode;
+    EsfNetworkManagerProxy proxy;
 } EsfNetworkManagerParameter;
 
 // This is a mask structure for network connection information.
 // Sets whether data is enabled or disabled when saving or retrieving via
 // ParameterStorageManager.
 typedef struct EsfNetworkManagerParameterMask {
-  EsfNetworkManagerNormalModeMask normal_mode;
-  EsfNetworkManagerAccessPointModeMask accesspoint_mode;
-  EsfNetworkManagerProxyMask proxy;
+    EsfNetworkManagerNormalModeMask normal_mode;
+    EsfNetworkManagerAccessPointModeMask accesspoint_mode;
+    EsfNetworkManagerProxyMask proxy;
 } EsfNetworkManagerParameterMask;
 
 // """Initializes the Network module.
@@ -525,9 +521,9 @@ EsfNetworkManagerResult EsfNetworkManagerDeinit(void);
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerOpen(
-    EsfNetworkManagerMode mode, EsfNetworkManagerHandleType handle_type,
-    EsfNetworkManagerHandle *handle);
+EsfNetworkManagerResult EsfNetworkManagerOpen(EsfNetworkManagerMode mode,
+                                              EsfNetworkManagerHandleType handle_type,
+                                              EsfNetworkManagerHandle *handle);
 
 // """Frees the specified handle.
 
@@ -599,9 +595,9 @@ EsfNetworkManagerResult EsfNetworkManagerClose(EsfNetworkManagerHandle handle);
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerStart(
-    EsfNetworkManagerHandle handle, EsfNetworkManagerStartType start_type,
-    EsfNetworkManagerOSInfo *os_info);
+EsfNetworkManagerResult EsfNetworkManagerStart(EsfNetworkManagerHandle handle,
+                                               EsfNetworkManagerStartType start_type,
+                                               EsfNetworkManagerOSInfo *os_info);
 
 // """Starts disconnecting the network.
 
@@ -663,8 +659,8 @@ EsfNetworkManagerResult EsfNetworkManagerStop(EsfNetworkManagerHandle handle);
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerGetIFStatus(
-    EsfNetworkManagerHandle handle, EsfNetworkManagerStatusInfo *status);
+EsfNetworkManagerResult EsfNetworkManagerGetIFStatus(EsfNetworkManagerHandle handle,
+                                                     EsfNetworkManagerStatusInfo *status);
 
 // """Gets network information.
 
@@ -698,8 +694,8 @@ EsfNetworkManagerResult EsfNetworkManagerGetIFStatus(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerGetIFInfo(
-    EsfNetworkManagerHandle handle, EsfNetworkManagerOSInfo *ifinfo);
+EsfNetworkManagerResult EsfNetworkManagerGetIFInfo(EsfNetworkManagerHandle handle,
+                                                   EsfNetworkManagerOSInfo *ifinfo);
 
 // """Gets NetStat information.
 
@@ -732,9 +728,9 @@ EsfNetworkManagerResult EsfNetworkManagerGetIFInfo(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerGetNetstat(
-    EsfNetworkManagerHandle handle, const int32_t netstat_buf_size,
-    char *netstat_buf);
+EsfNetworkManagerResult EsfNetworkManagerGetNetstat(EsfNetworkManagerHandle handle,
+                                                    const int32_t netstat_buf_size,
+                                                    char *netstat_buf);
 
 // """Gets RSSI information.
 
@@ -762,8 +758,7 @@ EsfNetworkManagerResult EsfNetworkManagerGetNetstat(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerGetRssi(EsfNetworkManagerHandle handle,
-                                                 int8_t *rssi_buf);
+EsfNetworkManagerResult EsfNetworkManagerGetRssi(EsfNetworkManagerHandle handle, int8_t *rssi_buf);
 
 // """Registers a callback function to notify the network connection status.
 
@@ -798,8 +793,8 @@ EsfNetworkManagerResult EsfNetworkManagerGetRssi(EsfNetworkManagerHandle handle,
 // Note:
 // """
 EsfNetworkManagerResult EsfNetworkManagerRegisterCallback(
-    EsfNetworkManagerHandle handle,
-    EsfNetworkManagerNotifyInfoCallback notify_callback, void *private_data);
+    EsfNetworkManagerHandle handle, EsfNetworkManagerNotifyInfoCallback notify_callback,
+    void *private_data);
 
 // """Unregisters a callback function that notifies network connection status.
 
@@ -824,8 +819,7 @@ EsfNetworkManagerResult EsfNetworkManagerRegisterCallback(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerUnregisterCallback(
-    EsfNetworkManagerHandle handle);
+EsfNetworkManagerResult EsfNetworkManagerUnregisterCallback(EsfNetworkManagerHandle handle);
 
 // """Saves network connection information via ParameterStorageManager.
 
@@ -857,9 +851,8 @@ EsfNetworkManagerResult EsfNetworkManagerUnregisterCallback(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerSaveParameter(
-    const EsfNetworkManagerParameterMask *mask,
-    const EsfNetworkManagerParameter *parameter);
+EsfNetworkManagerResult EsfNetworkManagerSaveParameter(const EsfNetworkManagerParameterMask *mask,
+                                                       const EsfNetworkManagerParameter *parameter);
 
 // """Load network connection information via ParameterStorageManager.
 
@@ -890,11 +883,10 @@ EsfNetworkManagerResult EsfNetworkManagerSaveParameter(
 
 // Note:
 // """
-EsfNetworkManagerResult EsfNetworkManagerLoadParameter(
-    const EsfNetworkManagerParameterMask *mask,
-    EsfNetworkManagerParameter *parameter);
+EsfNetworkManagerResult EsfNetworkManagerLoadParameter(const EsfNetworkManagerParameterMask *mask,
+                                                       EsfNetworkManagerParameter *parameter);
 
 #ifdef __cplusplus
 }
 #endif
-#endif  // ESF_NETWORK_MANAGER_INCLUDE_NETWORK_MANAGER_NETWORK_MANAGER_H_
+#endif // ESF_NETWORK_MANAGER_INCLUDE_NETWORK_MANAGER_NETWORK_MANAGER_H_

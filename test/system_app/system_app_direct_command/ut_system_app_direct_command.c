@@ -376,7 +376,7 @@ static void Response2CodeAndDetailmsgForTest(DcResult dc_result)
             expect_string(__wrap_SysAppCmnMakeJsonResInfo, detail_msg, "resource_exhausted");
             break;
 
-        case DcFailedPreCodition:
+        case DcFailedPreCondition:
             expect_value(__wrap_SysAppCmnMakeJsonResInfo, code, 9);
             expect_string(__wrap_SysAppCmnMakeJsonResInfo, detail_msg, "failed_precondition");
             break;
@@ -9158,7 +9158,7 @@ static void test_Response2CodeAndDetailmsg_ResourceExhausted(void **state)
 static void test_Response2CodeAndDetailmsg_FailedPrecondition(void **state)
 {
     ResInfoContext ctx = {0};
-    DcResult input_res = DcFailedPreCodition;
+    DcResult input_res = DcFailedPreCondition;
     int expect_code = 9;
     const char *expect_detail_msg = "failed_precondition";
 
@@ -9418,7 +9418,7 @@ static void test_Response2CodeAndDetailmsg_CheckLengthFailedPrecondition(void **
 #define TEST_ARRAY_MAX_NUMBER 20
 
     ResInfoContext ctx = {0};
-    DcResult input_res = DcFailedPreCodition;
+    DcResult input_res = DcFailedPreCondition;
     int expect_code = 9;
     const char *expect_detail_msg = "failed_precondition";
     char buff_name[TEST_ARRAY_MAX_NUMBER];

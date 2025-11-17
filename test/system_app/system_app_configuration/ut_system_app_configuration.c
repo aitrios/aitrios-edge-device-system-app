@@ -127,9 +127,11 @@ static char *ErrorSubdomainTbl[ERROR_SUBDOMAIN_TBL_BLOCK_LEN] = {
 // For EsfClockManager API
 //
 /*----------------------------------------------------------------------------*/
-static void ForEsfClockManagerGetParams(const char *hostname, EsfClockManagerReturnValue result)
+static void ForEsfClockManagerGetParams(const char *hostname, const char *hostname2,
+                                        EsfClockManagerReturnValue result)
 {
     will_return(__wrap_EsfClockManagerGetParams, hostname);
+    will_return(__wrap_EsfClockManagerGetParams, hostname2);
     will_return(__wrap_EsfClockManagerGetParams, 0);
     will_return(__wrap_EsfClockManagerGetParams, 0);
     will_return(__wrap_EsfClockManagerGetParams, kClockManagerParamTypeOff);
@@ -182,6 +184,8 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
                  mask->normal_mode.dev_ip.gateway);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns,
                  mask->normal_mode.dev_ip.dns);
+    expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip.dns2,
+                 mask->normal_mode.dev_ip.dns2);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.ip,
                  mask->normal_mode.dev_ip_v6.ip);
     expect_value(__wrap_EsfNetworkManagerSaveParameter, mask->normal_mode.dev_ip_v6.subnet_mask,
@@ -238,6 +242,10 @@ static void CheckEsfNetworkManagerSaveParameter(const EsfNetworkManagerParameter
     if (mask->normal_mode.dev_ip.dns == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns,
                       parameter->normal_mode.dev_ip.dns);
+    }
+    if (mask->normal_mode.dev_ip.dns2 == 1) {
+        expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip.dns2,
+                      parameter->normal_mode.dev_ip.dns2);
     }
     if (mask->normal_mode.dev_ip_v6.ip == 1) {
         expect_string(__wrap_EsfNetworkManagerSaveParameter, parameter->normal_mode.dev_ip_v6.ip,
@@ -552,14 +560,15 @@ static void ForEsfJsonSerialize(EsfJsonHandle handle, EsfJsonValue value, const 
 static void CheckLoadAddressFromEsf(EsfNetworkManagerResult result)
 {
     // For EsfNetworkManagerLoadParameter() in LoadNetworkAddressFromEsf
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
-    will_return(__wrap_EsfNetworkManagerLoadParameter, "-");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip.ip
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip.subnet_mask
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip.gateway
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip.dns
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip.dns2
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip_v6.ip
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip_v6.subnet_mask
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip_v6.gateway
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "-"); // dev_ip_v6.dns
     will_return(__wrap_EsfNetworkManagerLoadParameter, result);
 }
 
@@ -1079,6 +1088,45 @@ static void CheckSysAppCfgStaticSettingsDns(UnitTestIpVer ip_ver, EsfJsonHandle 
 }
 
 /*----------------------------------------------------------------------------*/
+static void CheckSysAppCfgStaticSettingsDns2(EsfJsonHandle handle, EsfJsonValue parent)
+{
+    // DNS2 is only for IPv4
+
+    static EsfNetworkManagerParameterMask mask_ipv4 = {};
+    static EsfNetworkManagerParameter param_ipv4 = {};
+    EsfNetworkManagerParameterMask *mask = &mask_ipv4;
+    EsfNetworkManagerParameter *param = &param_ipv4;
+
+    const char *addr = "127.0.0.1";
+    NetworkSettingsProperty property = Dns2Address;
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    // For SysAppCmnExtractStringValue() in SysAppCfgStaticSettings
+    ForSysAppCmnExtractStringValue(handle, parent, "dns2_address", addr, 1);
+
+    // For inet_pton() in CheckIpAddressType
+
+    // For EsfNetworkManagerLoadParameter() in CheckUpdateIpAddress
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    // For EsfNetworkManagerSaveParameter() in SysAppCfgStaticSettings
+    memset(&mask_ipv4, 0, sizeof mask_ipv4);
+    memset(&param_ipv4, 0, sizeof param_ipv4);
+    mask_ipv4.normal_mode.dev_ip.dns2 = 1;
+    snprintf(param_ipv4.normal_mode.dev_ip.dns2, sizeof param_ipv4.normal_mode.dev_ip.dns2, "%s",
+             addr);
+
+    CheckEsfNetworkManagerSaveParameter(mask, param, kEsfNetworkManagerResultSuccess);
+
+    // For SysAppStateUpdateString() in SysAppCfgStaticSettings
+    expect_value(__wrap_SysAppStateUpdateString, topic, topic);
+    expect_value(__wrap_SysAppStateUpdateString, type, property);
+    expect_string(__wrap_SysAppStateUpdateString, string, addr);
+    will_return(__wrap_SysAppStateUpdateString, kRetOk);
+}
+
+/*----------------------------------------------------------------------------*/
 static void CheckSysAppCfgStaticSettingsIpv6(const char *param)
 {
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
@@ -1126,6 +1174,7 @@ static void CheckSysAppCfgStaticSettingsIpv4(const char *param)
     CheckSysAppCfgStaticSettingsSubnetMask(ip_ver, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(ip_ver, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(ip_ver, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose() in SysAppCfgStaticSettingsIPv4
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -1298,20 +1347,48 @@ static void CheckSysAppCfgNetworkSettingsNtpUrl(EsfJsonHandle handle, EsfJsonVal
     ForSysAppCmnExtractStringValue(handle, parent, "ntp_url", ntp_url, 1);
 
     // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
-    ForEsfClockManagerGetParams("old-ntp-domain.jp", kClockManagerSuccess);
+    ForEsfClockManagerGetParams("old-ntp-domain.jp", "", kClockManagerSuccess);
 
     // For EsfClockManagerSetParamsForcibly()
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 0);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, ntp_url);
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     // For EsfClockManagerGetParams() about ntp_url in Reread after write
-    ForEsfClockManagerGetParams("ntp-domain.jp", kClockManagerSuccess);
+    ForEsfClockManagerGetParams("ntp-domain.jp", "", kClockManagerSuccess);
 
     // For SysAppStateUpdateString() about ntp_url
     expect_value(__wrap_SysAppStateUpdateString, topic, ST_TOPIC_NETWORK_SETTINGS);
     expect_value(__wrap_SysAppStateUpdateString, type, NtpUrl);
     expect_string(__wrap_SysAppStateUpdateString, string, ntp_url);
+    will_return(__wrap_SysAppStateUpdateString, kRetOk);
+}
+
+/*----------------------------------------------------------------------------*/
+static void CheckSysAppCfgNetworkSettingsNtp2Url(EsfJsonHandle handle, EsfJsonValue parent)
+{
+    const char *ntp2_url = "ntp2-domain.jp";
+
+    // For SysAppCmnExtractStringValue()
+    ForSysAppCmnExtractStringValue(handle, parent, "ntp2_url", ntp2_url, 1);
+
+    // For EsfClockManagerGetParams() about ntp2_url in CheckUpdateString
+    ForEsfClockManagerGetParams("", "old-ntp2-domain.jp", kClockManagerSuccess);
+
+    // For EsfClockManagerSetParamsForcibly()
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, ntp2_url);
+    will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
+
+    // For EsfClockManagerGetParams() about ntp2_url in Reread after write
+    ForEsfClockManagerGetParams("", "ntp2-domain.jp", kClockManagerSuccess);
+
+    // For SysAppStateUpdateString() about ntp2_url
+    expect_value(__wrap_SysAppStateUpdateString, topic, ST_TOPIC_NETWORK_SETTINGS);
+    expect_value(__wrap_SysAppStateUpdateString, type, Ntp2Url);
+    expect_string(__wrap_SysAppStateUpdateString, string, ntp2_url);
     will_return(__wrap_SysAppStateUpdateString, kRetOk);
 }
 
@@ -2398,6 +2475,8 @@ static void test_ConfigurationCallback_NetworkSettings(void **state)
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -6623,6 +6702,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressIpAddress(vo
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6660,6 +6740,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4CheckIpAddressTypeIpAddress(vo
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6697,6 +6778,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4InvalidIpAddress(void **state)
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6734,6 +6816,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4IpAddressTooLong(void **state)
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6770,6 +6853,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamIpAddress(void *
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6806,6 +6890,7 @@ static void test_SysAppCfgStaticSettings_IPv4IpAddressNotUpdated(void **state)
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6859,6 +6944,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamIpAddress(void *
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6900,6 +6986,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressSubnetMask(v
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6938,6 +7025,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4CheckIpAddressTypeSubnetMask(v
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -6976,6 +7064,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4InvalidSubnetMask(void **state
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7014,6 +7103,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4SubnetMaskTooLong(void **state
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7051,6 +7141,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamSubnetMask(void 
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7088,6 +7179,7 @@ static void test_SysAppCfgStaticSettings_IPv4SubnetMaskNotUpdated(void **state)
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7142,6 +7234,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamSubnetMask(void 
 
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7183,6 +7276,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressGateway(void
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7221,6 +7315,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4CheckIpAddressTypeGateway(void
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7259,6 +7354,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4InvalidGateway(void **state)
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7297,6 +7393,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4GatewayTooLong(void **state)
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7334,6 +7431,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamGateway(void **s
     will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultInternalError);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7371,6 +7469,7 @@ static void test_SysAppCfgStaticSettings_IPv4GatewayNotUpdated(void **state)
     will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7425,6 +7524,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamGateway(void **s
     will_return(__wrap_SysAppStateSetInternalError, kRetOk);
 
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7466,6 +7566,14 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressDns(void **s
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, DnsAddress);
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
@@ -7475,6 +7583,48 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressDns(void **s
 
     // Check return value
     assert_int_equal(ret, kRetFailed);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressDns2(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    const char *dns2 = "127.0.0.1";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, static_settings);
+
+    CheckSysAppCfgStaticSettingsIpAddress(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns2, -1);
+
+    // CASE: EsfNetworkManagerLoadParameter fails return invalid value.
+    // Note: The dns2_address is accepted to be empty string, so return success and set invalid value.
+    // about dns2_address
+    CheckLoadAddressFromEsf(kEsfNetworkManagerResultSuccess);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaticSettings(static_settings, UnitTestIPv4);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
 
     return;
 }
@@ -7501,6 +7651,14 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4CheckIpAddressTypeDns(void **s
     // For SysAppStateSetInvalidArgError() about dns_address
     expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, DnsAddress);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     // For EsfJsonClose()
@@ -7540,6 +7698,14 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4InvalidDns(void **state)
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, DnsAddress);
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
@@ -7577,6 +7743,14 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4DnsTooLong(void **state)
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, DnsAddress);
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
@@ -7597,6 +7771,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamDns(void **state
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
     EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
     const char *dns = "127.0.0.1";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
 
     CheckJsonOpen(esfj_handle, json_value, static_settings);
 
@@ -7612,6 +7787,14 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamDns(void **state
     will_return(__wrap_EsfNetworkManagerLoadParameter, "");
     will_return(__wrap_EsfNetworkManagerLoadParameter, "");
     will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultInternalError);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7633,6 +7816,7 @@ static void test_SysAppCfgStaticSettings_IPv4DnsNotUpdated(void **state)
     EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
     EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
     const char *dns = "127.0.0.1";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
 
     CheckJsonOpen(esfj_handle, json_value, static_settings);
 
@@ -7648,6 +7832,14 @@ static void test_SysAppCfgStaticSettings_IPv4DnsNotUpdated(void **state)
     will_return(__wrap_EsfNetworkManagerLoadParameter, "127.0.0.1");
     will_return(__wrap_EsfNetworkManagerLoadParameter, "");
     will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
@@ -7702,6 +7894,112 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamDns(void **state
     expect_value(__wrap_SysAppStateSetInternalError, property, DnsAddress);
     will_return(__wrap_SysAppStateSetInternalError, kRetOk);
 
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns2_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaticSettings(static_settings, UnitTestIPv4);
+
+    // Check return value
+    assert_int_equal(ret, kRetFailed);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamDns2(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    const char *dns2 = "127.0.0.1";
+    EsfNetworkManagerParameterMask mask_ipv4 = {};
+    EsfNetworkManagerParameter param_ipv4 = {};
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, static_settings);
+
+    CheckSysAppCfgStaticSettingsIpAddress(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns2, 1);
+
+    // For EsfNetworkManagerLoadParameter() about dns2_address in CheckUpdateIpAddress
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
+    // CASE: EsfNetworkManagerSaveParameter fails.
+    // For EsfNetworkManagerSaveParameter() about dns2_address
+    memset(&mask_ipv4, 0, sizeof mask_ipv4);
+    memset(&param_ipv4, 0, sizeof param_ipv4);
+    mask_ipv4.normal_mode.dev_ip.dns2 = 1;
+    snprintf(param_ipv4.normal_mode.dev_ip.dns2, sizeof param_ipv4.normal_mode.dev_ip.dns2, "%s",
+             dns2);
+    CheckEsfNetworkManagerSaveParameter(&mask_ipv4, &param_ipv4,
+                                        kEsfNetworkManagerResultInternalError);
+
+    // For SysAppStateSetInternalError() about dns_address
+    expect_value(__wrap_SysAppStateSetInternalError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInternalError, property, Dns2Address);
+    will_return(__wrap_SysAppStateSetInternalError, kRetOk);
+
+    // For EsfJsonClose()
+    expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
+    will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
+
+    // Exec test target
+    ret = SysAppCfgStaticSettings(static_settings, UnitTestIPv4);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgStaticSettings_ErrorIPv4DnsAndDns2Empty(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    const char *dns = "";
+    EsfNetworkManagerParameterMask mask_ipv4 = {};
+    EsfNetworkManagerParameter param_ipv4 = {};
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, static_settings);
+
+    CheckSysAppCfgStaticSettingsIpAddress(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
+
+    // For SysAppCmnExtractStringValue() about dns_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns_address", dns, 0);
+
+    // For SysAppStateSetInvalidArgError() about dns_address
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, DnsAddress);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    // For SysAppCmnExtractStringValue() about dns2_address
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "dns2_address", dns, 1);
+
+    // For EsfNetworkManagerLoadParameter() about dns2_address in CheckUpdateIpAddress
+    will_return(__wrap_EsfNetworkManagerLoadParameter, "");
+    will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
+
     // For EsfJsonClose()
     expect_value(__wrap_EsfJsonClose, handle, esfj_handle);
     will_return(__wrap_EsfJsonClose, kEsfJsonSuccess);
@@ -7728,6 +8026,7 @@ static void test_SysAppCfgStaticSettings_ErrorIPv4EsfJsonClose(void **state)
     CheckSysAppCfgStaticSettingsSubnetMask(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsGateway(UnitTestIPv4, esfj_handle, json_value);
     CheckSysAppCfgStaticSettingsDns(UnitTestIPv4, esfj_handle, json_value);
+    CheckSysAppCfgStaticSettingsDns2(esfj_handle, json_value);
 
     // CASE: EsfJsonClose fails.
     // For EsfJsonClose()
@@ -8951,6 +9250,8 @@ static void test_SysAppCfgNetworkSettings_FullySuccess(void **state)
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_ErrorMalloc();
 
@@ -9060,6 +9361,8 @@ static void test_SysAppCfgNetworkSettings_ErrorSysAppCmnGetReqId(void **state)
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_NotIP();
 
@@ -9108,6 +9411,8 @@ static void test_SysAppCfgNetworkSettings_NotFoundSysAppCmnGetReqId(void **state
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_ErrorEsfNetworkManagerLoadParameter();
@@ -9165,6 +9470,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnGetReqIdReqIdTooLong(void **st
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_NotSubnetmask();
 
@@ -9211,6 +9518,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnGetReqIdReqIdNullPtr(void **st
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_NotGateway();
@@ -9259,6 +9568,8 @@ static void test_SysAppCfgNetworkSettings_CmnGetReqIdReqIdNotUpdated(void **stat
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash_NotDNS();
 
@@ -9301,6 +9612,8 @@ static void test_SysAppCfgNetworkSettings_ErrorLoadIpMethodFromEsf(void **state)
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -9342,6 +9655,8 @@ static void test_SysAppCfgNetworkSettings_ErrorSysAppCmnExtractNumberValue(void 
     will_return(__wrap_EsfNetworkManagerLoadParameter, kEsfNetworkManagerResultSuccess);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -9386,6 +9701,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractNumInvalidIpMethod(void
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -9428,6 +9745,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractNumIpMethodOutOfRangeSm
     will_return(__wrap_SysAppStateSetInvalidArgError, kEsfJsonSuccess);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -9485,6 +9804,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractNumIpMethodOutOfRangeLa
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -9538,6 +9859,8 @@ static void test_SysAppCfgNetworkSettings_ErrorSysAppCmnExtractStringValue(void 
     // For SysAppCmnExtractStringValue()
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, -1);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -9578,9 +9901,58 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractStrInvalidNtpUrl(void *
     // For SysAppCmnExtractStringValue()
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, 0);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For SysAppStateSetInvalidArgError() about ntp_url
     expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, NtpUrl);
+    will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
+
+    // For ExistStaticIPv4InFlash()
+    ForExistStaticIPv4InFlash();
+
+    CheckSysAppCfgNetworkSettingsProxySettings(esfj_handle, json_value, proxy_settings);
+    CheckSysAppCfgProxySettings(proxy_settings);
+
+    CheckSysAppCfgNetworkSettingsUpdateIpMethod(StaticIp, ip_method);
+
+    CheckJsonClose(esfj_handle, topic);
+
+    // Exec test target
+    ret = SysAppCfgNetworkSettings(network_settings);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgNetworkSettings_ErrorCmnExtractStrInvalidNtp2Url(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    int ip_method = DhcpIp;
+    const char *ntp2_url = "ntp2-domain.jp";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, network_settings);
+
+    CheckSysAppCfgNetworkSettingsReqId(esfj_handle, json_value);
+
+    // For SysAppCmnExtractNumberValue()
+    ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
+
+    CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    // CASE: SysAppCmnExtractStringValue retrieves zero.
+    // For SysAppCmnExtractStringValue()
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp2_url", ntp2_url, 0);
+
+    // For SysAppStateSetInvalidArgError() about ntp_url
+    expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInvalidArgError, property, Ntp2Url);
     will_return(__wrap_SysAppStateSetInvalidArgError, kRetOk);
 
     // For ExistStaticIPv4InFlash()
@@ -9626,6 +9998,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractStrNtpUrlTooLong(void *
     // CASE: SysAppCmnExtractStringValue retrieves an invalid ntp_url.
     // For SysAppCmnExtractStringValue()
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, 1);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For SysAppStateSetInvalidArgError() about ntp_url
     expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
@@ -9676,6 +10050,8 @@ static void test_SysAppCfgNetworkSettings_ErrorCmnExtractStrNtpUrlLen254(void **
     // For SysAppCmnExtractStringValue()
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, 1);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For SysAppStateSetInvalidArgError() about ntp_url
     expect_value(__wrap_SysAppStateSetInvalidArgError, topic, topic);
     expect_value(__wrap_SysAppStateSetInvalidArgError, property, NtpUrl);
@@ -9722,7 +10098,68 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfCMGetParamsNtpUrl(void **state
 
     // CASE: EsfClockManagerGetParams fails.
     // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
-    ForEsfClockManagerGetParams("old-ntp-domain.jp", kClockManagerInternalError);
+    ForEsfClockManagerGetParams("old-ntp-domain.jp", "", kClockManagerInternalError);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
+    // For ExistStaticIPv4InFlash()
+    ForExistStaticIPv4InFlash();
+
+    CheckSysAppCfgNetworkSettingsProxySettings(esfj_handle, json_value, proxy_settings);
+    CheckSysAppCfgProxySettings(proxy_settings);
+
+    CheckSysAppCfgNetworkSettingsUpdateIpMethod(StaticIp, ip_method);
+
+    CheckJsonClose(esfj_handle, topic);
+
+    // Exec test target
+    ret = SysAppCfgNetworkSettings(network_settings);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgNetworkSettings_ErrorEsfCMGetParamsNtp2Url(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    int ip_method = DhcpIp;
+    const char *ntp2_url = "ntp2-domain.jp";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, network_settings);
+
+    CheckSysAppCfgNetworkSettingsReqId(esfj_handle, json_value);
+
+    // For SysAppCmnExtractNumberValue()
+    ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
+
+    CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    // For SysAppCmnExtractStringValue()
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp2_url", ntp2_url, 1);
+
+    // For EsfClockManagerGetParams() about ntp2_url in CheckUpdateString
+    ForEsfClockManagerGetParams("", "old-ntp2-domain.jp", kClockManagerSuccess);
+
+    // For EsfClockManagerSetParamsForcibly()
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, ntp2_url);
+    will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
+
+    // CASE: EsfClockManagerGetParams fails.
+    // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
+    ForEsfClockManagerGetParams("old-ntp2-domain.jp", "", kClockManagerInternalError);
+
+    // For SysAppStateSetInternalError() about ntp_url
+    expect_value(__wrap_SysAppStateSetInternalError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInternalError, property, Ntp2Url);
+    will_return(__wrap_SysAppStateSetInternalError, kRetOk);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -9765,7 +10202,9 @@ static void test_SysAppCfgNetworkSettings_CmnExtractStrNtpUrlNotUpdated(void **s
 
     // CASE: EsfClockManagerGetParams retrieves the same ntp_url.
     // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
-    ForEsfClockManagerGetParams("ntp-domain.jp", kClockManagerSuccess);
+    ForEsfClockManagerGetParams("ntp-domain.jp", "", kClockManagerSuccess);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -9807,17 +10246,76 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfClockManagerSetParamsForcibly(
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, 1);
 
     // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
-    ForEsfClockManagerGetParams("old-ntp-domain.jp", kClockManagerSuccess);
+    ForEsfClockManagerGetParams("old-ntp-domain.jp", "", kClockManagerSuccess);
 
     // CASE: EsfClockManagerSetParamsForcibly fails.
     // For EsfClockManagerSetParamsForcibly()
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 0);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, ntp_url);
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerInternalError);
 
     // For SysAppStateSetInternalError() about ntp_url
     expect_value(__wrap_SysAppStateSetInternalError, topic, topic);
     expect_value(__wrap_SysAppStateSetInternalError, property, NtpUrl);
+    will_return(__wrap_SysAppStateSetInternalError, kRetOk);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
+    // For ExistStaticIPv4InFlash()
+    ForExistStaticIPv4InFlash();
+
+    CheckSysAppCfgNetworkSettingsProxySettings(esfj_handle, json_value, proxy_settings);
+    CheckSysAppCfgProxySettings(proxy_settings);
+
+    CheckSysAppCfgNetworkSettingsUpdateIpMethod(StaticIp, ip_method);
+
+    CheckJsonClose(esfj_handle, topic);
+
+    // Exec test target
+    ret = SysAppCfgNetworkSettings(network_settings);
+
+    // Check return value
+    assert_int_equal(ret, kRetOk);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_SysAppCfgNetworkSettings_ErrorEsfClockManagerSetParamsForciblyNtp2(void **state)
+{
+    RetCode ret;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue json_value = ESF_JSON_VALUE_INVALID;
+    int ip_method = DhcpIp;
+    const char *ntp2_url = "ntp2-domain.jp";
+    uint32_t topic = ST_TOPIC_NETWORK_SETTINGS;
+
+    CheckJsonOpen(esfj_handle, json_value, network_settings);
+
+    CheckSysAppCfgNetworkSettingsReqId(esfj_handle, json_value);
+
+    // For SysAppCmnExtractNumberValue()
+    ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
+
+    CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    // For SysAppCmnExtractStringValue()
+    ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp2_url", ntp2_url, 1);
+
+    // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
+    ForEsfClockManagerGetParams("old-ntp-domain.jp", "", kClockManagerSuccess);
+
+    // CASE: EsfClockManagerSetParamsForcibly fails.
+    // For EsfClockManagerSetParamsForcibly()
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 0);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 1);
+    expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname2, ntp2_url);
+    will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerInternalError);
+
+    // For SysAppStateSetInternalError() about ntp_url
+    expect_value(__wrap_SysAppStateSetInternalError, topic, topic);
+    expect_value(__wrap_SysAppStateSetInternalError, property, Ntp2Url);
     will_return(__wrap_SysAppStateSetInternalError, kRetOk);
 
     // For ExistStaticIPv4InFlash()
@@ -9860,20 +10358,23 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfClockManagerGetParams(void **s
     ForSysAppCmnExtractStringValue(esfj_handle, json_value, "ntp_url", ntp_url, 1);
 
     // For EsfClockManagerGetParams() about ntp_url in CheckUpdateString
-    ForEsfClockManagerGetParams("old-ntp-domain.jp", kClockManagerSuccess);
+    ForEsfClockManagerGetParams("old-ntp-domain.jp", "", kClockManagerSuccess);
 
     // For EsfClockManagerSetParamsForcibly()
     expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname, 1);
+    expect_value(__wrap_EsfClockManagerSetParamsForcibly, mask->connect.hostname2, 0);
     expect_string(__wrap_EsfClockManagerSetParamsForcibly, data->connect.hostname, ntp_url);
     will_return(__wrap_EsfClockManagerSetParamsForcibly, kClockManagerSuccess);
 
     // For EsfClockManagerGetParams() about ntp_url in Reread after write
-    ForEsfClockManagerGetParams("default.domain.jp", kClockManagerInternalError);
+    ForEsfClockManagerGetParams("default.domain.jp", "", kClockManagerInternalError);
 
     // For SysAppStateSetInternalError() about ntp_url
     expect_value(__wrap_SysAppStateSetInternalError, topic, topic);
     expect_value(__wrap_SysAppStateSetInternalError, property, NtpUrl);
     will_return(__wrap_SysAppStateSetInternalError, kRetOk);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -9911,6 +10412,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonObjectGetIpv6(void **state
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // CASE: EsfJsonObjectGet fails.
     // For EsfJsonObjectGet() about ipv6
@@ -9959,6 +10462,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonValueTypeGetIpv6(void **st
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For EsfJsonObjectGet() about ipv6
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
@@ -10014,6 +10519,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonTypeGetIpv6NotObject(void 
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For EsfJsonObjectGet() about ipv6
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
     expect_value(__wrap_EsfJsonObjectGet, parent, json_value);
@@ -10067,6 +10574,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeIpv6(void **state
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For EsfJsonObjectGet() about ipv6
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
@@ -10128,6 +10637,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeIpv6NullPtr(void 
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For EsfJsonObjectGet() about ipv6
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
     expect_value(__wrap_EsfJsonObjectGet, parent, json_value);
@@ -10188,6 +10699,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonObjectGetIpv4(void **state
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
 
@@ -10235,6 +10748,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonValueTypeGetIpv4(void **st
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
@@ -10290,6 +10805,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonTypeGetIpv4NotObject(void 
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
 
@@ -10343,6 +10860,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeIpv4(void **state
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
@@ -10404,6 +10923,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeIpv4NullPtr(void 
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
 
@@ -10463,6 +10984,8 @@ static void test_SysAppCfgNetworkSettings_ErrorStaticSettingsIPv4EsfJsonOpen(voi
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     CheckSysAppCfgNetworkSettingsIpv6(esfj_handle, json_value, ipv6_serialized);
     CheckSysAppCfgStaticSettingsIpv6(ipv6_serialized);
@@ -10530,6 +11053,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonObjectGetProxySettings(voi
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // CASE: EsfJsonObjectGet fails.
     // For EsfJsonObjectGet() about proxy_settings
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
@@ -10571,6 +11096,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonValueTypeGetProxySettings(
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For EsfJsonObjectGet() about proxy_settings
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
@@ -10620,6 +11147,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonTypeGetProxySettingsNotObj
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For EsfJsonObjectGet() about proxy_settings
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
     expect_value(__wrap_EsfJsonObjectGet, parent, json_value);
@@ -10667,6 +11196,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeProxySettings(voi
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For EsfJsonObjectGet() about proxy_settings
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
@@ -10722,6 +11253,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonSerializeProxySettingsNull
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For EsfJsonObjectGet() about proxy_settings
     expect_value(__wrap_EsfJsonObjectGet, handle, esfj_handle);
     expect_value(__wrap_EsfJsonObjectGet, parent, json_value);
@@ -10776,6 +11309,8 @@ static void test_SysAppCfgNetworkSettings_ErrorNMLoadParamIpMethod(void **state)
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -10818,6 +11353,8 @@ static void test_SysAppCfgNetworkSettings_IpMethodNotUpdated(void **state)
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -10867,6 +11404,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfNMSaveParam(void **state)
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -10919,6 +11458,8 @@ static void test_SysAppCfgNetworkSettings_ErrorSysAppStateSendState(void **state
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
 
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
+
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
 
@@ -10962,6 +11503,8 @@ static void test_SysAppCfgNetworkSettings_ErrorEsfJsonClose(void **state)
     ForSysAppCmnExtractNumberValue(esfj_handle, json_value, "ip_method", ip_method, 1);
 
     CheckSysAppCfgNetworkSettingsNtpUrl(esfj_handle, json_value);
+
+    CheckSysAppCfgNetworkSettingsNtp2Url(esfj_handle, json_value);
 
     // For ExistStaticIPv4InFlash()
     ForExistStaticIPv4InFlash();
@@ -16711,12 +17254,15 @@ int main(void)
         cmocka_unit_test(test_SysAppCfgStaticSettings_IPv4GatewayNotUpdated),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamGateway),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressDns),
+        cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4LoadNetworkAddressDns2),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4CheckIpAddressTypeDns),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4InvalidDns),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4DnsTooLong),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4EsfNMLoadParamDns),
         cmocka_unit_test(test_SysAppCfgStaticSettings_IPv4DnsNotUpdated),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamDns),
+        cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4EsfNMSaveParamDns2),
+        cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4DnsAndDns2Empty),
         cmocka_unit_test(test_SysAppCfgStaticSettings_ErrorIPv4EsfJsonClose),
 
         // SysAppCfgProxySettings()
@@ -16777,11 +17323,14 @@ int main(void)
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorCmnExtractNumIpMethodOutOfRangeLarge),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorSysAppCmnExtractStringValue),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorCmnExtractStrInvalidNtpUrl),
+        cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorCmnExtractStrInvalidNtp2Url),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorCmnExtractStrNtpUrlTooLong),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorCmnExtractStrNtpUrlLen254),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfCMGetParamsNtpUrl),
+        cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfCMGetParamsNtp2Url),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_CmnExtractStrNtpUrlNotUpdated),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfClockManagerSetParamsForcibly),
+        cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfClockManagerSetParamsForciblyNtp2),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfClockManagerGetParams),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfJsonObjectGetIpv6),
         cmocka_unit_test(test_SysAppCfgNetworkSettings_ErrorEsfJsonValueTypeGetIpv6),

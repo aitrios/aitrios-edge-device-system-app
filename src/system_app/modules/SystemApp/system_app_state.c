@@ -472,12 +472,14 @@ STATIC RetCode MakeJsonResInfoNetworkSettings(EsfJsonHandle handle, EsfJsonValue
     ErrorFlag error_flags[] = {
         {s_network_settings.invalid_ip_method_flag, "can't change ip method"},
         {s_network_settings.invalid_ntp_url_flag, "invalid ntp url"},
+        {s_network_settings.invalid_ntp2_url_flag, "invalid ntp2 url"},
 
         // IPv4
         {s_static_settings_ipv4.invalid_ip_address_flag, "invalid ip address(ipv4)"},
         {s_static_settings_ipv4.invalid_subnet_mask_flag, "invalid subnet mask(ipv4)"},
         {s_static_settings_ipv4.invalid_gateway_address_flag, "invalid gateway address(ipv4)"},
         {s_static_settings_ipv4.invalid_dns_address_flag, "invalid dns address(ipv4)"},
+        {s_static_settings_ipv4.invalid_dns2_address_flag, "invalid dns2 address(ipv4)"},
 
 #if 0 // TODO: IPv6 could be save but not effective.
     // IPv6
@@ -984,6 +986,10 @@ STATIC RetCode MakeJsonStaticSettingsIPv4(EsfJsonHandle handle, EsfJsonValue roo
 
     SysAppCmnSetStringValue(handle, root, "dns_address", s_static_settings_ipv4.dns_address);
 
+    // Set dns2_address.
+
+    SysAppCmnSetStringValue(handle, root, "dns2_address", s_static_settings_ipv4.dns2_address);
+
     return ret;
 }
 
@@ -1028,6 +1034,10 @@ STATIC RetCode MakeJsonNetworkSettings(EsfJsonHandle handle, EsfJsonValue root)
     // Set ntp_url.
 
     SysAppCmnSetStringValue(handle, root, "ntp_url", s_network_settings.ntp_url);
+
+    // Set ntp2_url.
+
+    SysAppCmnSetStringValue(handle, root, "ntp2_url", s_network_settings.ntp2_url);
 
     // Set static_settings_ipv6.
 
@@ -1749,6 +1759,7 @@ STATIC RetCode SendNetworkSettings(void)
     s_network_settings.update.internal_error_flag = 0;
     s_network_settings.invalid_ip_method_flag = 0;
     s_network_settings.invalid_ntp_url_flag = 0;
+    s_network_settings.invalid_ntp2_url_flag = 0;
     s_static_settings_ipv4.update.invalid_arg_flag = 0;
     s_static_settings_ipv4.update.internal_error_flag = 0;
     s_static_settings_ipv6.update.invalid_arg_flag = 0;
@@ -1757,6 +1768,7 @@ STATIC RetCode SendNetworkSettings(void)
     s_static_settings_ipv4.invalid_subnet_mask_flag = 0;
     s_static_settings_ipv4.invalid_gateway_address_flag = 0;
     s_static_settings_ipv4.invalid_dns_address_flag = 0;
+    s_static_settings_ipv4.invalid_dns2_address_flag = 0;
     s_static_settings_ipv6.invalid_ip_address_flag = 0;
     s_static_settings_ipv6.invalid_subnet_mask_flag = 0;
     s_static_settings_ipv6.invalid_gateway_address_flag = 0;
@@ -3165,8 +3177,16 @@ void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string)
             snprintf(s_static_settings_ipv4.dns_address, sizeof(s_static_settings_ipv4.dns_address),
                      "%s", string);
         }
+        else if (type == Dns2Address) {
+            snprintf(s_static_settings_ipv4.dns2_address,
+                     sizeof(s_static_settings_ipv4.dns2_address), "%s", string);
+        }
         else if (type == NtpUrl) {
             snprintf(s_network_settings.ntp_url, sizeof(s_network_settings.ntp_url), "%s", string);
+        }
+        else if (type == Ntp2Url) {
+            snprintf(s_network_settings.ntp2_url, sizeof(s_network_settings.ntp2_url), "%s",
+                     string);
         }
         else {
         }
@@ -3379,6 +3399,9 @@ RetCode SysAppStateSetInvalidArgError(uint32_t topic, uint32_t property)
         if (property == NtpUrl) {
             s_network_settings.invalid_ntp_url_flag = (1 << property);
         }
+        if (property == Ntp2Url) {
+            s_network_settings.invalid_ntp2_url_flag = (1 << property);
+        }
         if (property == IpAddress) {
             s_static_settings_ipv4.invalid_ip_address_flag = (1 << property);
         }
@@ -3390,6 +3413,9 @@ RetCode SysAppStateSetInvalidArgError(uint32_t topic, uint32_t property)
         }
         if (property == DnsAddress) {
             s_static_settings_ipv4.invalid_dns_address_flag = (1 << property);
+        }
+        if (property == Dns2Address) {
+            s_static_settings_ipv4.invalid_dns2_address_flag = (1 << property);
         }
         if (property == IpAddressV6) {
             s_static_settings_ipv6.invalid_ip_address_flag = (1 << property);
@@ -3502,11 +3528,11 @@ RetCode SysAppStateSetInternalError(uint32_t topic, uint32_t property)
         s_system_settings.update.internal_error_flag = (1 << property);
     }
     else if (topic == ST_TOPIC_NETWORK_SETTINGS) {
-        if ((property == IpMethod) || (property == NtpUrl)) {
+        if ((property == IpMethod) || (property == NtpUrl) || (property == Ntp2Url)) {
             s_network_settings.update.internal_error_flag = (1 << property);
         }
         if ((property == IpAddress) || (property == SubnetMask) || (property == GatewayAddress) ||
-            (property == DnsAddress)) {
+            (property == DnsAddress) || (property == Dns2Address)) {
             s_static_settings_ipv4.update.internal_error_flag = (1 << property);
         }
         if ((property == IpAddressV6) || (property == SubnetMaskV6) ||
@@ -4313,7 +4339,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
         len = snprintf(s_static_settings_ipv6.ip_address, sizeof(s_static_settings_ipv6.ip_address),
                        "%s", esfnm_param.normal_mode.dev_ip_v6.ip);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_IP_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_IP_ADDRESS_LEN)) {
             s_static_settings_ipv6.ip_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4335,7 +4361,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.subnet_mask), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.subnet_mask);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_SUBNET_MASK_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_SUBNET_MASK_LEN)) {
             s_static_settings_ipv6.subnet_mask[0] = '\0';
             ret = kRetFailed;
         }
@@ -4357,7 +4383,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.gateway_address), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.gateway);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_GATEWAY_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_GATEWAY_ADDRESS_LEN)) {
             s_static_settings_ipv6.gateway_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4379,7 +4405,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv6(void)
                        sizeof(s_static_settings_ipv6.dns_address), "%s",
                        esfnm_param.normal_mode.dev_ip_v6.dns);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_DNS_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_DNS_ADDRESS_LEN)) {
             s_static_settings_ipv6.dns_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4412,7 +4438,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
         len = snprintf(s_static_settings_ipv4.ip_address, sizeof(s_static_settings_ipv4.ip_address),
                        "%s", esfnm_param.normal_mode.dev_ip.ip);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_IP_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_IP_ADDRESS_LEN)) {
             s_static_settings_ipv4.ip_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4434,7 +4460,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.subnet_mask), "%s",
                        esfnm_param.normal_mode.dev_ip.subnet_mask);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_SUBNET_MASK_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_SUBNET_MASK_LEN)) {
             s_static_settings_ipv4.subnet_mask[0] = '\0';
             ret = kRetFailed;
         }
@@ -4456,7 +4482,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.gateway_address), "%s",
                        esfnm_param.normal_mode.dev_ip.gateway);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_GATEWAY_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_GATEWAY_ADDRESS_LEN)) {
             s_static_settings_ipv4.gateway_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4478,7 +4504,7 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
                        sizeof(s_static_settings_ipv4.dns_address), "%s",
                        esfnm_param.normal_mode.dev_ip.dns);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_DNS_ADDRESS_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_DNS_ADDRESS_LEN)) {
             s_static_settings_ipv4.dns_address[0] = '\0';
             ret = kRetFailed;
         }
@@ -4486,6 +4512,28 @@ RetCode SysAppStateReadoutStaticSettingsIPv4(void)
     else {
         SYSAPP_WARN("EsfNetworkManagerLoadParameter(dns_address) failed %d", esfnm_ret);
         s_static_settings_ipv4.dns_address[0] = '\0';
+        ret = kRetFailed;
+    }
+
+    // Get information for dns2_address.
+
+    memset(&esfnm_mask, 0, sizeof(esfnm_mask));
+    esfnm_mask.normal_mode.dev_ip.dns2 = 1;
+    esfnm_ret = EsfNetworkManagerLoadParameter(&esfnm_mask, &esfnm_param);
+
+    if (esfnm_ret == kEsfNetworkManagerResultSuccess) {
+        len = snprintf(s_static_settings_ipv4.dns2_address,
+                       sizeof(s_static_settings_ipv4.dns2_address), "%.*s",
+                       CFGST_NETWORK_DNS2_ADDRESS_LEN, esfnm_param.normal_mode.dev_ip.dns2);
+
+        if ((len < 0) || (len > CFGST_NETWORK_DNS2_ADDRESS_LEN)) {
+            s_static_settings_ipv4.dns2_address[0] = '\0';
+            ret = kRetFailed;
+        }
+    }
+    else {
+        SYSAPP_WARN("EsfNetworkManagerLoadParameter(dns2_address) failed %d", esfnm_ret);
+        s_static_settings_ipv4.dns2_address[0] = '\0';
         ret = kRetFailed;
     }
 
@@ -4626,14 +4674,23 @@ RetCode SysAppStateReadoutNetworkSettings(void)
         len = snprintf(s_network_settings.ntp_url, sizeof(s_network_settings.ntp_url), "%.253s",
                        cm_param.connect.hostname);
 
-        if ((len < 0) || (len > CFGST_NETOWRK_NTP_URL_LEN)) {
+        if ((len < 0) || (len > CFGST_NETWORK_NTP_URL_LEN)) {
             s_network_settings.ntp_url[0] = '\0';
+            ret = kRetFailed;
+        }
+
+        len = snprintf(s_network_settings.ntp2_url, sizeof(s_network_settings.ntp2_url), "%.253s",
+                       cm_param.connect.hostname2);
+
+        if ((len < 0) || (len > CFGST_NETWORK_NTP_URL_LEN)) {
+            s_network_settings.ntp2_url[0] = '\0';
             ret = kRetFailed;
         }
     }
     else {
         SYSAPP_WARN("EsfClockManagerGetParams() failed %d", esfcm_ret);
         s_network_settings.ntp_url[0] = '\0';
+        s_network_settings.ntp2_url[0] = '\0';
         ret = kRetFailed;
     }
 

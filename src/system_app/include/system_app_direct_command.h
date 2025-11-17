@@ -24,14 +24,6 @@
 #define DC_CAMERA_IMAGE_H_SIZE (4056)
 #define DC_CAMERA_IMAGE_V_SIZE (3040)
 
-// Default network for direct_get_image.
-
-#ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
-#define DC_DIRECT_GET_IMAGE_NETWORK_ID "99999999999999999999999999999999"
-#else // Use #else for build: CONFIG_APP_EXTERNAL_SENSOR_IMX500_LIB
-#define DC_DIRECT_GET_IMAGE_NETWORK_ID "999997"
-#endif
-
 // Max size of direct_get_image image size.
 
 #define DC_DIRECT_GET_IMAGE_MAX_SIZE (120 * 1000)
@@ -43,7 +35,7 @@ typedef enum {
     DcUnknown,
     DcInvalidArgument,
     DcResourceExhausted,
-    DcFailedPreCodition,
+    DcFailedPreCondition,
     DcAborted,
     DcUnimplemented,
     DcInternal,

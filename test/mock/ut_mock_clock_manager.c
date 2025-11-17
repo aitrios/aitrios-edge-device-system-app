@@ -26,9 +26,13 @@ EsfClockManagerReturnValue __wrap_EsfClockManagerSetParamsForcibly(
     const EsfClockManagerParams *data, const EsfClockManagerParamsMask *mask)
 {
     check_expected(mask->connect.hostname);
+    check_expected(mask->connect.hostname2);
 
     if (mask->connect.hostname == 1) {
         check_expected_ptr(data->connect.hostname);
+    }
+    if (mask->connect.hostname2 == 1) {
+        check_expected_ptr(data->connect.hostname2);
     }
     return mock_type(EsfClockManagerReturnValue);
 }
@@ -38,6 +42,7 @@ EsfClockManagerReturnValue __wrap_EsfClockManagerSetParams(const EsfClockManager
                                                            const EsfClockManagerParamsMask *mask)
 {
     check_expected(mask->connect.hostname);
+    check_expected(mask->connect.hostname2);
     check_expected(mask->common.sync_interval);
     check_expected(mask->common.polling_time);
     check_expected(mask->skip_and_limit.type);
@@ -50,6 +55,9 @@ EsfClockManagerReturnValue __wrap_EsfClockManagerSetParams(const EsfClockManager
 
     if (mask->connect.hostname == 1) {
         check_expected_ptr(data->connect.hostname);
+    }
+    if (mask->connect.hostname2 == 1) {
+        check_expected_ptr(data->connect.hostname2);
     }
     if (mask->common.sync_interval == 1) {
         check_expected(data->common.sync_interval);
@@ -86,6 +94,8 @@ EsfClockManagerReturnValue __wrap_EsfClockManagerGetParams(EsfClockManagerParams
 {
     EsfClockManagerParams params = {};
     snprintf(params.connect.hostname, sizeof params.connect.hostname, "%s",
+             mock_type(const char *));
+    snprintf(params.connect.hostname2, sizeof params.connect.hostname2, "%s",
              mock_type(const char *));
     params.common.sync_interval = mock_type(int);
     params.common.polling_time = mock_type(int);

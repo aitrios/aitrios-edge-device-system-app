@@ -18,57 +18,35 @@ extern "C" {
  * Definitions of macros
  */
 
-#define CLOCK_MANAGER_DEFAULT_NTP_SERVER \
-  CONFIG_EXTERNAL_CLOCK_MANAGER_DEFAULT_NTP_SERVER
+#define CLOCK_MANAGER_DEFAULT_NTP_SERVER CONFIG_EXTERNAL_CLOCK_MANAGER_DEFAULT_NTP_SERVER
 
-#define CLOCK_MANAGER_SYNC_INTERVAL_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_MIN)
-#define CLOCK_MANAGER_SYNC_INTERVAL_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_MAX)
-#define CLOCK_MANAGER_SYNC_INTERVAL_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_DEF)
+#define CLOCK_MANAGER_SYNC_INTERVAL_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_MIN)
+#define CLOCK_MANAGER_SYNC_INTERVAL_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_MAX)
+#define CLOCK_MANAGER_SYNC_INTERVAL_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_SYNC_INTERVAL_DEF)
 
-#define CLOCK_MANAGER_POLLING_TIME_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_MIN)
-#define CLOCK_MANAGER_POLLING_TIME_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_MAX)
-#define CLOCK_MANAGER_POLLING_TIME_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_DEF)
+#define CLOCK_MANAGER_POLLING_TIME_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_MIN)
+#define CLOCK_MANAGER_POLLING_TIME_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_MAX)
+#define CLOCK_MANAGER_POLLING_TIME_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_POLLING_TIME_DEF)
 
-#define CLOCK_MANAGER_LIMIT_PACKET_TIME_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_MIN)
-#define CLOCK_MANAGER_LIMIT_PACKET_TIME_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_MAX)
-#define CLOCK_MANAGER_LIMIT_PACKET_TIME_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_DEF)
+#define CLOCK_MANAGER_LIMIT_PACKET_TIME_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_MIN)
+#define CLOCK_MANAGER_LIMIT_PACKET_TIME_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_MAX)
+#define CLOCK_MANAGER_LIMIT_PACKET_TIME_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_LIMIT_PACKET_TIME_DEF)
 
-#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_MIN)
-#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_MAX)
-#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_DEF)
+#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_MIN)
+#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_MAX)
+#define CLOCK_MANAGER_RTC_CORRECT_LIMIT_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_RTC_CORRECT_LIMIT_DEF)
 
-#define CLOCK_MANAGER_SANITY_LIMIT_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_MIN)
-#define CLOCK_MANAGER_SANITY_LIMIT_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_MAX)
-#define CLOCK_MANAGER_SANITY_LIMIT_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_DEF)
+#define CLOCK_MANAGER_SANITY_LIMIT_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_MIN)
+#define CLOCK_MANAGER_SANITY_LIMIT_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_MAX)
+#define CLOCK_MANAGER_SANITY_LIMIT_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_SANITY_LIMIT_DEF)
 
-#define CLOCK_MANAGER_STABLE_RTC_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_MIN)
-#define CLOCK_MANAGER_STABLE_RTC_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_MAX)
-#define CLOCK_MANAGER_STABLE_RTC_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_DEF)
+#define CLOCK_MANAGER_STABLE_RTC_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_MIN)
+#define CLOCK_MANAGER_STABLE_RTC_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_MAX)
+#define CLOCK_MANAGER_STABLE_RTC_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_RTC_DEF)
 
-#define CLOCK_MANAGER_STABLE_SYNC_CONT_MIN \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_MIN)
-#define CLOCK_MANAGER_STABLE_SYNC_CONT_MAX \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_MAX)
-#define CLOCK_MANAGER_STABLE_SYNC_CONT_DEF \
-  (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_DEF)
+#define CLOCK_MANAGER_STABLE_SYNC_CONT_MIN (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_MIN)
+#define CLOCK_MANAGER_STABLE_SYNC_CONT_MAX (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_MAX)
+#define CLOCK_MANAGER_STABLE_SYNC_CONT_DEF (CONFIG_EXTERNAL_CLOCK_MANAGER_STABLE_SYNC_CONT_DEF)
 
 #include <limits.h>
 #include <stdint.h>
@@ -89,10 +67,10 @@ extern "C" {
  */
 
 typedef enum EsfClockManagerParamType {
-  kClockManagerParamTypeOff,
-  kClockManagerParamTypeDefault,
-  kClockManagerParamTypeCustom,
-  kClockManagerParamTypeNumMax
+    kClockManagerParamTypeOff,
+    kClockManagerParamTypeDefault,
+    kClockManagerParamTypeCustom,
+    kClockManagerParamTypeNumMax
 } EsfClockManagerParamType;
 
 /**
@@ -105,7 +83,8 @@ typedef enum EsfClockManagerParamType {
 // In case host name; "ntp.nict.jp".
 // In case IPv4 address; "192.168.1.100".
 typedef struct EsfClockManagerSettingConnection {
-  char hostname[ESF_CLOCK_MANAGER_NTPADDR_MAX_SIZE];
+    char hostname[ESF_CLOCK_MANAGER_NTPADDR_MAX_SIZE];
+    char hostname2[ESF_CLOCK_MANAGER_NTPADDR_MAX_SIZE];
 } EsfClockManagerConnection;
 
 // This structure represents which members in object of struct
@@ -113,15 +92,16 @@ typedef struct EsfClockManagerSettingConnection {
 // A member variable is one implies that it turns on, and the member variable is
 // zero implies that it turns off.
 typedef struct EsfClockManagerSettingConnectionMask {
-  uint8_t hostname : 1;
+    uint8_t hostname : 1;
+    uint8_t hostname2 : 1;
 } EsfClockManagerConnectionMask;
 
 // This structure represents a period which the NTP client sends a message to
 // the NTP server for, and a period which a thread of Clock Manager keeps the
 // NTP client under surveillance.
 typedef struct EsfClockManagerSettingCommon {
-  int sync_interval;  // NTP client's period
-  int polling_time;   // Clock Manager thread's period
+    int sync_interval; // NTP client's period
+    int polling_time;  // Clock Manager thread's period
 } EsfClockManagerCommon;
 
 // This structure represents which members in object of struct
@@ -129,8 +109,8 @@ typedef struct EsfClockManagerSettingCommon {
 // A member variable is one implies that it turns on, and the member variable is
 // zero implies that it turns off.
 typedef struct EsfClockManagerSettingCommonMask {
-  uint8_t sync_interval : 1;
-  uint8_t polling_time : 1;
+    uint8_t sync_interval : 1;
+    uint8_t polling_time : 1;
 } EsfClockManagerCommonMask;
 
 // This structure represents the followings:
@@ -146,10 +126,10 @@ typedef struct EsfClockManagerSettingCommonMask {
 //   this value, the sample is regarded as a singularity, where theta is defined
 //   in RFC 5905; theta implies offset.
 typedef struct EsfClockManagerSettingSkipAndLimit {
-  EsfClockManagerParamType type;
-  int limit_packet_time;
-  int limit_rtc_correction_value;
-  int sanity_limit;
+    EsfClockManagerParamType type;
+    int limit_packet_time;
+    int limit_rtc_correction_value;
+    int sanity_limit;
 } EsfClockManagerSkipAndLimit;
 
 // This structure represents which members in object of struct
@@ -157,10 +137,10 @@ typedef struct EsfClockManagerSettingSkipAndLimit {
 // A member variable is one implies that it turns on, and the member variable is
 // zero implies that it turns off.
 typedef struct EsfClockManagerSettingSkipAndLimitMask {
-  uint8_t type : 1;
-  uint8_t limit_packet_time : 1;
-  uint8_t limit_rtc_correction_value : 1;
-  uint8_t sanity_limit : 1;
+    uint8_t type : 1;
+    uint8_t limit_packet_time : 1;
+    uint8_t limit_rtc_correction_value : 1;
+    uint8_t sanity_limit : 1;
 } EsfClockManagerSkipAndLimitMask;
 
 // This structure represents the followings:
@@ -172,9 +152,9 @@ typedef struct EsfClockManagerSettingSkipAndLimitMask {
 //   theta equals or less than an expected time value, in samplings when NTP
 //   client sends time synchronization messages in the interval.
 typedef struct EsfClockManagerSettingSlewParam {
-  EsfClockManagerParamType type;
-  int stable_rtc_correction_value;
-  int stable_sync_number;
+    EsfClockManagerParamType type;
+    int stable_rtc_correction_value;
+    int stable_sync_number;
 } EsfClockManagerSlewParam;
 
 // This structure represents which members in object of struct
@@ -182,18 +162,18 @@ typedef struct EsfClockManagerSettingSlewParam {
 // A member variable is one implies that it turns on, and the member variable is
 // zero implies that it turns off.
 typedef struct EsfClockManagerSettingSlewParamMask {
-  uint8_t type : 1;
-  uint8_t stable_rtc_correction_value : 1;
-  uint8_t stable_sync_number : 1;
+    uint8_t type : 1;
+    uint8_t stable_rtc_correction_value : 1;
+    uint8_t stable_sync_number : 1;
 } EsfClockManagerSlewParamMask;
 
 // This structure represents a period which a thread of Clock Manager keeps NTP
 // client daemon under surveillance, and parameters which pass to NTP client.
 typedef struct EsfClockManagerParams {
-  EsfClockManagerConnection connect;
-  EsfClockManagerCommon common;
-  EsfClockManagerSkipAndLimit skip_and_limit;
-  EsfClockManagerSlewParam slew_setting;
+    EsfClockManagerConnection connect;
+    EsfClockManagerCommon common;
+    EsfClockManagerSkipAndLimit skip_and_limit;
+    EsfClockManagerSlewParam slew_setting;
 } EsfClockManagerParams;
 
 // This structure represents which members in object of struct
@@ -201,10 +181,10 @@ typedef struct EsfClockManagerParams {
 // A member variable is one implies that it turns on, and the member variable is
 // zero implies that it turns off.
 typedef struct EsfClockManagerParamsMask {
-  EsfClockManagerConnectionMask connect;
-  EsfClockManagerCommonMask common;
-  EsfClockManagerSkipAndLimitMask skip_and_limit;
-  EsfClockManagerSlewParamMask slew_setting;
+    EsfClockManagerConnectionMask connect;
+    EsfClockManagerCommonMask common;
+    EsfClockManagerSkipAndLimitMask skip_and_limit;
+    EsfClockManagerSlewParamMask slew_setting;
 } EsfClockManagerParamsMask;
 
 /**
@@ -232,8 +212,8 @@ typedef struct EsfClockManagerParamsMask {
 //    kClockManagerStateTransitionError:
 
 // """
-EsfClockManagerReturnValue EsfClockManagerSetParamsForcibly(
-    const EsfClockManagerParams *data, const EsfClockManagerParamsMask *mask);
+EsfClockManagerReturnValue EsfClockManagerSetParamsForcibly(const EsfClockManagerParams *data,
+                                                            const EsfClockManagerParamsMask *mask);
 
 // """Saves data in volatile memory
 
@@ -260,8 +240,8 @@ EsfClockManagerReturnValue EsfClockManagerSetParamsForcibly(
 //    kClockManagerStateTransitionError:
 
 // """
-EsfClockManagerReturnValue EsfClockManagerSetParams(
-    const EsfClockManagerParams *data, const EsfClockManagerParamsMask *mask);
+EsfClockManagerReturnValue EsfClockManagerSetParams(const EsfClockManagerParams *data,
+                                                    const EsfClockManagerParamsMask *mask);
 
 // """Reads data from volatile/non-volatile memory.
 
@@ -283,11 +263,10 @@ EsfClockManagerReturnValue EsfClockManagerSetParams(
 //    kClockManagerStateTransitionError:
 
 // """
-EsfClockManagerReturnValue EsfClockManagerGetParams(
-    EsfClockManagerParams *const data);
+EsfClockManagerReturnValue EsfClockManagerGetParams(EsfClockManagerParams *const data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // ESF_CLOCK_MANAGER_SETTING_H_
+#endif // ESF_CLOCK_MANAGER_SETTING_H_
