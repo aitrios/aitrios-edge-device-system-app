@@ -43,6 +43,7 @@
 
 #if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 #define HOSTNAME_MAX_LEN 256
+#define DEFAULT_STREAM_NAME "cam"
 #define DEFAULT_MAX_RECORD_TIME 30
 #define MAX_RECORD_TIME_LIMIT 1440
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
@@ -165,30 +166,46 @@ static bool IsValidHostname(const char *hostname)
     // Check each character and validate hostname rules
 
     bool has_non_digit = false;
+    bool has_alpha = false;
 
     for (size_t i = 0; i < len; i++) {
         char c = hostname[i];
 
-        // Valid characters: a-z, A-Z, 0-9, hyphen(-)
+        // Valid characters: a-z, A-Z, 0-9, hyphen(-), dot(.)
 
-        if (!(isalnum(c) || (c == '-'))) {
+        if (!(isalnum(c) || (c == '-') || (c == '.'))) {
             return false;
         }
 
-        // Must not start or end with hyphen
+        // Must not start or end with hyphen or dot
 
-        if (c == '-' && (i == 0 || i == len - 1)) {
+        if ((c == '-' || c == '.') && (i == 0 || i == len - 1)) {
             return false;
         }
 
-        // Track if hostname contains non-digit characters
+        // Must not have consecutive dots
 
-        if (!isdigit(c)) {
+        if (c == '.' && i > 0 && hostname[i - 1] == '.') {
+            return false;
+        }
+
+        // Track if hostname contains non-digit characters (excluding dots)
+
+        if (!isdigit(c) && c != '.') {
             has_non_digit = true;
+        }
+
+        // Track if hostname contains alphabetic characters
+
+        if (isalpha(c)) {
+            has_alpha = true;
         }
     }
 
-    if (!has_non_digit) {
+    // Hostname must contain at least one non-digit character (excluding dots)
+    // or must contain at least one alphabetic character to avoid pure IP addresses
+
+    if (!has_non_digit && !has_alpha) {
         return false;
     }
 

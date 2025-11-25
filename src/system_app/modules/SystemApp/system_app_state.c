@@ -3236,8 +3236,7 @@ void SysAppStateUpdateString(uint32_t topic, uint32_t type, const char *string)
         }
         else if (type == StreamName) {
             snprintf(s_streaming_settings.rtsp_config.stream_name,
-                     sizeof(s_streaming_settings.rtsp_config.stream_name), "%s",
-                     string ? string : DEFAULT_STREAM_NAME);
+                     sizeof(s_streaming_settings.rtsp_config.stream_name), "%s", string);
         }
         else if (type == UserName) {
             snprintf(s_streaming_settings.rtsp_config.user_name,
