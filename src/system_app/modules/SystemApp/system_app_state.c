@@ -659,6 +659,9 @@ STATIC RetCode MakeJsonResInfoStreamingSettings(EsfJsonHandle handle, EsfJsonVal
         detail_msg[sizeof(detail_msg) - 1] = '\0';
         SysAppVscManagerClearError();
     }
+    else {
+        GetErrorInfo(&(s_streaming_settings.update), &code, detail_msg, sizeof(detail_msg));
+    }
 
     return SysAppCmnMakeJsonResInfo(handle, root, s_streaming_settings.id, code, detail_msg);
 }
@@ -1267,11 +1270,12 @@ STATIC RetCode MakeJsonStreamingSettings(EsfJsonHandle handle, EsfJsonValue root
 
     // Set process_state.
 
-    SysAppCmnSetNumberValue(handle, root, "process_state", s_streaming_settings.process_state);
+    SysAppCmnSetNumberValue(handle, root, "process_state", (int)s_streaming_settings.process_state);
 
     // Set operating_mode.
 
-    SysAppCmnSetNumberValue(handle, root, "operating_mode", s_streaming_settings.operating_mode);
+    SysAppCmnSetNumberValue(handle, root, "operating_mode",
+                            (int)s_streaming_settings.operating_mode);
 
     // Set rtsp_config.
 
@@ -4906,6 +4910,12 @@ RetCode SysAppStateReadoutStreamingSettings(void)
     RequestConfigStateUpdate(ST_TOPIC_STREAMING_SETTINGS);
 
     return ret;
+}
+
+/*----------------------------------------------------------------------------*/
+CfgStStreamProcessState SysAppStateGetStreamingProcessState(void)
+{
+    return s_streaming_settings.process_state;
 }
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 

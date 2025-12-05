@@ -82,6 +82,9 @@ RetCode SysAppStateSetInternalErrorWithIdx(uint32_t topic, uint32_t property, ui
 char *SysAppStateGetReqId(uint32_t topic);
 void SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval);
 char *SysAppStateGetProtocolVersion(void);
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
+CfgStStreamProcessState SysAppStateGetStreamingProcessState(void);
+#endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 RetCode SysAppStateSendState(uint32_t req);
 RetCode SysAppStaReopenIfClose(void);
