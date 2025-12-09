@@ -11,6 +11,7 @@
 #include <cmocka.h>
 
 #include "sensor_main.h"
+#include "sensor_ai_lib/sensor_ai_lib_state.h"
 
 /*----------------------------------------------------------------------------*/
 SsfSensorErrCode __wrap_SsfSensorInit(void)
@@ -45,4 +46,10 @@ EsfSensorErrCode __wrap_EsfSensorExit(void)
 EsfSensorErrCode __wrap_EsfSensorUtilitySetupFiles(void)
 {
     return mock_type(EsfSensorErrCode);
+}
+
+/*----------------------------------------------------------------------------*/
+SsfSensorLibState __wrap_SsfSensorLibGetState(void)
+{
+    return mock_type(SsfSensorLibState);
 }

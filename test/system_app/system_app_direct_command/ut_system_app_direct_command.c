@@ -21,6 +21,7 @@
 #include "base64/include/base64.h"
 #include "senscord/c_api/senscord_c_api.h"
 #include "senscord/inference_stream/c_api/property_c_types.h"
+#include "sensor_ai_lib/sensor_ai_lib_state.h"
 #include "system_app_log.h"
 #include "system_app_direct_command.h"
 #include "system_app_direct_command_private.h"
@@ -918,6 +919,20 @@ static void Execute_GetOneFrame(GetOneFrameTestFlag test_flg)
     else {
         will_return(__wrap_SysAppStateGetSensCordStream, kRetOk);
     }
+
+#if defined(__NuttX__)
+    // SsfSensorLibGetState
+    will_return(__wrap_SsfSensorLibGetState, kSsfSensorLibStateReady);
+#else
+    // check SetupSensCordProperties()
+    expect_value(__wrap_senscord_stream_get_property, stream, FRAME_INFO_SCSTREAM);
+    expect_string(__wrap_senscord_stream_get_property, property_key,
+                  SENSCORD_STREAM_STATE_PROPERTY_KEY);
+    expect_value(__wrap_senscord_stream_get_property, value_size,
+                 sizeof(struct senscord_stream_state_property_t));
+    will_return(__wrap_senscord_stream_get_property, SENSCORD_STREAM_STATE_READY);
+    will_return(__wrap_senscord_stream_get_property, 0);
+#endif
 
     // Check property(ai_model) in senscord_stream_set_property()
     expect_value(__wrap_senscord_stream_set_property, stream, FRAME_INFO_SCSTREAM);

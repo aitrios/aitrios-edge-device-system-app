@@ -36,6 +36,14 @@ typedef enum {
     RegiSize4Byte = 4,
 } RegisterSize;
 
+// Stream state.
+
+typedef enum {
+    kStreamStateUnavailable,
+    kStreamStateReady,
+    kStreamStateRunning,
+} StreamState;
+
 // DirectCommand response context.
 
 typedef struct {

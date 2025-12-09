@@ -39,6 +39,7 @@ endif()
 if(DEVICE_TYPE STREQUAL "Raspi")
   add_definitions(-D__linux__)
   add_definitions(-U__NuttX__)
+  add_definitions(-DCONFIG_EXTERNAL_SYSTEMAPP_STREAM_AND_IMAGE_CONCURRENT)
   message(STATUS "Building for Raspi: __linux__ is enabled.")
 else()
   add_definitions(-D__NuttX__)
@@ -158,6 +159,7 @@ set(INCS
     ${TEST_TOP_DIR}/include/edge-software-framework-sensor/src/esf/senscord/include/
     ${TEST_TOP_DIR}/include/edge-software-framework-sensor/src/esf/senscord_component_inference/include/
     ${TEST_TOP_DIR}/include/edge-software-framework-sensor/src/esf/sensor_main/include/
+    ${TEST_TOP_DIR}/include/edge-software-framework-sensor/src/esf/sensor_ai_lib/include/
 
     ${TEST_TOP_DIR}/include/evp-device-agent/evp_agent/
     ${TEST_TOP_DIR}/include/evp-device-agent/evp_agent/include/
@@ -381,6 +383,7 @@ set(WRAP_ESF_SENSOR_SYMBOLES
     EsfSensorInit
     EsfSensorExit
     EsfSensorUtilitySetupFiles
+    SsfSensorLibGetState
 )
 
 set(WRAP_SENSCORD_SYMBOLES

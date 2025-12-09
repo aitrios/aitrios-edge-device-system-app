@@ -85,6 +85,11 @@ int32_t __wrap_senscord_stream_get_property(senscord_stream_t stream, const char
         senscord_camera_auto_exposure_metering->window.bottom = mock_type(uint32_t);
         senscord_camera_auto_exposure_metering->window.right = mock_type(uint32_t);
     }
+    else if (strcmp(property_key, SENSCORD_STREAM_STATE_PROPERTY_KEY) == 0) {
+        struct senscord_stream_state_property_t *stream_state =
+            (struct senscord_stream_state_property_t *)value;
+        stream_state->state = mock_type(enum senscord_stream_state_t);
+    }
     else {
         memcpy(value, mock_type(void *), value_size);
     }
