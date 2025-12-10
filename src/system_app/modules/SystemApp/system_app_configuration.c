@@ -73,6 +73,16 @@ typedef struct {
     int max_record_time;
     bool config_found;
 } NfsConfig;
+
+typedef struct {
+    CfgStStreamProcessState parsed_process_state;
+    bool process_state_found;
+    CfgStStreamOperatingMode parsed_operating_mode;
+    bool operating_mode_found;
+    RtspConfig rtsp_config;
+    NfsConfig nfs_config;
+    bool parameters_found;
+} StreamingSettingsParams;
 #endif // CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
 
 //
@@ -1260,8 +1270,9 @@ static void SysAppCfgProcessRequestId(EsfJsonHandle esfj_handle, EsfJsonValue va
 }
 
 /*----------------------------------------------------------------------*/
-static int SysAppCfgProcessStreamState(EsfJsonHandle esfj_handle, EsfJsonValue val,
-                                       const uint32_t topic, bool *found)
+static CfgStStreamProcessState SysAppCfgProcessStreamState(EsfJsonHandle esfj_handle,
+                                                           EsfJsonValue val, const uint32_t topic,
+                                                           bool *found)
 {
     // Get process_state property.
 
@@ -1273,7 +1284,7 @@ static int SysAppCfgProcessStreamState(EsfJsonHandle esfj_handle, EsfJsonValue v
         if (extret >= 1) {
             if ((process_state >= StreamOff) && (process_state < StreamProcessStateNum)) {
                 SysAppStateUpdateNumber(topic, StreamingProcessState, process_state);
-                return process_state;
+                return (CfgStStreamProcessState)process_state;
             }
             else {
                 SYSAPP_WARN("Invalid process_state %d", process_state);
@@ -1288,8 +1299,9 @@ static int SysAppCfgProcessStreamState(EsfJsonHandle esfj_handle, EsfJsonValue v
 }
 
 /*----------------------------------------------------------------------*/
-static int SysAppCfgProcessOperatingMode(EsfJsonHandle esfj_handle, EsfJsonValue val,
-                                         const uint32_t topic, bool *found)
+static CfgStStreamOperatingMode SysAppCfgProcessOperatingMode(EsfJsonHandle esfj_handle,
+                                                              EsfJsonValue val,
+                                                              const uint32_t topic, bool *found)
 {
     // Get operating_mode property.
 
@@ -1301,7 +1313,7 @@ static int SysAppCfgProcessOperatingMode(EsfJsonHandle esfj_handle, EsfJsonValue
         if (extret >= 1) {
             if ((operating_mode >= StreamOnly) && (operating_mode < StreamOperatingModeNum)) {
                 SysAppStateUpdateNumber(topic, OperatingMode, operating_mode);
-                return operating_mode;
+                return (CfgStStreamOperatingMode)operating_mode;
             }
             else {
                 SYSAPP_WARN("Invalid operating_mode %d", operating_mode);
@@ -1632,6 +1644,43 @@ static NfsConfig SysAppCfgProcessNfsConfig(EsfJsonHandle esfj_handle, EsfJsonVal
 }
 
 /*----------------------------------------------------------------------*/
+static StreamingSettingsParams SysAppCfgProcessStreamingParams(EsfJsonHandle esfj_handle,
+                                                               EsfJsonValue val,
+                                                               const uint32_t topic)
+{
+    StreamingSettingsParams params = {0};
+
+    // Process request ID.
+
+    SysAppCfgProcessRequestId(esfj_handle, val, topic);
+
+    // Process stream state.
+
+    params.parsed_process_state = SysAppCfgProcessStreamState(esfj_handle, val, topic,
+                                                              &params.process_state_found);
+
+    // Process operating mode.
+
+    params.parsed_operating_mode = SysAppCfgProcessOperatingMode(esfj_handle, val, topic,
+                                                                 &params.operating_mode_found);
+
+    // Process RTSP configuration.
+
+    params.rtsp_config = SysAppCfgProcessRtspConfig(esfj_handle, val, topic);
+
+    // Process NFS configuration.
+
+    params.nfs_config = SysAppCfgProcessNfsConfig(esfj_handle, val, topic);
+
+    // Check if parameters are present.
+
+    params.parameters_found = params.operating_mode_found || params.rtsp_config.config_found ||
+                              params.nfs_config.config_found;
+
+    return params;
+}
+
+/*----------------------------------------------------------------------*/
 static RetCode SysAppCfgApplyRtspConfig(const RtspConfig *rtsp_config)
 {
     if (!rtsp_config->config_found) {
@@ -1691,7 +1740,7 @@ static RetCode SysAppCfgApplyNfsConfig(const NfsConfig *nfs_config)
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode SysAppCfgApplyOperatingMode(int parsed_operating_mode)
+static RetCode SysAppCfgApplyOperatingMode(CfgStStreamOperatingMode parsed_operating_mode)
 {
     vsclient_result_t vsc_ret = SysAppVscSetMode(parsed_operating_mode);
 
@@ -1706,7 +1755,7 @@ static RetCode SysAppCfgApplyOperatingMode(int parsed_operating_mode)
 }
 
 /*----------------------------------------------------------------------*/
-static RetCode SysAppCfgApplyStreamControl(int parsed_process_state)
+static RetCode SysAppCfgApplyStreamControl(CfgStStreamProcessState parsed_process_state)
 {
     if (parsed_process_state == StreamOn) {
         vsclient_result_t vsc_ret = SysAppVscStartStream();
@@ -1723,6 +1772,195 @@ static RetCode SysAppCfgApplyStreamControl(int parsed_process_state)
         if (vsc_ret != VSCLIENT_SUCCESS) {
             SysAppVscHandleCreateError(vsc_ret, "Stream stop", ST_TOPIC_STREAMING_SETTINGS);
             SYSAPP_ERR("Stream stop failed");
+            return kRetFailed;
+        }
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyStreamingConfigs(const StreamingSettingsParams *params)
+{
+    RetCode ret = kRetOk;
+
+    // Apply RTSP configurations
+
+    ret = SysAppCfgApplyRtspConfig(&params->rtsp_config);
+
+    if (ret != kRetOk) {
+        return ret;
+    }
+
+    // Apply NFS configurations
+
+    ret = SysAppCfgApplyNfsConfig(&params->nfs_config);
+
+    if (ret != kRetOk) {
+        return ret;
+    }
+
+    // Apply operating_mode
+
+    if (params->operating_mode_found) {
+        ret = SysAppCfgApplyOperatingMode(params->parsed_operating_mode);
+
+        if (ret != kRetOk) {
+            return ret;
+        }
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgValidateStreamStateChange(CfgStStreamProcessState current_process_state,
+                                                  const StreamingSettingsParams *params,
+                                                  const uint32_t topic)
+{
+    // Validate process state change request
+
+    if (params->process_state_found) {
+        if (current_process_state == StreamOn && params->parsed_process_state == StreamOn) {
+            SYSAPP_ERR("StreamOn request rejected because already streaming");
+            SysAppStateSetInvalidArgError(topic, StreamingProcessState);
+            return kRetFailed;
+        }
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static bool SysAppCfgIsStartingStreamWithParams(CfgStStreamProcessState current_process_state,
+                                                const StreamingSettingsParams *params)
+{
+    // without parameters
+
+    if (!params->parameters_found) {
+        return false;
+    }
+
+    // StreamOff -> StreamOn
+
+    if (current_process_state == StreamOff && params->parsed_process_state == StreamOn) {
+        return true;
+    }
+
+    // Others
+
+    return false;
+}
+
+/*----------------------------------------------------------------------*/
+static bool SysAppCfgIsProcessStateChanged(CfgStStreamProcessState current_process_state,
+                                           const StreamingSettingsParams *params)
+{
+    // without process_state
+
+    if (!params->process_state_found) {
+        return false;
+    }
+
+    // StreamOff -> StreamOn
+
+    if (current_process_state == StreamOff && params->parsed_process_state == StreamOn) {
+        return true;
+    }
+
+    // StreamOn -> StreamOff
+
+    if (current_process_state == StreamOn && params->parsed_process_state == StreamOff) {
+        return true;
+    }
+
+    // Others
+
+    return false;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgUpdateCurrentProcessState(CfgStStreamProcessState *current_process_state,
+                                                  const uint32_t topic)
+{
+    // Update current state after applying stream control
+
+    vsclient_server_status_t vsc_status = {0};
+    vsclient_result_t vsc_ret = SysAppVscGetServerStatus(&vsc_status);
+
+    if (vsc_ret == VSCLIENT_SUCCESS) {
+        SYSAPP_INFO("Get process state after change: %d", vsc_status.stream_status);
+        *current_process_state = (CfgStStreamProcessState)vsc_status.stream_status;
+        return kRetOk;
+    }
+    else {
+        SYSAPP_WARN("Get process state after change failed %d", vsc_ret);
+        SysAppVscHandleCreateError(vsc_ret, "Get server status", topic);
+        return kRetFailed;
+    }
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyParamsAndStartStream(const StreamingSettingsParams *params)
+{
+    RetCode ret = kRetOk;
+
+    // Apply parameters before start streaming
+
+    ret = SysAppCfgApplyStreamingConfigs(params);
+
+    if (ret != kRetOk) {
+        return ret;
+    }
+
+    // Apply process_state
+
+    ret = SysAppCfgApplyStreamControl(params->parsed_process_state);
+
+    if (ret != kRetOk) {
+        return ret;
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SysAppCfgApplyStateChangeAndParams(CfgStStreamProcessState current_process_state,
+                                                  const StreamingSettingsParams *params,
+                                                  const uint32_t topic)
+{
+    RetCode ret = kRetOk;
+    CfgStStreamProcessState new_process_state = current_process_state;
+
+    // Apply process_state first
+
+    if (SysAppCfgIsProcessStateChanged(current_process_state, params)) {
+        ret = SysAppCfgApplyStreamControl(params->parsed_process_state);
+
+        if (ret != kRetOk) {
+            return ret;
+        }
+
+        ret = SysAppCfgUpdateCurrentProcessState(&new_process_state, topic);
+
+        if (ret != kRetOk) {
+            return ret;
+        }
+    }
+
+    // Apply parameters if stopped
+
+    if (params->parameters_found) {
+        if (new_process_state == StreamOff) {
+            ret = SysAppCfgApplyStreamingConfigs(params);
+
+            if (ret != kRetOk) {
+                return ret;
+            }
+        }
+        else {
+            SYSAPP_ERR("Cannot update parameters while streaming.");
+            SysAppStateSetInternalError(topic, OperatingMode);
             return kRetFailed;
         }
     }
@@ -3709,10 +3947,9 @@ RetCode SysAppCfgStreamingSettings(const char *param)
     EsfJsonValue val = ESF_JSON_VALUE_INVALID;
     const uint32_t topic = ST_TOPIC_STREAMING_SETTINGS;
 
-    // Variables for parsed values
+    // Get current process state.
 
-    int parsed_process_state = StreamOff;
-    int parsed_operating_mode = StreamOnly;
+    CfgStStreamProcessState current_process_state = SysAppStateGetStreamingProcessState();
 
     // Initialize JSON parsing.
 
@@ -3722,62 +3959,33 @@ RetCode SysAppCfgStreamingSettings(const char *param)
         return kRetFailed;
     }
 
-    // Process request ID.
+    // Process all streaming parameters.
 
-    SysAppCfgProcessRequestId(esfj_handle, val, topic);
+    StreamingSettingsParams params = SysAppCfgProcessStreamingParams(esfj_handle, val, topic);
 
-    // Process stream state.
+    // Validate process state change request.
 
-    bool process_state_found = false;
-    parsed_process_state = SysAppCfgProcessStreamState(esfj_handle, val, topic,
-                                                       &process_state_found);
-
-    // Process operating mode.
-
-    bool operating_mode_found = false;
-    parsed_operating_mode = SysAppCfgProcessOperatingMode(esfj_handle, val, topic,
-                                                          &operating_mode_found);
-
-    // Process RTSP configuration.
-
-    RtspConfig rtsp_config = SysAppCfgProcessRtspConfig(esfj_handle, val, topic);
-
-    // Process NFS configuration.
-
-    NfsConfig nfs_config = SysAppCfgProcessNfsConfig(esfj_handle, val, topic);
-
-    // Apply VSC configurations.
-
-    ret = SysAppCfgApplyRtspConfig(&rtsp_config);
+    ret = SysAppCfgValidateStreamStateChange(current_process_state, &params, topic);
 
     if (ret != kRetOk) {
         goto send_state;
     }
 
-    // Apply NFS configurations.
+    // Apply configurations based on state transition.
 
-    ret = SysAppCfgApplyNfsConfig(&nfs_config);
+    if (SysAppCfgIsStartingStreamWithParams(current_process_state, &params)) {
+        // Apply parameters before start streaming.
+
+        ret = SysAppCfgApplyParamsAndStartStream(&params);
+    }
+    else {
+        // Apply state change first, then parameters if stopped.
+
+        ret = SysAppCfgApplyStateChangeAndParams(current_process_state, &params, topic);
+    }
 
     if (ret != kRetOk) {
         goto send_state;
-    }
-
-    // Apply operating mode.
-
-    if (operating_mode_found) {
-        ret = SysAppCfgApplyOperatingMode(parsed_operating_mode);
-        if (ret != kRetOk) {
-            goto send_state;
-        }
-    }
-
-    // Apply process state.
-
-    if (process_state_found) {
-        ret = SysAppCfgApplyStreamControl(parsed_process_state);
-        if (ret != kRetOk) {
-            goto send_state;
-        }
     }
 
 send_state:

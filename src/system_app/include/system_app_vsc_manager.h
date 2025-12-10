@@ -41,8 +41,8 @@ typedef struct {
 
 typedef struct {
     char id[CFG_RES_ID_LEN + 1];
-    int process_state;
-    int operating_mode;
+    CfgStStreamProcessState process_state;
+    CfgStStreamOperatingMode operating_mode;
     CfgStRtspConfigParam rtsp_config;
     CfgStNfsConfigParam nfs_config;
     CfgStUpdateInfo update;
