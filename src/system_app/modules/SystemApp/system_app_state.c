@@ -4917,6 +4917,12 @@ CfgStStreamProcessState SysAppStateGetStreamingProcessState(void)
 {
     return s_streaming_settings.process_state;
 }
+
+/*----------------------------------------------------------------------------*/
+bool SysAppStateGetStreamingInvalidArgError(void)
+{
+    return (s_streaming_settings.update.invalid_arg_flag != 0);
+}
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 /*----------------------------------------------------------------------*/
