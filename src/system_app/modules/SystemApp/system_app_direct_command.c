@@ -10,6 +10,7 @@
 
 #if defined(__NuttX__)
 #include <nuttx/config.h>
+#include "sensor_ai_lib/sensor_ai_lib_state.h"
 #endif
 
 #include "sdk_backdoor.h"
@@ -595,6 +596,155 @@ static RetCode GetFormatOfImage(char *scord_format, EsfCodecJpegInputFormat *jpg
 }
 
 /*----------------------------------------------------------------------*/
+#if defined(__NuttX__)
+static StreamState ConvertStreamState(SsfSensorLibState sensor_lib_state)
+{
+    StreamState state = kStreamStateUnavailable;
+
+    switch (sensor_lib_state) {
+        case kSsfSensorLibStateStandby:
+        case kSsfSensorLibStateFwUpdate:
+        case kSsfSensorLibStateUnknown:
+            state = kStreamStateUnavailable;
+            break;
+
+        case kSsfSensorLibStateReady:
+            state = kStreamStateReady;
+            break;
+
+        case kSsfSensorLibStateRunning:
+            state = kStreamStateRunning;
+            break;
+
+        default:
+            SYSAPP_WARN("Unknown stream state from SensorLib: %d", sensor_lib_state);
+            break;
+    }
+
+    return state;
+}
+#else
+static StreamState ConvertStreamState(enum senscord_stream_state_t sc_state)
+{
+    StreamState state = kStreamStateUnavailable;
+
+    switch (sc_state) {
+        case SENSCORD_STREAM_STATE_UNDEFINED:
+            state = kStreamStateUnavailable;
+            break;
+
+        case SENSCORD_STREAM_STATE_READY:
+            state = kStreamStateReady;
+            break;
+
+        case SENSCORD_STREAM_STATE_RUNNING:
+            state = kStreamStateRunning;
+            break;
+
+        default:
+            SYSAPP_WARN("Unknown stream state from SensCord: %d", sc_state);
+            break;
+    }
+
+    return state;
+}
+#endif
+
+/*----------------------------------------------------------------------*/
+static StreamState GetStreamState(FrameInfo *out)
+{
+#if defined(__NuttX__)
+    SsfSensorLibState sensor_lib_state = SsfSensorLibGetState();
+
+    return ConvertStreamState(sensor_lib_state);
+#else
+    struct senscord_stream_state_property_t stream_state;
+
+    int32_t sc_ret = senscord_stream_get_property(out->scstream, SENSCORD_STREAM_STATE_PROPERTY_KEY,
+                                                  (void *)&stream_state, sizeof(stream_state));
+
+    if (sc_ret < 0) {
+        SYSAPP_ERR("senscord_stream_get_property(STREAM_STATE) ret=%d", sc_ret);
+        return kStreamStateUnavailable;
+    }
+
+    return ConvertStreamState(stream_state.state);
+#endif
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SetSensCordProperties(DirectGetImageParam *dgi, FrameInfo *out)
+{
+    // Load AI model.
+
+    struct senscord_ai_model_bundle_id_property_t ai_model;
+
+    snprintf(ai_model.ai_model_bundle_id, sizeof(ai_model.ai_model_bundle_id), "%s",
+             dgi->network_id);
+
+    int32_t sc_ret = senscord_stream_set_property(out->scstream,
+                                                  SENSCORD_AI_MODEL_BUNDLE_ID_PROPERTY_KEY,
+                                                  (const void *)&ai_model, sizeof(ai_model));
+
+    if (sc_ret < 0) {
+        SYSAPP_ERR("senscord_stream_set_property(AIMODEL) ret=%d", sc_ret);
+        return kRetFailed;
+    }
+
+    // Set input data type.
+
+    struct senscord_input_data_type_property_t input_data = {
+        .count = 1,
+        .channels[0] = 0x00000001 // 0x1:Inference input image
+    };
+
+    sc_ret = senscord_stream_set_property(out->scstream, SENSCORD_INPUT_DATA_TYPE_PROPERTY_KEY,
+                                          (const void *)&input_data, sizeof(input_data));
+
+    if (sc_ret < 0) {
+        SYSAPP_ERR("senscord_stream_set_property(INPUT_DATA_TYPE) ret=%d", sc_ret);
+        return kRetFailed;
+    }
+
+    return kRetOk;
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode HandleReturnCodeIfStreamStateIsRunning(void)
+{
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_STREAM_AND_IMAGE_CONCURRENT
+    SYSAPP_INFO("Skip set properties.");
+    return kRetOk;
+#else
+    SYSAPP_ERR("Set properties is not allowed while stream is running.");
+    return kRetFailed;
+#endif
+}
+
+/*----------------------------------------------------------------------*/
+static RetCode SetupSensCordProperties(DirectGetImageParam *dgi, FrameInfo *out)
+{
+    StreamState state = GetStreamState(out);
+
+    if (state == kStreamStateUnavailable) {
+        SYSAPP_ERR("Stream state is UNAVAILABLE.");
+        return kRetFailed;
+    }
+
+    if (state == kStreamStateRunning) {
+        // state is "RUNNING" -> skip setting the properties or return an error.
+        // (depends on CONFIG_EXTERNAL_SYSTEMAPP_STREAM_AND_IMAGE_CONCURRENT)
+
+        SYSAPP_INFO("Stream state is RUNNING.");
+        return HandleReturnCodeIfStreamStateIsRunning();
+    }
+
+    // state is "READY" -> set the properties.
+
+    return SetSensCordProperties(dgi, out);
+}
+
+/*----------------------------------------------------------------------*/
 static RetCode GetOneFrame(DirectGetImageParam *dgi, FrameInfo *out)
 {
     RetCode ret = kRetOk;
@@ -615,42 +765,18 @@ static RetCode GetOneFrame(DirectGetImageParam *dgi, FrameInfo *out)
         goto open_stream_failed;
     }
 
-    // Load AI model.
+    // Setup SensCord properties.
 
-    struct senscord_ai_model_bundle_id_property_t ai_model;
+    ret = SetupSensCordProperties(dgi, out);
 
-    snprintf(ai_model.ai_model_bundle_id, sizeof(ai_model.ai_model_bundle_id), "%s",
-             dgi->network_id);
-
-    int32_t sc_ret = senscord_stream_set_property(out->scstream,
-                                                  SENSCORD_AI_MODEL_BUNDLE_ID_PROPERTY_KEY,
-                                                  (const void *)&ai_model, sizeof(ai_model));
-
-    if (sc_ret < 0) {
-        SYSAPP_ERR("senscord_stream_set_property(AIMODEL) ret=%d", sc_ret);
-        ret = kRetFailed;
-        goto set_ai_model_property_failed;
-    }
-
-    // Set input data type.
-
-    struct senscord_input_data_type_property_t input_data = {
-        .count = 1,
-        .channels[0] = 0x00000001 // 0x1:Inference input image
-    };
-
-    sc_ret = senscord_stream_set_property(out->scstream, SENSCORD_INPUT_DATA_TYPE_PROPERTY_KEY,
-                                          (const void *)&input_data, sizeof(input_data));
-
-    if (sc_ret < 0) {
-        SYSAPP_ERR("senscord_stream_set_property(INPUT_DATA_TYPE) ret=%d", sc_ret);
-        ret = kRetFailed;
-        goto set_input_data_property_failed;
+    if (ret != kRetOk) {
+        SYSAPP_ERR("SetupSensCordProperties ret=%d", ret);
+        goto setup_senscord_properties_failed;
     }
 
     // Start stream.
 
-    sc_ret = senscord_stream_start(out->scstream);
+    int32_t sc_ret = senscord_stream_start(out->scstream);
 
     if (sc_ret < 0) {
         SYSAPP_ERR("senscord_stream_start() ret %d", sc_ret);
@@ -762,8 +888,7 @@ get_frame_failed:
 
 start_stream_failed:
 get_image_property_failed:
-set_input_data_property_failed:
-set_ai_model_property_failed:
+setup_senscord_properties_failed:
 open_stream_failed:
 
     return ret;

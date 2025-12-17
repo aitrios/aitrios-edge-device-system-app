@@ -108,4 +108,10 @@ config EXTERNAL_SYSTEMAPP_DEFAULT_NETWORK_ID
 	---help---
 		Default Network Id for direct_get_image.
 
+config EXTERNAL_SYSTEMAPP_STREAM_AND_IMAGE_CONCURRENT
+	bool "Enable concurrent streaming and image getting"
+	default n
+	---help---
+		Enable concurrent streaming and image getting.
+
 endif
