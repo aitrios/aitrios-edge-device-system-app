@@ -84,6 +84,7 @@ void SysAppStateGetTemperatureUpdateInterval(int *temperature_update_interval);
 char *SysAppStateGetProtocolVersion(void);
 #if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 CfgStStreamProcessState SysAppStateGetStreamingProcessState(void);
+bool SysAppStateGetStreamingInvalidArgError(void);
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
 
 RetCode SysAppStateSendState(uint32_t req);
