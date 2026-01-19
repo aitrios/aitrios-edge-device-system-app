@@ -95,6 +95,12 @@ config EXTERNAL_SYSTEMAPP_VIDEO_STREAMING
 	---help---
 		Enable the Video Streaming feature.
 
+config EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+	bool "Enable Sensor Temperature monitor feature"
+	default n
+	---help---
+		Enable Sensor Temperature monitor feature.
+
 config EXTERNAL_SYSTEMAPP_TEMPERATURE_LOWER_THRESHOLD
 	int "Temperature lower threshold"
 	default -20

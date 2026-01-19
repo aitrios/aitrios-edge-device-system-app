@@ -51,6 +51,7 @@
 #define TEMPERATURE_LOWER_APPROACHING_THRESHOLD (TEMPERATURE_LOWER_THRESHOLD + 10)
 
 #define TEMPERATURE_INVALID_VAL (-300) /*T.B.D*/
+#define TEMPERATURE_STRING_SIZE (33)   /* 32 bytes + null terminator */
 #define TRUNCATION_SUFFIX "..."
 #define TRUNCATION_SUFFIX_LEN (sizeof(TRUNCATION_SUFFIX) - 1)
 #define DEFAULT_UPDATE_INTERVAL_SEC (10)
@@ -688,6 +689,35 @@ STATIC RetCode MakeJsonAiModel(EsfJsonHandle handle, EsfJsonValue root, uint32_t
 }
 
 /*----------------------------------------------------------------------------*/
+STATIC void SetCurrentTemperature(EsfJsonHandle handle, EsfJsonValue root, uint32_t chips_idx)
+{
+    char temperature_str[TEMPERATURE_STRING_SIZE] = {0};
+
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+    if (s_chips[chips_idx].current_temperature == TEMPERATURE_INVALID_VAL) {
+        snprintf(temperature_str, sizeof(temperature_str), "N/A");
+    }
+    else {
+        snprintf(temperature_str, sizeof(temperature_str), "%d",
+                 s_chips[chips_idx].current_temperature);
+    }
+#else
+    // Sensor temperature monitoring is disabled. Sensor chip always N/A, others only if invalid.
+
+    if ((s_chips[chips_idx].current_temperature == TEMPERATURE_INVALID_VAL) ||
+        (chips_idx == CHIPS_IDX_SENSOR_CHIP)) {
+        snprintf(temperature_str, sizeof(temperature_str), "N/A");
+    }
+    else {
+        snprintf(temperature_str, sizeof(temperature_str), "%d",
+                 s_chips[chips_idx].current_temperature);
+    }
+#endif
+
+    SysAppCmnSetStringValue(handle, root, "temperature", temperature_str);
+}
+
+/*----------------------------------------------------------------------------*/
 STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t no, void *ctx)
 {
     (void)ctx;
@@ -707,7 +737,7 @@ STATIC RetCode MakeJsonChips(EsfJsonHandle handle, EsfJsonValue root, uint32_t n
 
     // Set current_temperature.
 
-    SysAppCmnSetNumberValue(handle, root, "temperature", s_chips[no].current_temperature);
+    SetCurrentTemperature(handle, root, no);
 
     // Set loader_version.
 
@@ -2256,6 +2286,7 @@ senscord_start_stream_failed:
 /*----------------------------------------------------------------------------*/
 STATIC int GetSensorTemperature(int prev_temperature)
 {
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
     int current_temperature = TEMPERATURE_INVALID_VAL;
 
     // Lock.
@@ -2318,6 +2349,13 @@ senscord_start_stream_failed:
     pthread_mutex_unlock(&s_senscord_access_mutex);
 
     return current_temperature;
+#else
+    (void)prev_temperature;
+
+    // Return the safe temperature value when monitoring is disabled
+
+    return 0;
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 }
 
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
