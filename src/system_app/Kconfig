@@ -120,4 +120,27 @@ config EXTERNAL_SYSTEMAPP_STREAM_AND_IMAGE_CONCURRENT
 	---help---
 		Enable concurrent streaming and image getting.
 
+choice
+	prompt "Version information profile"
+	default EXTERNAL_SYSTEMAPP_VERSION_PROFILE_NONE
+	---help---
+		Select the version information profile for additional_info.
+
+config EXTERNAL_SYSTEMAPP_VERSION_PROFILE_NONE
+	bool "No version information profile"
+	---help---
+		Don't include any version information in additional_info.
+
+config EXTERNAL_SYSTEMAPP_VERSION_PROFILE_MINIMAL
+	bool "Minimal version information profile"
+	---help---
+		Include minimal version information in additional_info.
+
+config EXTERNAL_SYSTEMAPP_VERSION_PROFILE_FULL
+	bool "Full version information profile"
+	---help---
+		Include all available version information in additional_info.
+
+endchoice
+
 endif

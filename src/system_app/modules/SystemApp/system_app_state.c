@@ -39,6 +39,7 @@
 #include "system_app_led.h"
 #include "system_app_timer.h"
 #include "system_app_util.h"
+#include "system_app_additional_info.h"
 
 //
 // Macros.
@@ -92,6 +93,7 @@ STATIC StDeviceStatesParams s_device_states;
 STATIC StPowerStatesParams s_power_states;
 STATIC StSensorParams s_chips[ST_CHIPS_NUM];
 STATIC StAIModelParams s_ai_model[ST_AIMODELS_NUM];
+STATIC StAdditionalInfoParams s_additional_info;
 STATIC CfgStSystemSettingsParam s_system_settings;
 STATIC CfgStLogParam s_log[LogFilterNum];
 STATIC CfgStNetworkSettingsParam s_network_settings;
@@ -133,6 +135,7 @@ STATIC RetCode SendState(uint32_t next_req);
 STATIC RetCode SendDeviceInfo(void);
 STATIC RetCode SendDeviceCapabilities(void);
 STATIC RetCode SendDeviceStates(void);
+STATIC RetCode SendAdditionalInfo(void);
 STATIC RetCode SendReserved(void);
 STATIC RetCode SendSystemSettings(void);
 STATIC RetCode SendNetworkSettings(void);
@@ -892,6 +895,21 @@ STATIC RetCode MakeJsonDeviceStates(EsfJsonHandle handle, EsfJsonValue root)
 }
 
 /*----------------------------------------------------------------------------*/
+STATIC RetCode MakeJsonAdditionalInfo(EsfJsonHandle handle, EsfJsonValue root)
+{
+    RetCode ret = kRetOk;
+
+    // Set additional_info as JSON object with string key-value pairs.
+
+    for (int i = 0; i < s_additional_info.item_count; i++) {
+        const StAdditionalInfoItem *item = &s_additional_info.items[i];
+        SysAppCmnSetStringValue(handle, root, item->key, item->value);
+    }
+
+    return ret;
+}
+
+/*----------------------------------------------------------------------------*/
 STATIC RetCode MakeJsonReserved(EsfJsonHandle handle, EsfJsonValue root)
 {
     RetCode ret = kRetOk;
@@ -1450,6 +1468,9 @@ STATIC RetCode SendState(uint32_t next_req)
     else if (next_req & ST_TOPIC_DEVICE_STATES) {
         ret = SendDeviceStates();
     }
+    else if (next_req & ST_TOPIC_ADDITIONAL_INFO) {
+        ret = SendAdditionalInfo();
+    }
     else if (next_req & ST_TOPIC_RESERVED) {
         ret = SendReserved();
     }
@@ -1622,6 +1643,52 @@ STATIC RetCode SendDeviceStates(void)
         uint32_t state_len = strlen(state_org);
 
         ret = SendStateCore("device_states", state_org, state_len);
+    }
+
+    // Clean up.
+
+    esfj_ret = EsfJsonClose(esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_WARN("EsfJsonClose(%p) ret %d", esfj_handle, esfj_ret);
+    }
+
+    return ret;
+}
+
+/*----------------------------------------------------------------------------*/
+STATIC RetCode SendAdditionalInfo(void)
+{
+    RetCode ret = kRetOk;
+    EsfJsonHandle esfj_handle = ESF_JSON_HANDLE_INITIALIZER;
+    EsfJsonValue val = ESF_JSON_VALUE_INVALID;
+    EsfJsonErrorCode esfj_ret = kEsfJsonSuccess;
+
+    // Make json string for state::additional_info.
+
+    esfj_ret = EsfJsonOpen(&esfj_handle);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonOpen(%p) ret %d", &esfj_handle, esfj_ret);
+    }
+
+    esfj_ret = EsfJsonObjectInit(esfj_handle, &val);
+
+    if (esfj_ret != kEsfJsonSuccess) {
+        SYSAPP_ERR("EsfJsonObjectInit(%p) ret %d", esfj_handle, esfj_ret);
+    }
+
+    MakeJsonAdditionalInfo(esfj_handle, val);
+
+    // Send state.
+
+    const char *state_org = NULL;
+    esfj_ret = EsfJsonSerialize(esfj_handle, val, &state_org);
+
+    if ((state_org != NULL) && (esfj_ret == kEsfJsonSuccess)) {
+        uint32_t state_len = strlen(state_org);
+
+        ret = SendStateCore("additional_info", state_org, state_len);
     }
 
     // Clean up.
@@ -2456,6 +2523,10 @@ STATIC void SensorTempUpdateIntervalCallback(void)
 
     SysAppStateSendState(ST_TOPIC_DEVICE_INFO);
 
+    // Send additional_info.
+
+    SysAppStateSendState(ST_TOPIC_ADDITIONAL_INFO);
+
     return;
 }
 
@@ -2891,6 +2962,11 @@ RetCode SysAppStaInitialize(struct SYS_client *sys_client)
 
     SysAppStateReadoutDeviceStates();
     SysAppStateSendState(ST_TOPIC_DEVICE_STATES);
+
+    // Collect and send additional_info.
+
+    SysAppAdditionalInfoCollect(&s_additional_info);
+    SysAppStateSendState(ST_TOPIC_ADDITIONAL_INFO);
 
     // Readout and send reserved.
 #if 0 // For_Coverity_Disable_SysAppStateReadoutReserved

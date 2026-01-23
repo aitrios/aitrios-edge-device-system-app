@@ -60,6 +60,12 @@
 #define ST_AIMODEL_UPDATE_DATE_LEN (32)
 #define ST_AIMODEL_HASH_LEN (44)
 
+// String length for additional_info.
+
+#define ST_ADDITIONAL_INFO_KEY_LEN (64)
+#define ST_ADDITIONAL_INFO_VALUE_LEN (128)
+#define ST_ADDITIONAL_INFO_MAX_ITEMS (10)
+
 // String length for log.
 
 #define CFGST_LOG_FILTER_LEN (32)
@@ -132,6 +138,7 @@
 #if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 #define ST_TOPIC_STREAMING_SETTINGS (1 << 14)
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+#define ST_TOPIC_ADDITIONAL_INFO (1 << 15)
 
 // Data type group.
 
@@ -450,6 +457,18 @@ typedef struct {
     char update_date[ST_AIMODEL_UPDATE_DATE_LEN + 1];
     //char location[];
 } StAIModelParams;
+
+// Struct for additional_info.
+
+typedef struct {
+    char key[ST_ADDITIONAL_INFO_KEY_LEN + 1];
+    char value[ST_ADDITIONAL_INFO_VALUE_LEN + 1];
+} StAdditionalInfoItem;
+
+typedef struct {
+    int item_count;
+    StAdditionalInfoItem items[ST_ADDITIONAL_INFO_MAX_ITEMS];
+} StAdditionalInfoParams;
 
 // Struct for update_info.
 //

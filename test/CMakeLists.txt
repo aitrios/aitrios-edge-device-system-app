@@ -88,6 +88,7 @@ set(MOCK_SRCS
     ${MOCKDIR}/ut_mock_zxing.c
 
     ${MOCKDIR}/ut_mock_sysappcmn.c
+    ${MOCKDIR}/ut_mock_sysappadditionalinfo.c
     ${MOCKDIR}/ut_mock_sysappdeploy.c
     ${MOCKDIR}/ut_mock_sysappled.c
     ${MOCKDIR}/ut_mock_sysappdcmd.c
@@ -649,6 +650,11 @@ set(WRAP_SYSTEMAPP_STATE_SYMBOLES
     SysAppStaIsStateQueueEmpty
     SysAppStateSendUnimplementedState
     SysAppStateIsUnimplementedTopic
+)
+
+set(WRAP_SYSTEMAPP_ADDITIONALINFO_SYMBOLES
+    ## sysappadditionalinfo
+    SysAppAdditionalInfoCollect
 )
 
 set(WRAP_SYSTEMAPP_LOG_SYMBOLES

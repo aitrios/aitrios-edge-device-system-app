@@ -60,6 +60,7 @@ extern StDeviceStatesParams s_device_states;
 extern StPowerStatesParams s_power_states;
 extern StSensorParams s_chips[ST_CHIPS_NUM];
 extern StAIModelParams s_ai_model[ST_AIMODELS_NUM];
+extern StAdditionalInfoParams s_additional_info;
 extern CfgStSystemSettingsParam s_system_settings;
 extern CfgStLogParam s_log[LogFilterNum];
 extern CfgStNetworkSettingsParam s_network_settings;
@@ -327,6 +328,40 @@ static void common_set_GetSensorInfo(senscord_stream_t scstream,
         will_return(__wrap_senscord_stream_get_property, expect_img_prop);
         will_return(__wrap_senscord_stream_get_property, ret_val);
     }
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void common_set_AdditionalInfoData(void)
+{
+    // Setup s_additional_info with test data
+    // This is used by tests that don't call SysAppAdditionalInfoCollect
+    s_additional_info.item_count = 6;
+    strncpy(s_additional_info.items[0].key, "edc_version",
+            sizeof(s_additional_info.items[0].key) - 1);
+    strncpy(s_additional_info.items[0].value, "1.0.0",
+            sizeof(s_additional_info.items[0].value) - 1);
+    strncpy(s_additional_info.items[1].key, "kernel_version",
+            sizeof(s_additional_info.items[1].key) - 1);
+    strncpy(s_additional_info.items[1].value, "5.10.0",
+            sizeof(s_additional_info.items[1].value) - 1);
+    strncpy(s_additional_info.items[2].key, "senscord_version",
+            sizeof(s_additional_info.items[2].key) - 1);
+    strncpy(s_additional_info.items[2].value, "2.0.0",
+            sizeof(s_additional_info.items[2].value) - 1);
+    strncpy(s_additional_info.items[3].key, "libcamera_version",
+            sizeof(s_additional_info.items[3].key) - 1);
+    strncpy(s_additional_info.items[3].value, "0.0.1",
+            sizeof(s_additional_info.items[3].value) - 1);
+    strncpy(s_additional_info.items[4].key, "imx500_firmware_version",
+            sizeof(s_additional_info.items[4].key) - 1);
+    strncpy(s_additional_info.items[4].value, "1.5.0",
+            sizeof(s_additional_info.items[4].value) - 1);
+    strncpy(s_additional_info.items[5].key, "imx500_tools_version",
+            sizeof(s_additional_info.items[5].key) - 1);
+    strncpy(s_additional_info.items[5].value, "1.2.0",
+            sizeof(s_additional_info.items[5].value) - 1);
+
     return;
 }
 
@@ -1093,6 +1128,57 @@ static void common_set_MakeJsonDeviceStates(EsfJsonHandle handle_val, EsfJsonVal
 }
 
 /*----------------------------------------------------------------------------*/
+static void common_set_MakeJsonAdditionalInfo(EsfJsonHandle handle_val, EsfJsonValue parent_val,
+                                              RetCode ret_val)
+{
+    // MakeJsonAdditionalInfo loops through s_additional_info.items and calls SysAppCmnSetStringValue
+
+    // edc_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "edc_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "1.0.0");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // kernel_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "kernel_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "5.10.0");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // senscord_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "senscord_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "2.0.0");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // libcamera_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "libcamera_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "0.0.1");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // imx500_firmware_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "imx500_firmware_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "1.5.0");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+
+    // imx500_tools_version
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "imx500_tools_version");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "1.2.0");
+    will_return(__wrap_SysAppCmnSetStringValue, ret_val);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 static void common_set_MakeJsonReserved(EsfJsonHandle handle_val, EsfJsonValue parent_val,
                                         RetCode ret_val)
 {
@@ -1727,6 +1813,38 @@ static void common_set_SendDeviceStates(EsfJsonHandle handle_val, EsfJsonValue p
 }
 
 /*----------------------------------------------------------------------------*/
+static void common_set_SendAdditionalInfo(EsfJsonHandle handle_val, EsfJsonValue parent_val,
+                                          const char *string_expect, EsfJsonErrorCode ret_val)
+{
+    // SendAdditionalInfo
+    will_return(__wrap_EsfJsonOpen, handle_val);
+    will_return(__wrap_EsfJsonOpen, kEsfJsonSuccess);
+
+    // EsfJsonObjectInit
+    expect_value(__wrap_EsfJsonObjectInit, handle, handle_val);
+    will_return(__wrap_EsfJsonObjectInit, parent_val);
+    will_return(__wrap_EsfJsonObjectInit, kEsfJsonSuccess);
+
+    // MakeJsonAdditionalInfo
+    common_set_MakeJsonAdditionalInfo(handle_val, parent_val, kRetOk);
+
+    // SendAdditionalInfo
+    expect_value(__wrap_EsfJsonSerialize, handle, handle_val);
+    expect_value(__wrap_EsfJsonSerialize, value, parent_val);
+    will_return(__wrap_EsfJsonSerialize, string_expect);
+    will_return(__wrap_EsfJsonSerialize, kEsfJsonSuccess);
+
+    // SendStateCore
+    will_return(__wrap_SYS_set_state, ret_val);
+
+    // SendAdditionalInfo
+    expect_value(__wrap_EsfJsonClose, handle, handle_val);
+    will_return(__wrap_EsfJsonClose, SYS_RESULT_OK);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
 static void common_set_SendReserved(EsfJsonHandle handle_val, EsfJsonValue parent_val,
                                     const char *string_expect, EsfJsonErrorCode ret_val)
 {
@@ -2139,6 +2257,10 @@ static void common_set_SendState(EsfJsonHandle handle_val, EsfJsonValue parent_v
     else if (req & ST_TOPIC_DEVICE_STATES) {
         // SendDeviceStates();
         common_set_SendDeviceStates(handle_val, parent_val, string_expect, kEsfJsonSuccess);
+    }
+    else if (req & ST_TOPIC_ADDITIONAL_INFO) {
+        // SendAdditionalInfo();
+        common_set_SendAdditionalInfo(handle_val, parent_val, string_expect, kEsfJsonSuccess);
     }
     else if (req & ST_TOPIC_RESERVED) {
         // SendReserved();
@@ -4401,6 +4523,14 @@ static void test_SysAppStaInitialize_FullySuccess(void **)
     common_set_SysAppStateSendState(handle_val, parent_val, bsize, b64_buf, expect_b64_size,
                                     string_expect, ST_TOPIC_DEVICE_STATES, "");
 
+    //  SysAppAdditionalInfoCollect(&s_additional_info);
+    expect_any(__wrap_SysAppAdditionalInfoCollect, info);
+    will_return(__wrap_SysAppAdditionalInfoCollect, kRetOk);
+
+    //  SysAppStateSendState(ST_TOPIC_ADDITIONAL_INFO);
+    common_set_SysAppStateSendState(handle_val, parent_val, bsize, b64_buf, expect_b64_size,
+                                    string_expect, ST_TOPIC_ADDITIONAL_INFO, "");
+
     //  SysAppStateSendState(ST_TOPIC_RESERVED);
     common_set_SysAppStateSendState(handle_val, parent_val, bsize, b64_buf, expect_b64_size,
                                     string_expect, ST_TOPIC_RESERVED, "");
@@ -4584,8 +4714,11 @@ static void test_SensorTempUpdateIntervalCallback_FullySuccess(void **)
 
     s_scstream = 1;
 
+    common_set_AdditionalInfoData();
+
     common_set_SysAppStateUpdateSensorTemperature(false, kUtilityLogElogLevelError, 0, 0, 0);
     common_set_SendDeviceInfo(handle_val, parent_val, string_expect, "");
+    common_set_SendAdditionalInfo(handle_val, parent_val, string_expect, kEsfJsonSuccess);
 
     SensorTempUpdateIntervalCallback();
 
@@ -4601,9 +4734,12 @@ static void test_SensorTempUpdateIntervalCallback_Failed(void **)
 
     s_scstream = 1;
 
+    common_set_AdditionalInfoData();
+
     common_set_SysAppStateUpdateSensorTemperature(true, kUtilityLogElogLevelError,
                                                   SYSAPP_EVT_FAILED_TO_RETRIEVE_TEMP, 0, -1);
     common_set_SendDeviceInfo(handle_val, parent_val, string_expect, "");
+    common_set_SendAdditionalInfo(handle_val, parent_val, string_expect, kEsfJsonSuccess);
 
     SensorTempUpdateIntervalCallback();
 
@@ -4619,11 +4755,14 @@ static void test_SensorTempUpdateIntervalCallback_Success_NoMonitoring(void **)
 
     s_scstream = 1;
 
+    common_set_AdditionalInfoData();
+
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
     common_set_GetAiIspTemperature(s_scstream, 0, 0, 0);
 #endif
 
     common_set_SendDeviceInfo(handle_val, parent_val, string_expect, "");
+    common_set_SendAdditionalInfo(handle_val, parent_val, string_expect, kEsfJsonSuccess);
 
     SensorTempUpdateIntervalCallback();
 

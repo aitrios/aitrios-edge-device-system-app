@@ -59,6 +59,10 @@ foreach dir_name: [ 'system_app', 'initial_setting_app' ]
 	endforeach
 endforeach
 
+# Add EDC version to systemapps_config.h
+version_string = meson.project_version()
+systemapps_config_h.set_quoted('EDC_VERSION', version_string)
+
 subdir('src')
 
 configure_file(output : 'systemapps_config.h',
