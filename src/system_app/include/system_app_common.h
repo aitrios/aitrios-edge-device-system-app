@@ -639,6 +639,11 @@ RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const 
                                void *ctx);
 RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
                                  int code, const char *detail_msg);
+#if defined(__linux__)
+RetCode SysAppCmnExecuteCommand(const char **argv, char *output_buf, size_t buf_len,
+                                bool trim_newline);
+#endif
+RetCode SysAppCmnReadVersionFile(const char *file_path, char *version, size_t version_size);
 
 #if 1 /* TENTATIVE_STUB : These functions are stub for avoid build error. Must be deleted after API replace. */
 #include "network_manager.h"

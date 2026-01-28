@@ -5,6 +5,8 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include "memory_manager.h"
 #include "json/include/json.h"
 #include "json/include/json_handle.h"
@@ -15,6 +17,8 @@
 //
 // Macros.
 //
+
+#define VERSION_LINE_MAX_LEN (128)
 
 //
 // File private structure.
@@ -464,5 +468,157 @@ RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const 
         ret = kRetFailed;
     }
 
+    return ret;
+}
+
+#if defined(__linux__)
+RetCode SysAppCmnExecuteCommand(const char **argv, char *output_buf, size_t buf_len,
+                                bool trim_newline)
+{
+    // Execute external command and optionally capture output.
+    // If output_buf is NULL, stdout flows through to parent process (no capture).
+    // If output_buf is not NULL, stdout is captured into the buffer.
+    // Success is determined by exit code (0 = success, non-zero = failure).
+
+    if (argv == NULL) {
+        return kRetFailed;
+    }
+
+    bool capture_output = (output_buf != NULL && buf_len > 0);
+
+    // Create pipe for stdout redirection only if capturing output.
+
+    int pipefd[2];
+    if (capture_output) {
+        if (pipe(pipefd) == -1) {
+            output_buf[0] = '\0';
+            return kRetFailed;
+        }
+    }
+
+    // Fork process.
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        if (capture_output) {
+            close(pipefd[0]);
+            close(pipefd[1]);
+            output_buf[0] = '\0';
+        }
+        return kRetFailed;
+    }
+
+    if (pid == 0) {
+        // Child process: redirect stdout to pipe if capturing, then execute command.
+
+        if (capture_output) {
+            close(pipefd[0]);
+            dup2(pipefd[1], STDOUT_FILENO);
+            close(pipefd[1]);
+        }
+        execvp(argv[0], (char *const *)argv);
+        exit(1);
+    }
+
+    // Parent process: read output if capturing, then wait for child.
+
+    if (capture_output) {
+        close(pipefd[1]);
+
+        ssize_t bytes = read(pipefd[0], output_buf, buf_len - 1);
+        close(pipefd[0]);
+
+        // Process output: remove trailing newline if requested.
+
+        if (bytes > 0) {
+            if (trim_newline && (output_buf[bytes - 1] == '\n')) {
+                bytes--;
+            }
+            output_buf[bytes] = '\0';
+        }
+        else {
+            output_buf[0] = '\0';
+        }
+    }
+
+    // Wait for child process and check exit status.
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        int exit_code = WEXITSTATUS(status);
+        if (exit_code != 0) {
+            if (capture_output) {
+                output_buf[0] = '\0';
+            }
+            return kRetFailed;
+        }
+    }
+    else {
+        if (capture_output) {
+            output_buf[0] = '\0';
+        }
+        return kRetFailed;
+    }
+
+    return kRetOk;
+}
+#endif // __linux__
+
+RetCode SysAppCmnReadVersionFile(const char *file_path, char *version, size_t version_size)
+{
+    RetCode ret = kRetFailed;
+    FILE *fp = NULL;
+    char line[VERSION_LINE_MAX_LEN] = {0};
+    const char *version_prefix = "Version:";
+    const size_t prefix_len = strlen(version_prefix);
+
+    if ((file_path == NULL) || (version == NULL) || (version_size == 0)) {
+        SYSAPP_ERR("Invalid parameters");
+        return kRetFailed;
+    }
+
+    fp = fopen(file_path, "r");
+    if (fp == NULL) {
+        SYSAPP_ERR("Failed to open file: %s", file_path);
+        return kRetFailed;
+    }
+
+    if (fgets(line, sizeof(line), fp) != NULL) {
+        char *version_start = strstr(line, version_prefix);
+        if (version_start != NULL) {
+            version_start += prefix_len;
+
+            // Skip leading whitespace
+            while (*version_start == ' ' || *version_start == '\t') {
+                version_start++;
+            }
+
+            // Copy version string until newline or end of string
+            size_t i = 0;
+            while (version_start[i] != '\0' && version_start[i] != '\n' &&
+                   version_start[i] != '\r' && i < version_size - 1) {
+                version[i] = version_start[i];
+                i++;
+            }
+            version[i] = '\0';
+
+            if (strlen(version) > 0) {
+                ret = kRetOk;
+            }
+            else {
+                SYSAPP_ERR("Version string is empty");
+            }
+        }
+        else {
+            SYSAPP_ERR("Version prefix not found in file");
+        }
+    }
+    else {
+        SYSAPP_ERR("Failed to read line from file");
+    }
+
+    fclose(fp);
     return ret;
 }
