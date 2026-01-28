@@ -451,6 +451,7 @@ static void common_set_GetAiIspTemperature_Upper(EsfJsonHandle handle_val, EsfJs
 static void common_set_GetSensorTemperature(senscord_stream_t scstream, float temperature_val,
                                             int32_t ret_mutex_lock, int32_t ret_val)
 {
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
     s_temperature_prop.temperatures[0].temperature = temperature_val;
 
     // pthread_mutex_lock
@@ -518,6 +519,8 @@ static void common_set_GetSensorTemperature(senscord_stream_t scstream, float te
         // pthread_mutex_unlock
         will_return(__wrap_pthread_mutex_unlock, 0);
     }
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+
     return;
 }
 
@@ -591,14 +594,19 @@ static void common_set_SysAppStateReadoutChips_FullySuccess(char *b64_buf, uint3
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, 0); // GetSensorInfo()
 #endif // CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
+
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, 0); // GetSensorInfo()
     common_set_GetAiIspTemperature(s_scstream, TEMPERATURE_UPPER_APPROACHING_THRESHOLD, 0,
                                    0); // GetAiIspTemperature()
 #endif                                 // CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
+
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, 0); // GetSensorInfo()
+
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
     common_set_GetSensorTemperature(s_scstream, TEMPERATURE_LOWER_APPROACHING_THRESHOLD, 0,
                                     0); // GetSensorTemperature()
+#endif                                  // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 
     // EsfFwMgrGetInfo
     will_return(__wrap_EsfFwMgrGetInfo, (EsfFwMgrGetInfoData *)&s_fm_gir_ai_model[0]);
@@ -635,14 +643,18 @@ static void common_set_SysAppStateReadoutChips_Failed(char *b64_buf, uint32_t ex
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, -1); // GetSensorInfo()
 #endif // CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_IMX500
+
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, -1); // GetSensorInfo()
     common_set_GetAiIspTemperature(s_scstream, TEMPERATURE_UPPER_APPROACHING_THRESHOLD, 0,
                                    -1); // GetAiIspTemperature()
 #endif                                  // CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
+
     common_set_GetSensorInfo(s_scstream, &s_expect_img_prop, -1); // GetSensorInfo()
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
     common_set_GetSensorTemperature(s_scstream, TEMPERATURE_LOWER_APPROACHING_THRESHOLD, 0,
                                     -1); // GetSensorTemperature()
+#endif                                   // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 
     // EsfFwMgrGetInfo
     will_return(__wrap_EsfFwMgrGetInfo, (EsfFwMgrGetInfoData *)&s_fm_gir_ai_model[0]);
@@ -846,12 +858,25 @@ static void common_set_MakeJsonChips(EsfJsonHandle handle_val, EsfJsonValue pare
     expect_string(__wrap_SysAppCmnSetStringValue, string, s_chips[no].hardware_version);
     will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
 
-    // SysAppCmnSetNumberValue
-    expect_value(__wrap_SysAppCmnSetNumberValue, handle, handle_val);
-    expect_value(__wrap_SysAppCmnSetNumberValue, parent, parent_val);
-    expect_string(__wrap_SysAppCmnSetNumberValue, key, "temperature");
-    expect_value(__wrap_SysAppCmnSetNumberValue, number, s_chips[no].current_temperature);
-    will_return(__wrap_SysAppCmnSetNumberValue, kRetOk);
+    // Set current_temperature.
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "temperature");
+    expect_string(__wrap_SysAppCmnSetStringValue, string, "25");
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+#else
+    expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
+    expect_value(__wrap_SysAppCmnSetStringValue, parent, parent_val);
+    expect_string(__wrap_SysAppCmnSetStringValue, key, "temperature");
+    if (no == 1) {
+        expect_string(__wrap_SysAppCmnSetStringValue, string, "N/A");
+    }
+    else {
+        expect_string(__wrap_SysAppCmnSetStringValue, string, "25");
+    }
+    will_return(__wrap_SysAppCmnSetStringValue, kRetOk);
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 
     // SysAppCmnSetStringValue
     expect_value(__wrap_SysAppCmnSetStringValue, handle, handle_val);
@@ -3797,6 +3822,8 @@ static void test_MakeJsonResInfoEndpointSettings_FullySuccess(void **)
 }
 
 /*----------------------------------------------------------------------------*/
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+/*----------------------------------------------------------------------------*/
 static void test_GetSensorTemperature_Success(void **)
 {
     RetCode ret;
@@ -3899,6 +3926,32 @@ static void test_GetSensorTemperature_Stream_Failed(void **)
 
     return;
 }
+#else
+/*----------------------------------------------------------------------------*/
+static void test_GetSensorTemperature_Success_No_SensorCall(void **)
+{
+    int ret;
+
+    ret = GetSensorTemperature(42);
+    assert_int_equal(ret, 0);
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+static void test_GetSensorTemperature_Success_Ignores_Input_Threshold(void **)
+{
+    int ret;
+
+    ret = GetSensorTemperature(TEMPERATURE_UPPER_THRESHOLD);
+    assert_int_equal(ret, 0);
+
+    ret = GetSensorTemperature(TEMPERATURE_LOWER_THRESHOLD);
+    assert_int_equal(ret, 0);
+
+    return;
+}
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 
 #ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
 /*----------------------------------------------------------------------------*/
@@ -4522,6 +4575,7 @@ void test_SysAppStateGetSensCordStream_Failed(void **)
 }
 
 /*----------------------------------------------------------------------------*/
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 static void test_SensorTempUpdateIntervalCallback_FullySuccess(void **)
 {
     EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
@@ -4555,6 +4609,27 @@ static void test_SensorTempUpdateIntervalCallback_Failed(void **)
 
     return;
 }
+#else // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
+/*----------------------------------------------------------------------------*/
+static void test_SensorTempUpdateIntervalCallback_Success_NoMonitoring(void **)
+{
+    EsfJsonHandle handle_val = (EsfJsonHandle)0x12345678;
+    EsfJsonValue parent_val = 1357;
+    const char *string_expect = "string_serialize_value";
+
+    s_scstream = 1;
+
+#ifdef CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
+    common_set_GetAiIspTemperature(s_scstream, 0, 0, 0);
+#endif
+
+    common_set_SendDeviceInfo(handle_val, parent_val, string_expect, "");
+
+    SensorTempUpdateIntervalCallback();
+
+    return;
+}
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
 
 /*----------------------------------------------------------------------------*/
 static void test_SysAppStateUpdateSensorTemperature_FullySuccess(void **)
@@ -4958,6 +5033,8 @@ static void test_SysAppStateUpdateStringWithIdx_FullySuccess(void **)
 }
 
 /*----------------------------------------------------------------------------*/
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING) || \
+    defined(CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP)
 static void test_SysAppStateUpdateSensorTemperature_Failed(void **)
 {
     RetCode ret;
@@ -4973,6 +5050,7 @@ static void test_SysAppStateUpdateSensorTemperature_Failed(void **)
 
     return;
 }
+#endif // CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING || CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP
 
 /*----------------------------------------------------------------------------*/
 static void test_SysAppStateReadoutMainChip_FullySuccess(void **)
@@ -8102,6 +8180,7 @@ int main(void)
 #else
 #endif
         cmocka_unit_test(test_MakeJsonResInfoEndpointSettings_FullySuccess),
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
         cmocka_unit_test(test_GetSensorTemperature_Success),
         cmocka_unit_test(test_GetSensorTemperature_Upper),
         cmocka_unit_test(test_GetSensorTemperature_UpperApproaching),
@@ -8110,6 +8189,10 @@ int main(void)
         cmocka_unit_test(test_GetSensorTemperature_Stream_Failed),
         cmocka_unit_test(test_GetSensorTemperature_Mutex_Failed),
         cmocka_unit_test(test_GetSensorTemperature_Property_Failed),
+#else
+        cmocka_unit_test(test_GetSensorTemperature_Success_No_SensorCall),
+        cmocka_unit_test(test_GetSensorTemperature_Success_Ignores_Input_Threshold),
+#endif
         cmocka_unit_test(test_GetPowerSupplyType_FullySuccess),
         cmocka_unit_test(test_GetPowerSupplyType_Failed),
         cmocka_unit_test(test_GetPowerSupplyType_Type_Failed),
@@ -8134,8 +8217,12 @@ int main(void)
         cmocka_unit_test(test_GetAiIspTemperature_Upper),
         cmocka_unit_test(test_GetAiIspTemperature_UpperApproaching),
 #endif
+#ifdef CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING
         cmocka_unit_test(test_SensorTempUpdateIntervalCallback_FullySuccess),
         cmocka_unit_test(test_SensorTempUpdateIntervalCallback_Failed),
+#else
+        cmocka_unit_test(test_SensorTempUpdateIntervalCallback_Success_NoMonitoring),
+#endif
         cmocka_unit_test(test_HoursMeterUpdateIntervalCallback_FullySuccess),
         cmocka_unit_test(test_HoursMeterUpdateIntervalCallback_Failed),
 
@@ -8225,7 +8312,10 @@ int main(void)
         cmocka_unit_test(test_SysAppStateUpdateStringWithIdx_FullySuccess),
         // SysAppStateUpdateSensorTemperature()
         cmocka_unit_test(test_SysAppStateUpdateSensorTemperature_FullySuccess),
+#if defined(CONFIG_EXTERNAL_SYSTEMAPP_SENSOR_TEMPERATURE_MONITORING) || \
+    defined(CONFIG_APP_EXTERNAL_SENSOR_AI_LIB_DEVICE_AIISP)
         cmocka_unit_test(test_SysAppStateUpdateSensorTemperature_Failed),
+#endif
 
         // SysAppStateUpdateHoursMeter()
         cmocka_unit_test(test_SysAppStateUpdateHoursMeter_FullySuccess),
