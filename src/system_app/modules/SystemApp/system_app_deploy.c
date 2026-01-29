@@ -2576,58 +2576,36 @@ STATIC RetCode GetSystemUpdateConfigurationTarget(EsfJsonHandle handle, EsfJsonV
         goto errout;
     }
 
-    /* Get target version property and validate it must be empty string */
+    /* Get target version property */
 
     extract_ret = ExtractStringValue(handle, target_val, "version", deploy_targets->version,
                                      sizeof(deploy_targets->version), DEPLOY_STR_VERSION_LEN);
-    if (extract_ret < 0) {
-        SYSAPP_ERR("Missing version property. ret=%d", extract_ret);
-        goto errout;
-    }
-    if (deploy_targets->version[0] != '\0') {
-        SYSAPP_ERR("Invalid version value. Expected empty string, Got: %s",
-                   deploy_targets->version);
-        goto errout;
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("target version not found or invalid. skip it. ret=%d", extract_ret);
     }
 
-    /* Get package_url property and validate it must be empty string */
+    /* Get package_url property */
 
     extract_ret = ExtractStringValue(handle, target_val, "package_url", deploy_targets->package_url,
                                      sizeof(deploy_targets->package_url),
                                      DEPLOY_STR_PACKAGE_URL_LEN);
-    if (extract_ret < 0) {
-        SYSAPP_ERR("Missing package_url property. ret=%d", extract_ret);
-        goto errout;
-    }
-    if (deploy_targets->package_url[0] != '\0') {
-        SYSAPP_ERR("Invalid package_url value. Expected empty string, Got: %s",
-                   deploy_targets->package_url);
-        goto errout;
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("package_url not found or invalid. skip it. ret=%d", extract_ret);
     }
 
-    /* Get hash property and validate it must be empty string */
+    /* Get hash property */
 
     extract_ret = ExtractStringValue(handle, target_val, "hash", deploy_targets->hash,
                                      sizeof(deploy_targets->hash), DEPLOY_STR_HASH_LEN);
-    if (extract_ret < 0) {
-        SYSAPP_ERR("Missing hash property. ret=%d", extract_ret);
-        goto errout;
-    }
-    if (deploy_targets->hash[0] != '\0') {
-        SYSAPP_ERR("Invalid hash value. Expected empty string, Got: %s", deploy_targets->hash);
-        goto errout;
+    if (extract_ret <= 0) {
+        SYSAPP_INFO("hash not found or invalid. skip it. ret=%d", extract_ret);
     }
 
-    /* Get size property and validate it must be 0 */
+    /* Get size property */
 
     extract_ret = SysAppCmnExtractNumberValue(handle, target_val, "size", &deploy_targets->size);
     if (extract_ret <= 0) {
-        SYSAPP_ERR("Missing or invalid size property. ret=%d", extract_ret);
-        goto errout;
-    }
-    if (deploy_targets->size != 0) {
-        SYSAPP_ERR("Invalid size value. Expected 0, Got: %d", deploy_targets->size);
-        goto errout;
+        SYSAPP_INFO("size not found or invalid. skip it. ret=%d", extract_ret);
     }
 
     ret = kRetOk;
