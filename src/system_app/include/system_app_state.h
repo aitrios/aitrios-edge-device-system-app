@@ -54,6 +54,7 @@ RetCode SysAppStaFinalize(void);
 RetCode SysAppStateReadoutDeviceInfo(void);
 RetCode SysAppStateReadoutDeviceCapabilities(void);
 RetCode SysAppStateReadoutDeviceStates(void);
+
 #if 0 // For_Coverity_Disable_SysAppStateReadoutReserved
 RetCode SysAppStateReadoutReserved(void);
 #endif

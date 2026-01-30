@@ -2604,10 +2604,7 @@ STATIC RetCode GetSystemUpdateConfigurationTarget(EsfJsonHandle handle, EsfJsonV
     /* Get size property */
 
     extract_ret = SysAppCmnExtractNumberValue(handle, target_val, "size", &deploy_targets->size);
-    if (extract_ret <= 0 || deploy_targets->size < 0) {
-        /* Set a invalid value to skip the response of size property */
-
-        deploy_targets->size = SYSTEM_UPDATE_SUPPORT_INVALID_SIZE;
+    if (extract_ret <= 0) {
         SYSAPP_INFO("size not found or invalid. skip it. ret=%d", extract_ret);
     }
 
@@ -2723,11 +2720,18 @@ errout:
 }
 
 /*--------------------------------------------------------------------------*/
-STATIC DeployState_e ExecuteSystemUpdateScript(void)
+STATIC DeployState_e ExecuteSystemUpdateScript(Deploy_t *p_deploy)
 {
     /* Execute /sbin/edc_system_update.sh script */
 
     const char *script_path = "/sbin/edc_system_update.sh";
+    const char *argv[] = {script_path, NULL};
+    const char *version_file_path = "/opt/edc/version_edc.txt";
+    RetCode ret;
+    char version[DEPLOY_STR_VERSION_BUF_LEN] = {0};
+
+    /* Clear version to empty string at start */
+    p_deploy->deploy_targets[0].version[0] = '\0';
 
     SYSAPP_INFO("Starting system update script: %s", script_path);
 
@@ -2745,64 +2749,29 @@ STATIC DeployState_e ExecuteSystemUpdateScript(void)
         return DeployStateFailed;
     }
 
-    /* Set up environment with proper PATH for script execution */
+    /* Execute the script (output flows to stdout) */
 
-    const char *current_path = getenv("PATH");
-    const char *standard_path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
-    char *full_command = NULL;
-    int ret = -1;
+    ret = SysAppCmnExecuteCommand(argv, NULL, 0, false);
 
-    /* Create command with proper PATH environment */
+    if (ret == kRetOk) {
+        SYSAPP_INFO("System update script completed successfully");
 
-    if (current_path != NULL) {
-        /* Prepend standard paths to existing PATH */
+        /* Read EDC version from file */
 
-        size_t cmd_len = strlen("PATH=") + strlen(standard_path) + strlen(":") +
-                         strlen(current_path) + strlen(" ") + strlen(script_path) + 1;
-        full_command = malloc(cmd_len);
-        if (full_command != NULL) {
-            snprintf(full_command, cmd_len, "PATH=%s:%s %s", standard_path, current_path,
-                     script_path);
+        ret = SysAppCmnReadVersionFile(version_file_path, version, sizeof(version));
+        if (ret == kRetOk) {
+            snprintf(p_deploy->deploy_targets[0].version,
+                     sizeof(p_deploy->deploy_targets[0].version), "%s", version);
+            SYSAPP_INFO("EDC version updated: %s", p_deploy->deploy_targets[0].version);
         }
+        else {
+            SYSAPP_WARN("Failed to read EDC version from file: %s", version_file_path);
+        }
+
+        return DeployStateDone;
     }
     else {
-        /* Use only standard paths */
-
-        size_t cmd_len = strlen("PATH=") + strlen(standard_path) + strlen(" ") +
-                         strlen(script_path) + 1;
-        full_command = malloc(cmd_len);
-        if (full_command != NULL) {
-            snprintf(full_command, cmd_len, "PATH=%s %s", standard_path, script_path);
-        }
-    }
-
-    if (full_command == NULL) {
-        SYSAPP_ERR("Failed to allocate memory for command string");
-        return DeployStateFailed;
-    }
-
-    SYSAPP_INFO("Executing command: %s", full_command);
-
-    /* Execute the script with proper environment */
-
-    ret = system(full_command);
-
-    free(full_command);
-
-    if (ret == -1) {
-        SYSAPP_ERR("Failed to execute system update script");
-        return DeployStateFailed;
-    }
-
-    /* Get the actual exit status */
-
-    if (WIFEXITED(ret)) {
-        int exit_status = WEXITSTATUS(ret);
-        SYSAPP_INFO("System update script completed with exit status: %d", exit_status);
-        return (exit_status == 0) ? DeployStateDone : DeployStateFailed;
-    }
-    else {
-        SYSAPP_ERR("System update script terminated abnormally");
+        SYSAPP_ERR("System update script failed");
         return DeployStateFailed;
     }
 }
@@ -2827,44 +2796,36 @@ STATIC void MakeJsonStateDeployTargetForSystemUpdate(DeployTarget_t *p_target, E
                    handle, parent_val, ret);
     }
 
-    /* Set package_url property */
+    /* Set package_url property - always empty string */
 
-    if (p_target->package_url[0] != '\0') {
-        ret = SysAppCmnSetStringValue(handle, parent_val, "package_url", p_target->package_url);
-        if (ret != kRetOk) {
-            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", package_url, %s) ret=%d",
-                       handle, parent_val, p_target->package_url, ret);
-        }
+    ret = SysAppCmnSetStringValue(handle, parent_val, "package_url", "");
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", package_url, \"\") ret=%d",
+                   handle, parent_val, ret);
     }
 
-    /* Set version property */
+    /* Set version property - empty string on failure, actual version on success */
 
-    if (p_target->version[0] != '\0') {
-        ret = SysAppCmnSetStringValue(handle, parent_val, "version", p_target->version);
-        if (ret != kRetOk) {
-            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", version, %s) ret=%d",
-                       handle, parent_val, p_target->version, ret);
-        }
+    ret = SysAppCmnSetStringValue(handle, parent_val, "version", p_target->version);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", version, %s) ret=%d", handle,
+                   parent_val, p_target->version, ret);
     }
 
-    /* Set hash property */
+    /* Set hash property - always empty string */
 
-    if (p_target->hash[0] != '\0') {
-        ret = SysAppCmnSetStringValue(handle, parent_val, "hash", p_target->hash);
-        if (ret != kRetOk) {
-            SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", hash, %s) ret=%d",
-                       handle, parent_val, p_target->hash, ret);
-        }
+    ret = SysAppCmnSetStringValue(handle, parent_val, "hash", "");
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetStringValue(%p, %" PRId32 ", hash, \"\") ret=%d", handle,
+                   parent_val, ret);
     }
 
-    /* Set size property */
+    /* Set size property - always 0 */
 
-    if (p_target->size > SYSTEM_UPDATE_SUPPORT_INVALID_SIZE) {
-        ret = SysAppCmnSetNumberValue(handle, parent_val, "size", p_target->size);
-        if (ret != kRetOk) {
-            SYSAPP_ERR("Failed to SysAppCmnSetNumberValue(%p, %" PRId32 ", size, %zu) ret=%d",
-                       handle, parent_val, p_target->size, ret);
-        }
+    ret = SysAppCmnSetNumberValue(handle, parent_val, "size", 0);
+    if (ret != kRetOk) {
+        SYSAPP_ERR("Failed to SysAppCmnSetNumberValue(%p, %" PRId32 ", size, 0) ret=%d", handle,
+                   parent_val, ret);
     }
 
     /* Set progress property */
@@ -3141,7 +3102,7 @@ STATIC RetCode UpdateSystemFirmware(SysAppDeployHandle handle, const char *confi
     if (parse_ret == kRetOk) {
         /* Execute system update script */
 
-        state = ExecuteSystemUpdateScript();
+        state = ExecuteSystemUpdateScript(&deploy);
         SYSAPP_INFO("System update script execution returned: %d", state);
         ret = kRetOk;
     }

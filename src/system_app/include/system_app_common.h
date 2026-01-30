@@ -60,6 +60,12 @@
 #define ST_AIMODEL_UPDATE_DATE_LEN (32)
 #define ST_AIMODEL_HASH_LEN (44)
 
+// String length for additional_info.
+
+#define ST_ADDITIONAL_INFO_KEY_LEN (64)
+#define ST_ADDITIONAL_INFO_VALUE_LEN (128)
+#define ST_ADDITIONAL_INFO_MAX_ITEMS (10)
+
 // String length for log.
 
 #define CFGST_LOG_FILTER_LEN (32)
@@ -132,6 +138,7 @@
 #if defined(CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING)
 #define ST_TOPIC_STREAMING_SETTINGS (1 << 14)
 #endif /* CONFIG_EXTERNAL_SYSTEMAPP_VIDEO_STREAMING */
+#define ST_TOPIC_ADDITIONAL_INFO (1 << 15)
 
 // Data type group.
 
@@ -451,6 +458,18 @@ typedef struct {
     //char location[];
 } StAIModelParams;
 
+// Struct for additional_info.
+
+typedef struct {
+    char key[ST_ADDITIONAL_INFO_KEY_LEN + 1];
+    char value[ST_ADDITIONAL_INFO_VALUE_LEN + 1];
+} StAdditionalInfoItem;
+
+typedef struct {
+    int item_count;
+    StAdditionalInfoItem items[ST_ADDITIONAL_INFO_MAX_ITEMS];
+} StAdditionalInfoParams;
+
 // Struct for update_info.
 //
 // Note 1:
@@ -620,6 +639,11 @@ RetCode SysAppCmnSetArrayValue(EsfJsonHandle handle, EsfJsonValue parent, const 
                                void *ctx);
 RetCode SysAppCmnMakeJsonResInfo(EsfJsonHandle handle, EsfJsonValue root, const char *res_id,
                                  int code, const char *detail_msg);
+#if defined(__linux__)
+RetCode SysAppCmnExecuteCommand(const char **argv, char *output_buf, size_t buf_len,
+                                bool trim_newline);
+#endif
+RetCode SysAppCmnReadVersionFile(const char *file_path, char *version, size_t version_size);
 
 #if 1 /* TENTATIVE_STUB : These functions are stub for avoid build error. Must be deleted after API replace. */
 #include "network_manager.h"

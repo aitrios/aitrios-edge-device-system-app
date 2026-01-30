@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 system_app_sources += files([
+	'system_app_additional_info.c',
 	'system_app_button.c',
 	'system_app_common.c',
 	'system_app_configuration.c',
