@@ -2730,6 +2730,9 @@ STATIC DeployState_e ExecuteSystemUpdateScript(Deploy_t *p_deploy)
     RetCode ret;
     char version[DEPLOY_STR_VERSION_BUF_LEN] = {0};
 
+    /* Clear version to empty string at start */
+    p_deploy->deploy_targets[0].version[0] = '\0';
+
     SYSAPP_INFO("Starting system update script: %s", script_path);
 
     /* Check if script exists */
